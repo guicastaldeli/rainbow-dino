@@ -10,7 +10,7 @@ export class Terrain {
     pos = {
         x: 0,
         y: 0,
-        z: 0
+        z: -5
     }
 
     public createTerrain(): THREE.Mesh {

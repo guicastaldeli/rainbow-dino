@@ -1,6 +1,12 @@
 import * as THREE from 'three';
 
 export class Terrain {
+    public mesh!: THREE.Mesh | any;
+
+    constructor() {
+        this.mesh = this.updateTerrain();
+    }
+
     size = {
         w: 1,
         h: 5,
@@ -13,15 +19,22 @@ export class Terrain {
         z: -3
     }
 
-    public createTerrain(): THREE.Mesh {
+    private createTerrain(): THREE.Mesh {
         const geometry = new THREE.BoxGeometry(this.size.w, this.size.h, this.size.d);
         const material = new THREE.MeshBasicMaterial({ color: 'rgb(28, 205, 54)' });
-        const mesh = new THREE.Mesh(geometry, material);
+        this.mesh = new THREE.Mesh(geometry, material);
 
-        mesh.position.x = this.pos.x;
-        mesh.position.y = this.pos.y;
-        mesh.position.z = this.pos.z;
-
-        return mesh;
+        return this.mesh;
     }
+
+    private terrainPos(): void {
+        this.mesh.position.x = this.pos.x;
+        this.mesh.position.y = this.pos.y;
+        this.mesh.position.z = this.pos.z;
+    }
+
+    public updateTerrain(): void {
+        this.createTerrain();
+        this.terrainPos();
+    } 
 }

@@ -11,14 +11,21 @@ export class Terrain {
             y: 0,
             z: -3
         };
+        this.mesh = this.updateTerrain();
     }
     createTerrain() {
         const geometry = new THREE.BoxGeometry(this.size.w, this.size.h, this.size.d);
         const material = new THREE.MeshBasicMaterial({ color: 'rgb(28, 205, 54)' });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.x = this.pos.x;
-        mesh.position.y = this.pos.y;
-        mesh.position.z = this.pos.z;
-        return mesh;
+        this.mesh = new THREE.Mesh(geometry, material);
+        return this.mesh;
+    }
+    terrainPos() {
+        this.mesh.position.x = this.pos.x;
+        this.mesh.position.y = this.pos.y;
+        this.mesh.position.z = this.pos.z;
+    }
+    updateTerrain() {
+        this.createTerrain();
+        this.terrainPos();
     }
 }

@@ -11,7 +11,7 @@ export class Terrain {
             y: 0,
             z: -3
         };
-        this.mesh = this.updateTerrain();
+        this.updateTerrain();
     }
     createTerrain() {
         const geometry = new THREE.BoxGeometry(this.size.w, this.size.h, this.size.d);

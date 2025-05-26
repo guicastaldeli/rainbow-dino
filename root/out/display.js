@@ -3,8 +3,8 @@ import { Terrain } from './terrain.js';
 export class Display {
     constructor() {
         this.size = {
-            w: window.innerWidth / 80,
-            h: window.innerHeight / 65,
+            w: 13,
+            h: 8,
             d: 0.1
         };
         this.pos = {
@@ -26,18 +26,26 @@ export class Display {
             this.mesh.position.z = this.pos.z;
     }
     _mainGroup() {
-        const mainGroup = new THREE.Group();
-        mainGroup.add(this.mesh);
+        this.mainGroup = new THREE.Group();
+        this.mainGroup.add(this.mesh);
         //Render
         //Terrain
         const renderTerrain = new Terrain();
-        mainGroup.add(renderTerrain.mesh);
+        this.mainGroup.add(renderTerrain.mesh);
         //
-        return mainGroup;
+        return this.mainGroup;
     }
     setDisplay() {
         this.createDisplay();
         this.displayPos();
         return this._mainGroup();
+    }
+    //Resize
+    handleResize() {
+        this.size.w = this.size.w;
+        this.size.h = this.size.h;
+        window.addEventListener('resize', () => {
+            this.handleResize();
+        });
     }
 }

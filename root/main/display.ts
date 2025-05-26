@@ -4,6 +4,7 @@ import { Terrain } from './terrain.js';
 
 export class Display {
     public display: any;
+    public mainGroup!: THREE.Group;
     private mesh!: THREE.LineSegments;
 
     constructor() {
@@ -11,8 +12,8 @@ export class Display {
     }
 
     size = {
-        w: window.innerWidth / 80,
-        h: window.innerHeight / 65,
+        w: 13,
+        h: 8,
         d: 0.1
     }
 
@@ -37,16 +38,16 @@ export class Display {
     }
 
     private _mainGroup(): THREE.Group {
-        const mainGroup = new THREE.Group();
-        mainGroup.add(this.mesh);
+        this.mainGroup = new THREE.Group();
+        this.mainGroup.add(this.mesh);
 
         //Render
             //Terrain
             const renderTerrain = new Terrain();
-            mainGroup.add(renderTerrain.mesh);
+            this.mainGroup.add(renderTerrain.mesh);
         //
 
-        return mainGroup;
+        return this.mainGroup;
     }
 
     public setDisplay(): THREE.Group {
@@ -55,4 +56,15 @@ export class Display {
 
         return this._mainGroup();
     }
+
+    //Resize
+        private handleResize(): void {
+            this.size.w = this.size.w;
+            this.size.h = this.size.h;
+
+            window.addEventListener('resize', () => {
+                this.handleResize();
+            });
+        }
+    //
 }

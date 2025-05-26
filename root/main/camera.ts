@@ -64,16 +64,9 @@ export class Camera {
             LEFT: THREE.MOUSE.PAN,
             RIGHT: THREE.MOUSE.ROTATE
         }
-        window.addEventListener('wheel', () => {
-            console.log(this.camera.position.z)
-            if(this.controls.enableZoom) console.log('ok')
-            else console.log('oks')
-        })
 
         //Rotation...
         const halfRotation = Math.PI / 2.5;
-        this.controls.minPolarAngle = -halfRotation;
-        this.controls.maxPolarAngle = halfRotation;
         this.controls.minAzimuthAngle = -halfRotation;
         this.controls.maxAzimuthAngle = halfRotation;
 
@@ -106,9 +99,5 @@ export class Camera {
         target.y = THREE.MathUtils.clamp(target.y, this.bounds.minY, this.bounds.maxY);
         target.z = THREE.MathUtils.clamp(target.z, this.bounds.minZ, this.bounds.maxZ);
         this.controls.target.copy(target);
-
-        const isAtMinZ = Math.abs(this.camera.position.z - this.bounds.minZ) < 0.01;
-        const isAtMaxZ = Math.abs(this.camera.position.z - this.bounds.maxZ) < 0.01;
-        this.controls.enableZoom = !(isAtMaxZ || isAtMinZ);
     }
 }

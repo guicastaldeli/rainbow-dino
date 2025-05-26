@@ -1,0 +1,18 @@
+html, body, #game--container {
+  margin: 0;
+  border: 0;
+}
+
+html, body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#game--container {
+  background-color: black;
+  width: 100% !important;
+  height: 100% !important;
+}/*# sourceMappingURL=styles.css.map */

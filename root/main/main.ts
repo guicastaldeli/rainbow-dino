@@ -16,12 +16,11 @@ renderer.autoClear = false;
 const scene = new THREE.Scene();
 
 //Time and Skybox
-const timeCycle = new Time(50);
+const timeCycle = new Time();
 const skybox = new Skybox(timeCycle);
 
 skybox.ready().then(() => {
-    scene.add(skybox.getMesh());
-    scene.add(skybox.points);
+    scene.add(skybox.mesh);
 }).catch(error => {
     console.error(error);
 });

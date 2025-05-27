@@ -18,32 +18,46 @@ export class Skybox {
     loadShaders() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const [vertexShader, fragmentShader] = yield Promise.all([
+                const [vertexShader, fragmentShader, starVertexShader, starFragShader] = yield Promise.all([
                     this.loadShader('../main/shaders/vertexShader.glsl'),
-                    this.loadShader('../main/shaders/fragShader.glsl')
+                    this.loadShader('../main/shaders/fragShader.glsl'),
+                    this.loadShader('../main/shaders/starVertexShader.glsl'),
+                    this.loadShader('../main/shaders/starFragShader.glsl')
                 ]);
-                this.material = new THREE.ShaderMaterial({
+                this.skyboxMaterial = new THREE.ShaderMaterial({
                     uniforms: {
                         timeFactor: { value: 0.0 },
-                        time: { value: 0 },
-                        size: { value: 1.0 },
                         resolution: {
                             value: new THREE.Vector2(window.innerWidth, window.innerHeight)
                         }
                     },
                     vertexShader,
                     fragmentShader,
-                    transparent: true,
-                    blending: THREE.AdditiveBlending,
                     side: THREE.DoubleSide
                 });
-                const geometry = new THREE.BoxGeometry(50, 50, 50);
-                this.mesh = new THREE.Mesh(geometry, this.material);
+                this.starsMaterial = new THREE.ShaderMaterial({
+                    uniforms: {
+                        timeFactor: { value: 0.0 },
+                        time: { value: 0 },
+                        size: { value: 0.3 }
+                    },
+                    vertexShader: starVertexShader,
+                    fragmentShader: starFragShader,
+                    transparent: true,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                });
+                const geometry = new THREE.BoxGeometry(100, 100, 100);
+                this.mesh = new THREE.Mesh(geometry, this.skyboxMaterial);
                 const mergedGeometry = mergeGeometries(this.geometries);
                 this.geometries.forEach(g => g.dispose());
                 this.geometries = [];
-                this.points = new THREE.Points(mergedGeometry, this.material);
-                return this.mesh;
+                this.points = new THREE.Points(mergedGeometry, this.starsMaterial);
+                this.mesh.add(this.points);
+                return {
+                    skybox: this.mesh,
+                    stars: this.points
+                };
             }
             catch (error) {
                 console.error(error);
@@ -65,8 +79,9 @@ export class Skybox {
         this.geometries = [];
         for (let i = 0; i < chunks; i++) {
             const geometry = new THREE.BufferGeometry();
-            const chunkCount = i === chunks - 1 ? -(i * starChunk) : starChunk;
-            const { pos, color, scale, phase } = this.createStars(chunkCount);
+            const remChunk = count - (i * starChunk);
+            const chunkCount = i === chunks - 1 ? remChunk : starChunk;
+            const { pos, color, scale, phase, } = this.createStars(chunkCount);
             geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
             geometry.setAttribute('color', new THREE.BufferAttribute(color, 3));
             geometry.setAttribute('scale', new THREE.BufferAttribute(scale, 1));
@@ -105,7 +120,7 @@ export class Skybox {
             color,
             scale,
             speed,
-            phase
+            phase,
         };
     }
     ready() {
@@ -115,15 +130,16 @@ export class Skybox {
         });
     }
     update(deltaTime) {
-        if (!this.points || !this.material)
+        if (!this.mesh || !this.points)
             return;
         const factor = this.timeCycle.getTimeFactor();
-        //console.log(factor)
-        const rotationSpeed = 0.5;
-        this.points.rotation.y += rotationSpeed * deltaTime;
-        const uniforms = this.material.uniforms;
-        uniforms.timeFactor.value = factor;
-        uniforms.time.value = this.timeCycle.getTotalTime();
+        const rotationSpeed = 0.03;
+        this.points.rotation.x += rotationSpeed * deltaTime;
+        const totalTime = performance.now() * 0.001;
+        this.skyboxMaterial.uniforms.timeFactor.value = factor;
+        this.starsMaterial.uniforms.timeFactor.value = factor;
+        this.starsMaterial.uniforms.time.value = totalTime;
+        this.starsMaterial.needsUpdate = true;
     }
     getMesh() {
         return this.mesh;

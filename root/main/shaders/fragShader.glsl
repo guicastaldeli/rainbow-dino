@@ -18,8 +18,8 @@ void main() {
     vec3 dayColorBottom = vec3(0.8667, 0.8667, 0.8667);
 
     //Night Color
-    vec3 nightTopColor = vec3(0.051, 0.0588, 0.0941);
-    vec3 nightColorBottom = vec3(0.1216, 0.1451, 0.2235);
+    vec3 nightTopColor = vec3(0.0706, 0.0745, 0.0902);
+    vec3 nightColorBottom = vec3(0.1686, 0.1725, 0.1882);
 
     //Dusk-Dawn Color
     vec3 duskDawnColorTop = vec3(0.8, 0.4, 0.1);
@@ -33,13 +33,6 @@ void main() {
 
     float gradient = smoothstep(-1.0, 1.0, pos.y);
     vec3 finalColor = mix(colorBottom, colorTop, gradient);
-
-    vec2 coord = gl_PointCoord - vec2(0.5);
-    if(length(coord) > 0.5) discard;
-
-    float glow = pow(1.0 - (length(coord) * 1.5), 2.0);
-    float center = smoothstep (0.4, 0.2, length(coord));
-    vec3 starColor = vColor * (glow + center * 2.0);
 
     gl_FragColor = vec4(finalColor, 1.0);
 }

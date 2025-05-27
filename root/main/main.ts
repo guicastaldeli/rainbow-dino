@@ -15,17 +15,17 @@ renderer.autoClear = false;
 
 const scene = new THREE.Scene();
 
-//Time and Skybox
-const timeCycle = new Time();
-const skybox = new Skybox(timeCycle);
-
-skybox.ready().then(() => {
-    scene.add(skybox.mesh);
-}).catch(error => {
-    console.error(error);
-});
-
 //Render
+    //Time and Skybox
+    const timeCycle = new Time();
+    const skybox = new Skybox(timeCycle);
+
+    skybox.ready().then(() => {
+        scene.add(skybox.mesh);
+    }).catch(error => {
+        console.error(error);
+    });
+
     //Camera
     const camera = new Camera(renderer);
     scene.add(camera.camera);
@@ -69,4 +69,3 @@ resizeRenderer();
 
     init();
 //
-

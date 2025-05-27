@@ -10,6 +10,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.autoClear = false;
 const scene = new THREE.Scene();
+//Render
 //Time and Skybox
 const timeCycle = new Time();
 const skybox = new Skybox(timeCycle);
@@ -18,7 +19,6 @@ skybox.ready().then(() => {
 }).catch(error => {
     console.error(error);
 });
-//Render
 //Camera
 const camera = new Camera(renderer);
 scene.add(camera.camera);

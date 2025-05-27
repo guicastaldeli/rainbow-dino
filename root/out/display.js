@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Terrain } from './terrain.js';
+import { Terrain } from './el/terrain.js';
 export class Display {
     constructor() {
         this.size = {

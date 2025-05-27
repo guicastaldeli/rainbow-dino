@@ -4,6 +4,9 @@ import { Camera } from './camera.js';
 import { Display } from './display.js';
 
 const canvas = <HTMLCanvasElement>(document.getElementById('game--container'));
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
 const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
 renderer.setSize(window.innerWidth, window.innerHeight);
 

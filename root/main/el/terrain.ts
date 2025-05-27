@@ -8,9 +8,9 @@ export class Terrain {
     }
 
     size = {
-        w: 1,
-        h: 5,
-        d: 1 
+        w: 5,
+        h: 1,
+        d: 0.1 
     }
 
     pos = {

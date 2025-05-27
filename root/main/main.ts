@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 
-import { Camera } from './camera.js';
 import { Display } from './display.js';
+import { Camera } from './camera.js';
+import { Time } from './time.js';
+import { Skybox } from './skybox.js';
 
 const canvas = <HTMLCanvasElement>(document.getElementById('game--container'));
 canvas.width = window.innerWidth;
@@ -11,6 +13,14 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 const scene = new THREE.Scene();
+
+//Time and Skybox
+const timeCycle = new Time();
+const skybox = new Skybox(timeCycle);
+
+skybox.loadShaders().then(() => {
+    scene.add(skybox.getMesh());
+});
 
 //Render
     //Camera
@@ -35,10 +45,18 @@ function resizeRenderer() {
 resizeRenderer();
 
 //Main Render
+    let lastTime = 0;
+
     function render() {
+        const now = performance.now();
+        const deltaTime = lastTime ? (now - lastTime) / 1000 : 0;
+        lastTime = now;
+
+        timeCycle.update(deltaTime);
+        skybox.update(deltaTime);
+
         camera.updateCamera();
         renderer.render(scene, camera.camera!);
-
         requestAnimationFrame(render);
     }
 

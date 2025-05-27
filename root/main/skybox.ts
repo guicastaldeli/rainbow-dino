@@ -2,42 +2,47 @@ import * as THREE from 'three';
 import { Time } from './time';
 
 export class Skybox {
-    private material: THREE.ShaderMaterial;
+    private material?: THREE.ShaderMaterial;
     private timeCycle: Time;
     private uniforms: any;
-    private mesh: THREE.Mesh;
+    private mesh!: THREE.Mesh;
 
     constructor(timeCycle: Time) {
         this.timeCycle = timeCycle;
 
         this.uniforms = {
             timeFactor: { value: 0.0 },
-            resolution: { value: new THREE.Vector2(window.innerWidth, window.innerWidth) }
+            uTime: { value: 0 },
+            resolution: { 
+                value: new THREE.Vector2(window.innerWidth, window.innerHeight) 
+            }
         }
 
-        this.material = new THREE.ShaderMaterial({
-            uniforms: this.uniforms,
-            side: THREE.BackSide
-        });
+        this.uniforms.uTime.value = performance.now() / 1000;
 
-        const geometry = new THREE.BoxGeometry(500, 500, 500);
-        this.mesh = new THREE.Mesh(geometry, this.material);
+        this.loadShaders();
     }
 
     public async loadShaders() {
         try {
             const [vertexShader, fragShader] = await Promise.all([
-                this.loadShader('./shaders/vertexShader.glsl'),
-                this.loadShader('./shaders/fragShader.glsl')
+                this.loadShader('../main/shaders/vertexShader.glsl'),
+                this.loadShader('../main/shaders/fragShader.glsl')
             ]);
 
-            this.material.vertexShader = vertexShader;
-            this.material.fragmentShader = fragShader;
-            this.material.needsUpdate = true;
+            this.material = new THREE.ShaderMaterial({
+                uniforms: this.uniforms,
+                vertexShader: vertexShader,
+                fragmentShader: fragShader,
+                side: THREE.BackSide,
+            });
 
+            const geometry = new THREE.BoxGeometry(50, 50, 50);
+            this.mesh = new THREE.Mesh(geometry, this.material);
             return this.mesh;
         } catch(error) {
             console.error(error);
+            throw error;
         }
     }
 
@@ -48,7 +53,9 @@ export class Skybox {
     }
 
     public update(deltaTime: number) {
-        this.uniforms.timeFactor.value = this.timeCycle.getTimeFactor();
+        const factor = this.timeCycle.getTimeFactor();
+        //console.log(factor)
+        this.uniforms.timeFactor.value = factor;
     }
 
     public getMesh(): THREE.Mesh {

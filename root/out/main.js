@@ -8,12 +8,15 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.autoClear = false;
 const scene = new THREE.Scene();
 //Time and Skybox
-const timeCycle = new Time();
+const timeCycle = new Time(50);
 const skybox = new Skybox(timeCycle);
 skybox.loadShaders().then(() => {
     scene.add(skybox.getMesh());
+}).catch(error => {
+    console.error(error);
 });
 //Render
 //Camera

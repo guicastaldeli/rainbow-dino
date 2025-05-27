@@ -2,8 +2,8 @@ import * as THREE from 'three';
 export class Terrain {
     constructor() {
         this.size = {
-            w: 5,
-            h: 1,
+            w: 1,
+            h: 5,
             d: 0.1
         };
         this.pos = {

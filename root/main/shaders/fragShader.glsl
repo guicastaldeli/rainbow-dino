@@ -1,15 +1,17 @@
 uniform float timeFactor;
-uniform float uTime;
 
 uniform vec2 resolution;
-varying vec3 vPosition;
+varying vec3 mvPosition;
+
+varying vec3 vColor;
+varying float vPhase;
 
 float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
 void main() {
-    vec3 pos = normalize(vPosition);
+    vec3 pos = normalize(mvPosition);
 
     //Day Color
     vec3 dayColorTop = vec3(1.0, 1.0, 1.0);
@@ -32,27 +34,12 @@ void main() {
     float gradient = smoothstep(-1.0, 1.0, pos.y);
     vec3 finalColor = mix(colorBottom, colorTop, gradient);
 
-    if(timeFactor < 0.3) {
-        float starIntensity = 1.0 - smoothstep(0.0, 1.5, timeFactor);
-        float starDestiny = 0.9;
+    vec2 coord = gl_PointCoord - vec2(0.5);
+    if(length(coord) > 0.5) discard;
 
-        float fRand = rand(pos.xy);
-        float sRand = rand(pos.xy * 2.0);
-        float sizeRand = rand(pos.xy * 3.0);
-
-        if(fRand > starDestiny) {
-            float starSize = mix(0.001, 0.002, sizeRand);
-
-            float brightness = smoothstep(0.001, 0.02, pow(sizeRand, 2.0));
-            brightness = mix(0.3, 1.5, brightness);
-
-            float star = smoothstep(1.0 - starSize, 1.0, fRand);
-            float twinkle = sin(uTime * 3.0 + pos.x * 50.0) * 0.2 + 0.8;        
-            vec3 starColor = vec3(star * brightness * starIntensity * twinkle);
-    
-            finalColor += starColor * star;
-        }
-    }
+    float glow = pow(1.0 - (length(coord) * 1.5), 2.0);
+    float center = smoothstep (0.4, 0.2, length(coord));
+    vec3 starColor = vColor * (glow + center * 2.0);
 
     gl_FragColor = vec4(finalColor, 1.0);
 }

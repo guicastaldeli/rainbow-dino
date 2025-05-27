@@ -19,8 +19,9 @@ const scene = new THREE.Scene();
 const timeCycle = new Time(50);
 const skybox = new Skybox(timeCycle);
 
-skybox.loadShaders().then(() => {
+skybox.ready().then(() => {
     scene.add(skybox.getMesh());
+    scene.add(skybox.points);
 }).catch(error => {
     console.error(error);
 });

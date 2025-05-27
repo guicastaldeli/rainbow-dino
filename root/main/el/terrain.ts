@@ -8,8 +8,8 @@ export class Terrain {
     }
 
     size = {
-        w: 5,
-        h: 1,
+        w: 1,
+        h: 5,
         d: 0.1 
     }
 

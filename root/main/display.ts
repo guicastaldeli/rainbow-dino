@@ -54,6 +54,7 @@ export class Display {
             const renderPlayer = new Player(this.timeCycle);
 
             renderPlayer.ready().then(obj => {
+                //renderPlayer.update();
                 this.mainGroup.add(obj);
             }).catch(err => {
                 console.log(err);

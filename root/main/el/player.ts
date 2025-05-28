@@ -22,13 +22,15 @@ export class Player {
 
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
+
+        this.loadPlayer();
     }
     
     private async loadPlayer() {
         try {
             const [vertexShader, fragmentShader] = await Promise.all([
-                this.loadShader('./shaders/vertexShader.glsl'),
-                this.loadShader('./shaders/fragShader.glsl')
+                this.loadShader('./el/shaders/vertexShader.glsl'),
+                this.loadShader('./el/shaders/fragShader.glsl')
             ]);
 
             const path = '../../../assets/obj/cube-test.obj';
@@ -37,12 +39,11 @@ export class Player {
             
             this.material = new THREE.ShaderMaterial({
                 uniforms: {
-                    time: { value: 0 },
-                    timeFactor: { value: 0 },
                     map: { value: tex }
                 },
-                vertexShader,
-                fragmentShader
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                side: THREE.DoubleSide,
             });
     
             this.loader.load(path, (obj) => {
@@ -52,6 +53,7 @@ export class Player {
                     if(m instanceof THREE.Mesh) m.material = this.material;
                 });
     
+                //this.mesh.receiveShadow = true;
                 this.mesh.position.x = this.pos.x;
                 this.mesh.position.y = this.pos.y;
                 this.mesh.position.z = this.pos.z;
@@ -70,6 +72,7 @@ export class Player {
     public update() {
         const factor =  this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
+         console.log('Time factor:', factor);
 
         if(this.material) {
             this.material.uniforms.time.value = totalTime;
@@ -79,8 +82,6 @@ export class Player {
 
     public ready(): Promise<THREE.Object3D> {
         return new Promise((res, rej) => {
-            this.loadPlayer();
-
             const checkLoaded = () => {
                 if(this.mesh) {
                     res(this.mesh);

@@ -29,29 +29,20 @@ vec2 rotate(vec2 coord, float angle) {
 }
 
 void main() {
-    float rotationAngle;
-    vec2 coord;
-    float edgeX;
-    float edgeY;
+    float rotationAngle = vPhase + time * 0.1;
+    float timeAngle = smoothstep(0.0, 1.0, timeFactor) * 3.14159 * 2.0;
+    rotationAngle += timeAngle;
+
+    rotationAngle = mix(rotationAngle, rotationAngle * 1.5, smoothstep(0.3, 0.6, timeFactor));
+    vec2 coord = rotate(gl_PointCoord - 0.5, rotationAngle);
+
+    float edgeThreshold = mix(0.3, 0.7, smoothstep(0.3, 0.6, timeFactor));
+    float edgeX = smoothstep(edgeThreshold, edgeThreshold - 0.1, abs(coord.x));
+    float edgeY = smoothstep(edgeThreshold, edgeThreshold - 0.1, abs(coord.y));
+    if(edgeX * edgeY < 0.01) discard;
+
+    //Star Color
     vec3 starColor;
-
-    if(timeFactor < 0.3) {
-        rotationAngle = vPhase + time * 0.1;
-        coord = rotate(gl_PointCoord - 0.5, rotationAngle);
-
-        edgeX = smoothstep(0.3, 0.2, abs(coord.x));
-        edgeY = smoothstep(0.3, 0.2, abs(coord.y));
-
-        if(edgeX * edgeY < 0.01) discard;
-    } else {
-        rotationAngle = vPhase + time * 0.1;
-        coord = rotate(gl_PointCoord - 0.5, rotationAngle);
-
-        edgeX = smoothstep(0.7, 0.65, abs(coord.x));
-        edgeY = smoothstep(0.7, 0.65, abs(coord.y));
-
-        if(edgeX * edgeY < 0.01) discard;
-    }
 
     //Night
     float nightFade = smoothstep(0.3, 0.4, timeFactor);

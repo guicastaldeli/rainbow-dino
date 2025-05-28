@@ -24,7 +24,9 @@ const camera = new Camera(renderer);
 scene.add(camera.camera);
 //Main Display
 const renderDisplay = new Display(timeCycle);
-scene.add(renderDisplay.display);
+renderDisplay.ready().then(() => {
+    scene.add(renderDisplay.display);
+});
 //
 function resizeRenderer() {
     canvas.width = window.innerWidth;

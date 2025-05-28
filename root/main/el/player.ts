@@ -44,8 +44,8 @@ export class Player {
                     timeFactor: { value: 0.0 },
                     map: { value: tex }
                 },
-                vertexShader: vertexShader,
-                fragmentShader: fragmentShader,
+                vertexShader,
+                fragmentShader,
                 side: THREE.DoubleSide,
             });
     
@@ -84,7 +84,7 @@ export class Player {
     }
 
     public ready(): Promise<THREE.Object3D> {
-        return new Promise((res, rej) => {
+        return new Promise((res) => {
             const checkLoaded = () => {
                 if(this.mesh) {
                     res(this.mesh);

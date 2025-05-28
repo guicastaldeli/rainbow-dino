@@ -32,7 +32,10 @@ const scene = new THREE.Scene();
 
     //Main Display
     const renderDisplay = new Display(timeCycle);
-    scene.add(renderDisplay.display);
+
+    renderDisplay.ready().then(() => {
+        scene.add(renderDisplay.display);
+    });
 //
 
 function resizeRenderer() {

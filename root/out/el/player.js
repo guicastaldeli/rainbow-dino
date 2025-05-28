@@ -37,8 +37,8 @@ export class Player {
                         timeFactor: { value: 0.0 },
                         map: { value: tex }
                     },
-                    vertexShader: vertexShader,
-                    fragmentShader: fragmentShader,
+                    vertexShader,
+                    fragmentShader,
                     side: THREE.DoubleSide,
                 });
                 this.loader.load(path, (obj) => {
@@ -76,7 +76,7 @@ export class Player {
         this.material.needsUpdate = true;
     }
     ready() {
-        return new Promise((res, rej) => {
+        return new Promise((res) => {
             const checkLoaded = () => {
                 if (this.mesh) {
                     res(this.mesh);

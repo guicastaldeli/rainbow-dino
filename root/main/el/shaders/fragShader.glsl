@@ -6,12 +6,13 @@ varying vec2 vUv;
 void main() {
     vec4 texColor = texture2D(map, vUv);
 
-    vec3 nightColor = vec3(0.2118, 0.2118, 0.2118) * texColor.a;
+    float grayscale = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+    vec3 nightColor = vec3(grayscale);
+    
     vec3 dayColor = texColor.rgb;
 
     float blendFactor = smoothstep(0.3, 0.7, timeFactor);
-    vec3 mixColors = mix(nightColor, dayColor, blendFactor);
-    vec3 finalColor = texColor.rgb * mixColors;
+    vec3 finalColor = mix(nightColor, dayColor, blendFactor);
 
     gl_FragColor = vec4(finalColor, texColor.a);
 }

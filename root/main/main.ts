@@ -31,7 +31,7 @@ const scene = new THREE.Scene();
     scene.add(camera.camera);
 
     //Main Display
-    const renderDisplay = new Display();
+    const renderDisplay = new Display(timeCycle);
     scene.add(renderDisplay.display);
 //
 
@@ -57,6 +57,7 @@ resizeRenderer();
 
         timeCycle.update(deltaTime);
         skybox.update(deltaTime);
+        renderDisplay.update(deltaTime);
 
         camera.updateCamera();
         renderer.render(scene, camera.camera!);

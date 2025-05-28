@@ -33,6 +33,8 @@ export class Player {
                 const tex = this.texLoader.load(texPath);
                 this.material = new THREE.ShaderMaterial({
                     uniforms: {
+                        time: { value: 0.0 },
+                        timeFactor: { value: 0.0 },
                         map: { value: tex }
                     },
                     vertexShader: vertexShader,
@@ -64,14 +66,14 @@ export class Player {
             return yield res.text();
         });
     }
-    update() {
+    update(deltaTime) {
+        if (!this.material)
+            return;
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
-        console.log('Time factor:', factor);
-        if (this.material) {
-            this.material.uniforms.time.value = totalTime;
-            this.material.uniforms.timeFactor.value = factor;
-        }
+        this.material.uniforms.time.value = totalTime;
+        this.material.uniforms.timeFactor.value = factor;
+        this.material.needsUpdate = true;
     }
     ready() {
         return new Promise((res, rej) => {

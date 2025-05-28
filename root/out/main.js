@@ -23,7 +23,7 @@ skybox.ready().then(() => {
 const camera = new Camera(renderer);
 scene.add(camera.camera);
 //Main Display
-const renderDisplay = new Display();
+const renderDisplay = new Display(timeCycle);
 scene.add(renderDisplay.display);
 //
 function resizeRenderer() {
@@ -42,6 +42,7 @@ function render() {
     lastTime = now;
     timeCycle.update(deltaTime);
     skybox.update(deltaTime);
+    renderDisplay.update(deltaTime);
     camera.updateCamera();
     renderer.render(scene, camera.camera);
     requestAnimationFrame(render);

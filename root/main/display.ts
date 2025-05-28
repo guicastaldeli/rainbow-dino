@@ -5,13 +5,16 @@ import { Terrain } from './el/terrain.js';
 import { Player } from './el/player.js';
 
 export class Display {
-    private timeCycle = new Time();
+    private timeCycle: Time;
 
     public display: any;
     public mainGroup!: THREE.Group;
     private mesh!: THREE.LineSegments;
 
-    constructor() {
+    private renderPlayer!: Player;
+
+    constructor(timeCycle: Time) {
+        this.timeCycle = timeCycle;
         this.display = this.setDisplay();
     }
 
@@ -51,10 +54,9 @@ export class Display {
             this.mainGroup.add(renderTerrain.mesh);
 
             //Player
-            const renderPlayer = new Player(this.timeCycle);
+            this.renderPlayer = new Player(this.timeCycle);
 
-            renderPlayer.ready().then(obj => {
-                //renderPlayer.update();
+            this.renderPlayer.ready().then(obj => {
                 this.mainGroup.add(obj);
             }).catch(err => {
                 console.log(err);
@@ -69,6 +71,10 @@ export class Display {
         this.displayPos();
 
         return this._mainGroup();
+    }
+
+    public update(deltaTime: number) {
+        if(this.renderPlayer) this.renderPlayer.update(deltaTime);
     }
 
     //Resize

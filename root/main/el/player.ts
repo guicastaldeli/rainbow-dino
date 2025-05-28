@@ -10,6 +10,7 @@ export class Player {
     private texLoader!: THREE.TextureLoader;
     private mesh!: THREE.Object3D;
     private material!: THREE.ShaderMaterial;
+    private animationId!: number;
 
     pos = {
         x: 2,
@@ -39,6 +40,8 @@ export class Player {
             
             this.material = new THREE.ShaderMaterial({
                 uniforms: {
+                    time: { value: 0.0 },
+                    timeFactor: { value: 0.0 },
                     map: { value: tex }
                 },
                 vertexShader: vertexShader,
@@ -69,15 +72,15 @@ export class Player {
         return await res.text();
     }
 
-    public update() {
+    public update(deltaTime: number) {        
+        if(!this.material) return;
+
         const factor =  this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
-         console.log('Time factor:', factor);
 
-        if(this.material) {
-            this.material.uniforms.time.value = totalTime;
-            this.material.uniforms.timeFactor.value = factor;
-        }
+        this.material.uniforms.time.value = totalTime;
+        this.material.uniforms.timeFactor.value = factor;
+        this.material.needsUpdate = true;
     }
 
     public ready(): Promise<THREE.Object3D> {

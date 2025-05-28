@@ -133,9 +133,9 @@ export class Skybox {
         if (!this.mesh || !this.points)
             return;
         const factor = this.timeCycle.getTimeFactor();
+        const totalTime = performance.now() * 0.001;
         const rotationSpeed = 0.03;
         this.points.rotation.x += rotationSpeed * deltaTime;
-        const totalTime = performance.now() * 0.001;
         this.skyboxMaterial.uniforms.timeFactor.value = factor;
         this.starsMaterial.uniforms.timeFactor.value = factor;
         this.starsMaterial.uniforms.time.value = totalTime;

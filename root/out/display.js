@@ -1,10 +1,8 @@
 import * as THREE from 'three';
-import { Time } from './time.js';
 import { Terrain } from './el/terrain.js';
 import { Player } from './el/player.js';
 export class Display {
-    constructor() {
-        this.timeCycle = new Time();
+    constructor(timeCycle) {
         this.size = {
             w: 13,
             h: 8,
@@ -15,6 +13,7 @@ export class Display {
             y: 0,
             z: -3
         };
+        this.timeCycle = timeCycle;
         this.display = this.setDisplay();
     }
     createDisplay() {
@@ -36,9 +35,8 @@ export class Display {
         const renderTerrain = new Terrain();
         this.mainGroup.add(renderTerrain.mesh);
         //Player
-        const renderPlayer = new Player(this.timeCycle);
-        renderPlayer.ready().then(obj => {
-            //renderPlayer.update();
+        this.renderPlayer = new Player(this.timeCycle);
+        this.renderPlayer.ready().then(obj => {
             this.mainGroup.add(obj);
         }).catch(err => {
             console.log(err);
@@ -50,6 +48,10 @@ export class Display {
         this.createDisplay();
         this.displayPos();
         return this._mainGroup();
+    }
+    update(deltaTime) {
+        if (this.renderPlayer)
+            this.renderPlayer.update(deltaTime);
     }
     //Resize
     handleResize() {

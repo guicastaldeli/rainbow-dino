@@ -34,15 +34,21 @@ void main() {
     float rotationAngle = vPhase + time * 0.1;
     vec2 coord = rotate(gl_PointCoord - 0.5, rotationAngle);
 
-    if(abs(coord.x) > 0.5 || abs(coord.y) > 0.55) discard;
-
-    //Night
     if(timeFactor < 0.4) {
+        if(abs(coord.x) > 0.5 || abs(coord.y) > 0.6) discard;
+    } else {
+        if(abs(coord.x) > 0.5 || abs(coord.y > 0.5)) discard;
+    }
+
+    if(timeFactor < 0.4) {
+        //Night
         starColor = vec3(0.5);
     } else if(timeFactor < 0.998) {
+        //Dusk-Dawn
         float fade = smoothstep(0.7, 1.5, timeFactor);
         starColor = mix(vec3(0.4863, 0.4863, 0.4863), vec3(1.0), fade);
     } else {
+        //Day
         starColor = rainbow(vPhase + time * 0.1);
     }
 

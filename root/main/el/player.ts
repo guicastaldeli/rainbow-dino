@@ -1,50 +1,91 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { MTLLoader } from 'three/addons/Addons.js';
+
+import { Time } from '../time';
 
 export class Player {
+    private timeCycle: Time;
+
     private loader!: OBJLoader;
-    private mtlLoader!: MTLLoader;
+    private texLoader!: THREE.TextureLoader;
     private mesh!: THREE.Object3D;
+    private material!: THREE.ShaderMaterial;
 
     pos = {
-        x: 0,
+        x: 2,
         y: 0,
-        z: 0
+        z: -3
     }
 
-    constructor() {
-        this.loader = new OBJLoader();
-        this.mtlLoader = new MTLLoader();
+    constructor(timeCycle: Time) {
+        this.timeCycle = timeCycle;
 
-        this.loadPlayer();
+        this.loader = new OBJLoader();
+        this.texLoader = new THREE.TextureLoader();
     }
     
-    private loadPlayer() {
-        const path = '../../../assets/obj/cube-test.obj';
-        const tex = '../../../assets/textures/cube-test.mtl';
+    private async loadPlayer() {
+        try {
+            const [vertexShader, fragmentShader] = await Promise.all([
+                this.loadShader('./shaders/vertexShader.glsl'),
+                this.loadShader('./shaders/fragShader.glsl')
+            ]);
 
-        this.mtlLoader.load(tex, (mat) => {
-            mat.preload();
-            this.loader.setMaterials(mat);
-
+            const path = '../../../assets/obj/cube-test.obj';
+            const texPath = '../../../assets/textures/cube-test.png';
+            const tex = this.texLoader.load(texPath);
+            
+            this.material = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0 },
+                    timeFactor: { value: 0 },
+                    map: { value: tex }
+                },
+                vertexShader,
+                fragmentShader
+            });
+    
             this.loader.load(path, (obj) => {
                 this.mesh = obj;
+    
+                this.mesh.traverse((m) => {
+                    if(m instanceof THREE.Mesh) m.material = this.material;
+                });
     
                 this.mesh.position.x = this.pos.x;
                 this.mesh.position.y = this.pos.y;
                 this.mesh.position.z = this.pos.z;
             });
-        });
+        } catch(err) {
+            console.log(err);
+        }
+    }
+
+    private async loadShader(url: string): Promise<string> {
+        const res = await fetch(url);
+        if(!res.ok) throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
+        return await res.text();
+    }
+
+    public update() {
+        const factor =  this.timeCycle.getTimeFactor();
+        const totalTime = performance.now() * 0.001;
+
+        if(this.material) {
+            this.material.uniforms.time.value = totalTime;
+            this.material.uniforms.timeFactor.value = factor;
+        }
     }
 
     public ready(): Promise<THREE.Object3D> {
         return new Promise((res, rej) => {
+            this.loadPlayer();
+
             const checkLoaded = () => {
                 if(this.mesh) {
                     res(this.mesh);
                 } else {
-                    setTimeout(checkLoaded, 100);
+                    setTimeout(checkLoaded, 0);
                 }
             }
 

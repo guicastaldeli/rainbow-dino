@@ -22,8 +22,8 @@ const scene = new THREE.Scene();
 
     skybox.ready().then(() => {
         scene.add(skybox.mesh);
-    }).catch(error => {
-        console.error(error);
+    }).catch(err => {
+        console.error(err);
     });
 
     //Camera

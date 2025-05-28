@@ -1,8 +1,10 @@
 import * as THREE from 'three';
+import { Time } from './time.js';
 import { Terrain } from './el/terrain.js';
 import { Player } from './el/player.js';
 export class Display {
     constructor() {
+        this.timeCycle = new Time();
         this.size = {
             w: 13,
             h: 8,
@@ -34,7 +36,7 @@ export class Display {
         const renderTerrain = new Terrain();
         this.mainGroup.add(renderTerrain.mesh);
         //Player
-        const renderPlayer = new Player();
+        const renderPlayer = new Player(this.timeCycle);
         renderPlayer.ready().then(obj => {
             this.mainGroup.add(obj);
         }).catch(err => {

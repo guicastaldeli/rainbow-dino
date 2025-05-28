@@ -16,8 +16,8 @@ const timeCycle = new Time();
 const skybox = new Skybox(timeCycle);
 skybox.ready().then(() => {
     scene.add(skybox.mesh);
-}).catch(error => {
-    console.error(error);
+}).catch(err => {
+    console.error(err);
 });
 //Camera
 const camera = new Camera(renderer);

@@ -71,9 +71,9 @@ export class Skybox {
                 skybox: this.mesh,
                 stars: this.points
             }
-        } catch(error) {
-            console.error(error);
-            throw error;
+        } catch(err) {
+            console.error(err);
+            throw err;
         }
     }
 

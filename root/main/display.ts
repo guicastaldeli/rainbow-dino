@@ -1,9 +1,12 @@
 import * as THREE from 'three';
 
+import { Time } from './time.js';
 import { Terrain } from './el/terrain.js';
 import { Player } from './el/player.js';
 
 export class Display {
+    private timeCycle = new Time();
+
     public display: any;
     public mainGroup!: THREE.Group;
     private mesh!: THREE.LineSegments;
@@ -48,7 +51,8 @@ export class Display {
             this.mainGroup.add(renderTerrain.mesh);
 
             //Player
-            const renderPlayer = new Player();
+            const renderPlayer = new Player(this.timeCycle);
+
             renderPlayer.ready().then(obj => {
                 this.mainGroup.add(obj);
             }).catch(err => {

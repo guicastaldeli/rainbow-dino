@@ -1,38 +1,85 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { MTLLoader } from 'three/addons/Addons.js';
 export class Player {
-    constructor() {
+    constructor(timeCycle) {
         this.pos = {
-            x: 0,
+            x: 2,
             y: 0,
-            z: 0
+            z: -3
         };
+        this.timeCycle = timeCycle;
         this.loader = new OBJLoader();
-        this.mtlLoader = new MTLLoader();
-        this.loadPlayer();
+        this.texLoader = new THREE.TextureLoader();
     }
     loadPlayer() {
-        const path = '../../../assets/obj/cube-test.obj';
-        const tex = '../../../assets/textures/cube-test.mtl';
-        this.mtlLoader.load(tex, (mat) => {
-            mat.preload();
-            this.loader.setMaterials(mat);
-            this.loader.load(path, (obj) => {
-                this.mesh = obj;
-                this.mesh.position.x = this.pos.x;
-                this.mesh.position.y = this.pos.y;
-                this.mesh.position.z = this.pos.z;
-            });
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const [vertexShader, fragmentShader] = yield Promise.all([
+                    this.loadShader('./shaders/vertexShader.glsl'),
+                    this.loadShader('./shaders/fragShader.glsl')
+                ]);
+                const path = '../../../assets/obj/cube-test.obj';
+                const texPath = '../../../assets/textures/cube-test.png';
+                const tex = this.texLoader.load(texPath);
+                this.material = new THREE.ShaderMaterial({
+                    uniforms: {
+                        time: { value: 0 },
+                        timeFactor: { value: 0 },
+                        map: { value: tex }
+                    },
+                    vertexShader,
+                    fragmentShader
+                });
+                this.loader.load(path, (obj) => {
+                    this.mesh = obj;
+                    this.mesh.traverse((m) => {
+                        if (m instanceof THREE.Mesh)
+                            m.material = this.material;
+                    });
+                    this.mesh.position.x = this.pos.x;
+                    this.mesh.position.y = this.pos.y;
+                    this.mesh.position.z = this.pos.z;
+                });
+            }
+            catch (err) {
+                console.log(err);
+            }
         });
+    }
+    loadShader(url) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield fetch(url);
+            if (!res.ok)
+                throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
+            return yield res.text();
+        });
+    }
+    update() {
+        const factor = this.timeCycle.getTimeFactor();
+        const totalTime = performance.now() * 0.001;
+        if (this.material) {
+            this.material.uniforms.time.value = totalTime;
+            this.material.uniforms.timeFactor.value = factor;
+        }
     }
     ready() {
         return new Promise((res, rej) => {
+            this.loadPlayer();
             const checkLoaded = () => {
                 if (this.mesh) {
                     res(this.mesh);
                 }
                 else {
-                    setTimeout(checkLoaded, 100);
+                    setTimeout(checkLoaded, 0);
                 }
             };
             checkLoaded();

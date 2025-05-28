@@ -57,7 +57,7 @@ export class Skybox {
                 depthWrite: false
             })
 
-            const geometry = new THREE.BoxGeometry(100, 100, 100);
+            const geometry = new THREE.BoxGeometry(110, 110, 110);
             this.mesh = new THREE.Mesh(geometry, this.skyboxMaterial);
 
             const mergedGeometry = mergeGeometries(this.geometries);

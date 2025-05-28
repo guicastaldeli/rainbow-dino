@@ -1,0 +1,41 @@
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/addons/Addons.js';
+export class Player {
+    constructor() {
+        this.pos = {
+            x: 0,
+            y: 0,
+            z: 0
+        };
+        this.loader = new OBJLoader();
+        this.mtlLoader = new MTLLoader();
+        this.loadPlayer();
+    }
+    loadPlayer() {
+        const path = '../../../assets/obj/cube-test.obj';
+        const tex = '../../../assets/textures/cube-test.mtl';
+        this.mtlLoader.load(tex, (mat) => {
+            mat.preload();
+            this.loader.setMaterials(mat);
+            this.loader.load(path, (obj) => {
+                this.mesh = obj;
+                this.mesh.position.x = this.pos.x;
+                this.mesh.position.y = this.pos.y;
+                this.mesh.position.z = this.pos.z;
+            });
+        });
+    }
+    ready() {
+        return new Promise((res, rej) => {
+            const checkLoaded = () => {
+                if (this.mesh) {
+                    res(this.mesh);
+                }
+                else {
+                    setTimeout(checkLoaded, 100);
+                }
+            };
+            checkLoaded();
+        });
+    }
+}

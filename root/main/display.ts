@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { Terrain } from './el/terrain.js';
+import { Player } from './el/player.js';
 
 export class Display {
     public display: any;
@@ -45,6 +46,14 @@ export class Display {
             //Terrain
             const renderTerrain = new Terrain();
             this.mainGroup.add(renderTerrain.mesh);
+
+            //Player
+            const renderPlayer = new Player();
+            renderPlayer.ready().then(obj => {
+                this.mainGroup.add(obj);
+            }).catch(err => {
+                console.log(err);
+            });
         //
 
         return this.mainGroup;

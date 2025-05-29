@@ -122,14 +122,16 @@ export class Display {
         //Render
             //Terrain
             const renderTerrain = new Terrain();
-            renderTerrain.mesh.name = 'Terrain';
-            this.display.add(renderTerrain.mesh);
-            this.collDetector.addObject(renderTerrain.mesh);
+            const terrainBlocks = renderTerrain.getTerrainBlocks();
+
+            terrainBlocks.forEach(block => {
+                this.display.add(block);
+                this.collDetector.addObject(block);
+            });
 
             //Player
             this.renderPlayer = new Player(this.timeCycle);
             const playerObj = await this.renderPlayer.ready();
-            playerObj.name = 'Player';
             this.display.add(playerObj);
             this.collDetector.addObject(playerObj);
 
@@ -147,7 +149,7 @@ export class Display {
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
-        this.material.needsUpdate;
+        this.material.needsUpdate = true;
 
         this.collDetector.checkBounds();
     }

@@ -23,8 +23,8 @@ export class CollDetector {
             const objBox = new THREE.Box3().setFromObject(obj);
 
             if(this.isColliding(objBox)) {
-                console.log(`Part of ${obj.name || 'Unnamed object'} is outside display area!`);
-                console.log(`Object position: ${obj.position.x.toFixed(2)}, ${obj.position.y.toFixed(2)}, ${obj.position.z.toFixed(2)}`);
+                //console.log(`Part of ${obj.name || 'Unnamed object'} is outside display area!`);
+                //console.log(`Object position: ${obj.position.x.toFixed(2)}, ${obj.position.y.toFixed(2)}, ${obj.position.z.toFixed(2)}`);
             }
         }
     }

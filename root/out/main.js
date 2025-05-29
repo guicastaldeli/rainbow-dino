@@ -12,6 +12,7 @@ const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
 });
 renderer.autoClear = false;
+renderer.localClippingEnabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 const scene = new THREE.Scene();
 //Render

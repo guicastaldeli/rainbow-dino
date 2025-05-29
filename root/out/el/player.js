@@ -12,7 +12,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 export class Player {
     constructor(timeCycle) {
         this.pos = {
-            x: 2,
+            x: 3,
             y: 0,
             z: -3
         };
@@ -47,6 +47,7 @@ export class Player {
                         if (m instanceof THREE.Mesh)
                             m.material = this.material;
                     });
+                    this.mesh.scale.z = 0.1;
                     //this.mesh.receiveShadow = true;
                     this.mesh.position.x = this.pos.x;
                     this.mesh.position.y = this.pos.y;

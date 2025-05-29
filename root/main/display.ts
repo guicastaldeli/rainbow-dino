@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import { Time } from './time.js';
-import { ClipDetector } from './clip-detector.js';
+import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
 import { Player } from './el/player.js';
 
@@ -11,8 +11,8 @@ export class Display {
 
     public display: THREE.Group;
     private renderer: THREE.WebGLRenderer;
-    private clippingPlanes: THREE.Plane[];
-    private clipDetector = new ClipDetector();
+
+    private collDetector: CollDetector;
 
     private mesh!: THREE.Object3D;
     private loader!: OBJLoader;
@@ -25,19 +25,11 @@ export class Display {
     constructor(timeCycle: Time, renderer: THREE.WebGLRenderer) {
         this.timeCycle = timeCycle;
         this.renderer = renderer;
-        this.renderer.localClippingEnabled = true;
+        this.collDetector = new CollDetector();
 
         this.display = new THREE.Group;
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
-
-        this.clippingPlanes = [
-            new THREE.Plane(new THREE.Vector3(1, 0, 0)),   //Right
-            new THREE.Plane(new THREE.Vector3(-1, 0, 0)),  //Left
-            new THREE.Plane(new THREE.Vector3(0, 1, 0)),   //Top
-            new THREE.Plane(new THREE.Vector3(0, -1, 0)),  //Bottom
-            new THREE.Plane(new THREE.Vector3(0, 0, -1)),
-        ]
 
         this.createDisplay();
     }
@@ -91,7 +83,16 @@ export class Display {
                     this.mesh.position.y = this.pos.y,
                     this.mesh.position.z = this.pos.z;
 
-                    this.updateClipping();
+                    const displayBox = new THREE.Box3().setFromObject(this.mesh);
+                    const center = displayBox.getCenter(new THREE.Vector3());
+                    const size = displayBox.getSize(new THREE.Vector3()).multiplyScalar(0.48);
+
+                    const scaledBox = new THREE.Box3(
+                        center.clone().sub(size.clone()),
+                        center.clone().add(size.clone())
+                    );
+
+                    this.collDetector.setZone(scaledBox);
                     res();
                 });
             })
@@ -106,25 +107,6 @@ export class Display {
         return await res.text();
     }
 
-    private updateClipping() {
-        if(!this.mesh) return;
-        this.clipDetector.updateBounds(this.mesh, this.size);
-    }
-
-    private _applyClipping(obj: THREE.Object3D): void {
-        obj.traverse(o => {
-            if(o instanceof THREE.Mesh) {
-                const mat = Array.isArray(o.material) ? o.material : [o.material];
-                const updMat = mat.map(m => {
-                    const newMat = m.clone();
-                    newMat.clippingPlanes = this.clippingPlanes;
-                    return newMat;
-                });
-                o.material = Array.isArray(o.material) ? updMat : updMat[0];
-            }
-        });
-    }
-
     private async _mainGroup(): Promise<THREE.Group> {
         this.display = new THREE.Group();
 
@@ -136,23 +118,23 @@ export class Display {
         }
         
         this.display.add(this.mesh);
-        this._applyClipping(this.display);
 
         //Render
             //Terrain
             const renderTerrain = new Terrain();
-            this._applyClipping(renderTerrain.mesh);
+            renderTerrain.mesh.name = 'Terrain';
             this.display.add(renderTerrain.mesh);
+            this.collDetector.addObject(renderTerrain.mesh);
 
             //Player
             this.renderPlayer = new Player(this.timeCycle);
             const playerObj = await this.renderPlayer.ready();
-            this._applyClipping(playerObj);
+            playerObj.name = 'Player';
             this.display.add(playerObj);
+            this.collDetector.addObject(playerObj);
 
         //
 
-        this.updateClipping();
         return this.display;
     }
 
@@ -167,8 +149,7 @@ export class Display {
         this.material.uniforms.timeFactor.value = factor;
         this.material.needsUpdate;
 
-        this.updateClipping();
-        this.clipDetector.checkAllObjs(this.display);
+        this.collDetector.checkBounds();
     }
 
     public async ready(): Promise<THREE.Group> {

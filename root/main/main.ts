@@ -9,9 +9,14 @@ const canvas = <HTMLCanvasElement>(document.getElementById('game--container'));
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
-renderer.setSize(window.innerWidth, window.innerHeight);
+//Renderer
+const renderer = new THREE.WebGLRenderer({ 
+    antialias: true, 
+    canvas: canvas, 
+});
 renderer.autoClear = false;
+renderer.localClippingEnabled = true;
+renderer.setSize(window.innerWidth, window.innerHeight);
 
 const scene = new THREE.Scene();
 

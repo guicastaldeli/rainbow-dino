@@ -11,6 +11,7 @@ export class Terrain {
             y: 0,
             z: -3
         };
+        this.mesh = this.createTerrain();
         this.updateTerrain();
     }
     createTerrain() {

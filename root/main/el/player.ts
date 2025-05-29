@@ -75,7 +75,7 @@ export class Player {
     public update(deltaTime: number) {        
         if(!this.material) return;
 
-        const factor =  this.timeCycle.getTimeFactor();
+        const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
 
         this.material.uniforms.time.value = totalTime;

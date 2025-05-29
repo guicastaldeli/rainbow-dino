@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 
 export class Terrain {
-    public mesh!: THREE.Mesh;
+    public mesh: THREE.Mesh;
 
     constructor() {
+        this.mesh = this.createTerrain();
         this.updateTerrain();
     }
 

@@ -8,8 +8,7 @@ import { Player } from './el/player.js';
 export class Display {
     private timeCycle: Time;
 
-    public display: any;
-    public mainGroup!: THREE.Group;
+    public display: THREE.Group;
 
     private mesh!: THREE.Object3D;
     private loader!: OBJLoader;
@@ -22,23 +21,22 @@ export class Display {
     constructor(timeCycle: Time) {
         this.timeCycle = timeCycle;
 
-        this.mainGroup = new THREE.Group;
+        this.display = new THREE.Group;
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
 
         this.createDisplay();
-        this.display = this.ready();
     }
 
     size = {
-        w: 13,
-        h: 8,
+        w: 2,
+        h: 1.8,
         d: 0.1
     }
 
     pos = {
         x: 0,
-        y: 0,
+        y: -3.5,
         z: -3
     }
 
@@ -71,6 +69,9 @@ export class Display {
                     if(m instanceof THREE.Mesh) m.material = this.material;
                 });
 
+                this.mesh.scale.x = this.size.w;
+                this.mesh.scale.y = this.size.h;
+
                 this.mesh.position.x = this.pos.x,
                 this.mesh.position.y = this.pos.y,
                 this.mesh.position.z = this.pos.z;
@@ -87,39 +88,49 @@ export class Display {
     }
 
     private async _mainGroup(): Promise<THREE.Group> {
-        this.mainGroup = new THREE.Group();
+        this.display = new THREE.Group();
 
         if(!this.mesh) {
             await new Promise(res => {
                 const __checkMesh = () => {
                     if(this.mesh) {
                         res(true);
-                        this.mainGroup.add(this.mesh);
                     } else {
                         setTimeout(__checkMesh, 0);
                     }
                 }
-
+                
                 __checkMesh();
             });
         }
+        
+        this.display.add(this.mesh);
 
         //Render
             //Terrain
             const renderTerrain = new Terrain();
-            this.mainGroup.add(renderTerrain.mesh);
+            this.display.add(renderTerrain.mesh);
 
             //Player
             this.renderPlayer = new Player(this.timeCycle);
             const playerObj = await this.renderPlayer.ready();
-            this.mainGroup.add(playerObj);
+            this.display.add(playerObj);
+
         //
 
-        return this.mainGroup;
+        return this.display;
     }
 
     public update(deltaTime: number) {
+        if(!this.material) return;
         if(this.renderPlayer) this.renderPlayer.update(deltaTime);
+
+        const factor = this.timeCycle.getTimeFactor();
+        const totalTime = performance.now() * 0.001;
+
+        this.material.uniforms.time.value = totalTime;
+        this.material.uniforms.timeFactor.value = factor;
+        this.material.needsUpdate;
     }
 
     public async ready(): Promise<THREE.Group> {

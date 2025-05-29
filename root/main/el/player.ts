@@ -10,7 +10,6 @@ export class Player {
     private texLoader!: THREE.TextureLoader;
     private mesh!: THREE.Object3D;
     private material!: THREE.ShaderMaterial;
-    private animationId!: number;
 
     pos = {
         x: 2,
@@ -84,16 +83,11 @@ export class Player {
     }
 
     public ready(): Promise<THREE.Object3D> {
-        return new Promise((res) => {
-            const checkLoaded = () => {
-                if(this.mesh) {
-                    res(this.mesh);
-                } else {
-                    setTimeout(checkLoaded, 0);
-                }
+        return new Promise(res => {
+            if(!this.mesh) {
+                const _check = () => this.mesh ? res(this.mesh) : setTimeout(_check, 0);
+                _check();
             }
-
-            checkLoaded();
         });
     }
 }

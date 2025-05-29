@@ -76,16 +76,11 @@ export class Player {
         this.material.needsUpdate = true;
     }
     ready() {
-        return new Promise((res) => {
-            const checkLoaded = () => {
-                if (this.mesh) {
-                    res(this.mesh);
-                }
-                else {
-                    setTimeout(checkLoaded, 0);
-                }
-            };
-            checkLoaded();
+        return new Promise(res => {
+            if (!this.mesh) {
+                const _check = () => this.mesh ? res(this.mesh) : setTimeout(_check, 0);
+                _check();
+            }
         });
     }
 }

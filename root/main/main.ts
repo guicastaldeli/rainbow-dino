@@ -15,7 +15,6 @@ const renderer = new THREE.WebGLRenderer({
     canvas: canvas, 
 });
 renderer.autoClear = false;
-renderer.localClippingEnabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 const scene = new THREE.Scene();
@@ -36,7 +35,7 @@ const scene = new THREE.Scene();
     scene.add(camera.camera);
 
     //Main Display
-    const renderDisplay = new Display(timeCycle);
+    const renderDisplay = new Display(timeCycle, renderer);
 
     renderDisplay.ready().then(() => {
         scene.add(renderDisplay.display);

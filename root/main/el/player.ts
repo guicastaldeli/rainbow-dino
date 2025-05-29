@@ -23,18 +23,18 @@ export class Player {
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
 
-        this.loadPlayer();
+        this.createPlayer();
     }
     
-    private async loadPlayer() {
+    private async createPlayer() {
         try {
             const [vertexShader, fragmentShader] = await Promise.all([
                 this.loadShader('./el/shaders/vertexShader.glsl'),
                 this.loadShader('./el/shaders/fragShader.glsl')
             ]);
 
-            const path = '../../../assets/obj/cube-test.obj';
-            const texPath = '../../../assets/textures/cube-test.png';
+            const path = '../../../assets/obj/terrain-block.obj';
+            const texPath = '../../../assets/textures/terrain-block.png';
             const tex = this.texLoader.load(texPath);
             
             this.material = new THREE.ShaderMaterial({
@@ -54,8 +54,7 @@ export class Player {
                 this.mesh.traverse((m) => {
                     if(m instanceof THREE.Mesh) m.material = this.material;
                 });
-    
-                this.mesh.scale.z = 0.1
+                
                 //this.mesh.receiveShadow = true;
                 this.mesh.position.x = this.pos.x;
                 this.mesh.position.y = this.pos.y;

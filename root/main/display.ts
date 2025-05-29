@@ -20,6 +20,7 @@ export class Display {
     private material!: THREE.ShaderMaterial;
 
     //Elements
+    private renderTerrain!: Terrain;
     private renderPlayer!: Player;
 
     constructor(timeCycle: Time, renderer: THREE.WebGLRenderer) {
@@ -35,7 +36,7 @@ export class Display {
     }
 
     size = {
-        w: 2,
+        w: 1.99,
         h: 1.8,
         d: 0.1
     }
@@ -92,6 +93,8 @@ export class Display {
                         center.clone().add(size.clone())
                     );
 
+                    const boxHelper = new THREE.Box3Helper(scaledBox, new THREE.Color('rgb(216, 19, 19)'));
+                    this.display.add(boxHelper);
                     this.collDetector.setZone(scaledBox);
                     res();
                 });
@@ -121,8 +124,9 @@ export class Display {
 
         //Render
             //Terrain
-            const renderTerrain = new Terrain();
-            const terrainBlocks = renderTerrain.getTerrainBlocks();
+            this.renderTerrain = new Terrain(this.timeCycle);
+            await this.renderTerrain.ready();
+            const terrainBlocks = this.renderTerrain.getTerrainBlocks();
 
             terrainBlocks.forEach(block => {
                 this.display.add(block);
@@ -134,7 +138,6 @@ export class Display {
             const playerObj = await this.renderPlayer.ready();
             this.display.add(playerObj);
             this.collDetector.addObject(playerObj);
-
         //
 
         return this.display;
@@ -142,6 +145,8 @@ export class Display {
 
     public update(deltaTime: number) {
         if(!this.material || !this.mesh) return;
+
+        if(this.renderTerrain) this.renderTerrain.update(deltaTime, this.collDetector);
         if(this.renderPlayer) this.renderPlayer.update(deltaTime);
 
         const factor = this.timeCycle.getTimeFactor();

@@ -15,7 +15,7 @@ import { Player } from './el/player.js';
 export class Display {
     constructor(timeCycle, renderer) {
         this.size = {
-            w: 2,
+            w: 1.99,
             h: 1.8,
             d: 0.1
         };
@@ -68,6 +68,8 @@ export class Display {
                         const center = displayBox.getCenter(new THREE.Vector3());
                         const size = displayBox.getSize(new THREE.Vector3()).multiplyScalar(0.48);
                         const scaledBox = new THREE.Box3(center.clone().sub(size.clone()), center.clone().add(size.clone()));
+                        const boxHelper = new THREE.Box3Helper(scaledBox, new THREE.Color('rgb(216, 19, 19)'));
+                        this.display.add(boxHelper);
                         this.collDetector.setZone(scaledBox);
                         res();
                     });
@@ -98,8 +100,9 @@ export class Display {
             this.display.add(this.mesh);
             //Render
             //Terrain
-            const renderTerrain = new Terrain();
-            const terrainBlocks = renderTerrain.getTerrainBlocks();
+            this.renderTerrain = new Terrain(this.timeCycle);
+            yield this.renderTerrain.ready();
+            const terrainBlocks = this.renderTerrain.getTerrainBlocks();
             terrainBlocks.forEach(block => {
                 this.display.add(block);
                 this.collDetector.addObject(block);
@@ -116,6 +119,8 @@ export class Display {
     update(deltaTime) {
         if (!this.material || !this.mesh)
             return;
+        if (this.renderTerrain)
+            this.renderTerrain.update(deltaTime, this.collDetector);
         if (this.renderPlayer)
             this.renderPlayer.update(deltaTime);
         const factor = this.timeCycle.getTimeFactor();

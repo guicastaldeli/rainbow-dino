@@ -19,17 +19,17 @@ export class Player {
         this.timeCycle = timeCycle;
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
-        this.loadPlayer();
+        this.createPlayer();
     }
-    loadPlayer() {
+    createPlayer() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const [vertexShader, fragmentShader] = yield Promise.all([
                     this.loadShader('./el/shaders/vertexShader.glsl'),
                     this.loadShader('./el/shaders/fragShader.glsl')
                 ]);
-                const path = '../../../assets/obj/cube-test.obj';
-                const texPath = '../../../assets/textures/cube-test.png';
+                const path = '../../../assets/obj/terrain-block.obj';
+                const texPath = '../../../assets/textures/terrain-block.png';
                 const tex = this.texLoader.load(texPath);
                 this.material = new THREE.ShaderMaterial({
                     uniforms: {
@@ -47,7 +47,6 @@ export class Player {
                         if (m instanceof THREE.Mesh)
                             m.material = this.material;
                     });
-                    this.mesh.scale.z = 0.1;
                     //this.mesh.receiveShadow = true;
                     this.mesh.position.x = this.pos.x;
                     this.mesh.position.y = this.pos.y;

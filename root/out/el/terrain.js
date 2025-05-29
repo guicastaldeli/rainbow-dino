@@ -1,51 +1,122 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import * as THREE from 'three';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 export class Terrain {
-    constructor() {
+    constructor(timeCycle) {
         this.blocks = [];
-        this.count = 5;
-        this.speed = 0.01;
-        this.length = 5;
+        this.speed = 0.03;
+        this.length = 10;
         this.size = {
             w: 1,
             h: 1,
-            d: 0.1
+            d: 0.1,
+            nw: 1.1
         };
         this.pos = {
-            x: 0,
-            y: 0,
+            x: -4.95,
+            y: -2.59,
             z: -3
         };
-        this.setTerrain();
+        this.timeCycle = timeCycle;
+        this.loader = new OBJLoader();
+        this.texLoader = new THREE.TextureLoader();
     }
     createTerrain(x) {
-        const geometry = new THREE.BoxGeometry(this.size.w, this.size.h, this.size.d);
-        const material = new THREE.MeshBasicMaterial({ color: 'rgb(28, 205, 54)' });
-        this.mesh = new THREE.Mesh(geometry, material);
-        this.mesh.position.x = x * 2;
-        this.mesh.position.y = this.pos.y;
-        this.mesh.position.z = this.pos.z;
-        return this.mesh;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const [vertexShader, fragmentShader] = yield Promise.all([
+                    this.loadShader('./el/shaders/vertexShader.glsl'),
+                    this.loadShader('./el/shaders/fragShader.glsl')
+                ]);
+                const path = '../../../assets/obj/terrain-block.obj';
+                const texPath = '../../../assets/textures/terrain-block.png';
+                const tex = this.texLoader.load(texPath);
+                this.material = new THREE.ShaderMaterial({
+                    uniforms: {
+                        time: { value: 0.0 },
+                        timeFactor: { value: 0.0 },
+                        map: { value: tex }
+                    },
+                    vertexShader,
+                    fragmentShader,
+                    side: THREE.DoubleSide
+                });
+                return new Promise((res) => {
+                    this.loader.load(path, (obj) => {
+                        this.mesh = obj;
+                        let block;
+                        this.mesh.traverse((m) => {
+                            if (m instanceof THREE.Mesh && !block) {
+                                m.material = this.material;
+                                block = m;
+                            }
+                        });
+                        if (!block)
+                            throw new Error("err");
+                        block.position.x = x * this.size.nw + this.pos.x;
+                        block.position.y = this.pos.y;
+                        block.position.z = this.pos.z;
+                        res(block);
+                    });
+                });
+            }
+            catch (err) {
+                console.log(err);
+                return Promise.reject(err);
+            }
+        });
     }
     setTerrain() {
-        for (let i = 0; i < this.count; i++) {
-            const x = i * this.size.w;
-            const block = this.createTerrain(x);
-            this.blocks.push(block);
-        }
+        return __awaiter(this, void 0, void 0, function* () {
+            const blockArray = [];
+            for (let i = 0; i < this.length; i++) {
+                const x = i * this.size.w;
+                blockArray.push(this.createTerrain(x));
+            }
+            const block = yield Promise.all(blockArray);
+            this.blocks.push(...block);
+        });
     }
     getTerrainBlocks() {
         return this.blocks;
     }
-    update() {
-        for (const b of this.blocks)
-            b.position.z += this.speed;
-        const fBlock = this.blocks[0];
-        if (fBlock.position.z > this.length) {
-            this.blocks.shift[0];
-            const lBlock = this.blocks[this.blocks.length - 1];
-            const updZ = lBlock.position.z + this.length;
-            const updBlock = this.createTerrain(updZ);
-            this.blocks.push(updBlock);
+    resetBlock(block) {
+    }
+    loadShader(url) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield fetch(url);
+            if (!res.ok)
+                throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
+            return yield res.text();
+        });
+    }
+    update(deltaTime, collDetector) {
+        if (!this.mesh)
+            return;
+        for (const b of this.blocks) {
+            //b.position.x -= this.speed;
+            const objBox = new THREE.Box3().setFromObject(b);
+            if (collDetector.isColliding(objBox))
+                this.resetBlock(b);
         }
+        const factor = this.timeCycle.getTimeFactor();
+        const totalTime = performance.now() * 0.001;
+        this.material.uniforms.time.value = totalTime;
+        this.material.uniforms.timeFactor.value = factor;
+        this.material.needsUpdate = true;
+    }
+    ready() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.setTerrain();
+            return this.mesh;
+        });
     }
 }

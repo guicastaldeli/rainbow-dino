@@ -42,7 +42,7 @@ export class ClipDetector {
         pos.z > this.bounds.maxZ - margin;
 
         if(isColliding !== this.collObjs.get(obj)) {
-            console.log(`${obj.name || 'Object'} ${isColliding ? 'entered' : 'left'} clipping zone`, { position: pos, bounds: this.bounds });
+            console.log(`${obj.name || 'Objecte'} ${isColliding ? 'entered' : 'left'} clipping zone`, { position: pos, bounds: this.bounds });
             this.collObjs.set(obj, isColliding);
         }
 

@@ -17,8 +17,6 @@ export class Terrain {
     private speed = 4;
     private length = 15;
 
-    private collDetector: CollDetector;
-
     size = {
         w: 1,
         h: 1,
@@ -38,7 +36,6 @@ export class Terrain {
 
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
-        this.collDetector = new CollDetector(this.mesh);
     }
 
     private async createTerrain(x: number): Promise<THREE.Mesh> {
@@ -65,22 +62,26 @@ export class Terrain {
             });
 
             return new Promise<THREE.Mesh>((res) => {
-                this.loader.load(path, (obj) => {
+                this.loader.load(path, async (obj) => {
                     this.mesh = obj;
                     let block: THREE.Mesh | undefined;
-    
+                    
                     this.mesh.traverse((m) => {
                         if(m instanceof THREE.Mesh && !block) {
                             m.material = this.material;
                             block = m;
                         }
                     });
-    
+
                     if(!block) throw new Error("err");
 
                     block.position.x = x * this.size.gap + this.pos.x;
                     block.position.y = this.pos.y;
                     block.position.z = this.pos.z;
+
+                    const collDetector = new CollDetector();
+                    const collMat = await collDetector.collMaterial(block);
+                    block.material = collMat;
 
                     res(block);
                 });
@@ -110,11 +111,7 @@ export class Terrain {
 
     private resetBlock(block: THREE.Mesh): void {
         let fBlock = this.blocks[0];
-        
-        for(const b of this.blocks) {
-            if(b.position.x > fBlock.position.x) fBlock = b;
-        }
-
+        for(const b of this.blocks) if(b.position.x > fBlock.position.x) fBlock = b;
         block.position.x = fBlock.position.x + this.size.gap;
     }
 

@@ -60,7 +60,6 @@ export class Display {
                             if (m instanceof THREE.Mesh)
                                 m.material = this.material;
                         });
-                        this.mesh.renderOrder = 1;
                         this.mesh.scale.x = this.size.w;
                         this.mesh.scale.y = this.size.h;
                         this.mesh.scale.z = this.size.d;
@@ -98,22 +97,20 @@ export class Display {
                     __check();
                 });
             }
-            this.display.add(this.mesh);
             //Render
+            //Display
+            this.display.add(this.mesh);
             //Terrain
             this.renderTerrain = new Terrain(this.timeCycle);
             yield this.renderTerrain.ready();
             const terrainBlocks = this.renderTerrain.getTerrainBlocks();
             terrainBlocks.forEach(block => {
-                block.renderOrder = 0;
                 this.display.add(block);
-                this.collDetector.addObject(block);
             });
             //Player
             this.renderPlayer = new Player(this.timeCycle);
             const playerObj = yield this.renderPlayer.ready();
             this.display.add(playerObj);
-            this.collDetector.addObject(playerObj);
             //
             return this.display;
         });

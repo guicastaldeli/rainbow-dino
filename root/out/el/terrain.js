@@ -30,7 +30,6 @@ export class Terrain {
         this.timeCycle = timeCycle;
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
-        this.collDetector = new CollDetector(this.mesh);
     }
     createTerrain(x) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -54,7 +53,7 @@ export class Terrain {
                     clipping: true
                 });
                 return new Promise((res) => {
-                    this.loader.load(path, (obj) => {
+                    this.loader.load(path, (obj) => __awaiter(this, void 0, void 0, function* () {
                         this.mesh = obj;
                         let block;
                         this.mesh.traverse((m) => {
@@ -68,8 +67,11 @@ export class Terrain {
                         block.position.x = x * this.size.gap + this.pos.x;
                         block.position.y = this.pos.y;
                         block.position.z = this.pos.z;
+                        const collDetector = new CollDetector();
+                        const collMat = yield collDetector.collMaterial(block);
+                        block.material = collMat;
                         res(block);
-                    });
+                    }));
                 });
             }
             catch (err) {
@@ -95,10 +97,9 @@ export class Terrain {
     }
     resetBlock(block) {
         let fBlock = this.blocks[0];
-        for (const b of this.blocks) {
+        for (const b of this.blocks)
             if (b.position.x > fBlock.position.x)
                 fBlock = b;
-        }
         block.position.x = fBlock.position.x + this.size.gap;
     }
     loadShader(url) {

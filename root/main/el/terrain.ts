@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import { Time } from '../time';
-import { CollDetector } from '../coll-detector';
+import { CollDetector } from '../coll-detector.js';
 
 export class Terrain {
     private timeCycle: Time;
@@ -13,19 +13,21 @@ export class Terrain {
     private material!: THREE.ShaderMaterial;
 
     private blocks: THREE.Mesh[] = [];
-    private speed = 0.03;
-    private length = 10;
+    private speed = 4;
+    private length = 15;
+
+    private collDetector: CollDetector;
 
     size = {
         w: 1,
         h: 1,
         d: 0.1,
 
-        nw: 1.1
+        gap: 1.1
     }
 
     pos = {
-        x: -4.95,
+        x: -7,
         y: -2.59,
         z: -3
     }
@@ -35,6 +37,7 @@ export class Terrain {
 
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
+        this.collDetector = new CollDetector();
     }
 
     private async createTerrain(x: number): Promise<THREE.Mesh> {
@@ -52,11 +55,13 @@ export class Terrain {
                 uniforms: {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
-                    map: { value: tex }
+                    map: { value: tex },
+                    clippingPlanes: { value: this.collDetector.clippingPlanes }
                 },
                 vertexShader,
                 fragmentShader,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+                clipping: true
             });
 
             return new Promise<THREE.Mesh>((res) => {
@@ -73,7 +78,7 @@ export class Terrain {
     
                     if(!block) throw new Error("err");
 
-                    block.position.x = x * this.size.nw + this.pos.x;
+                    block.position.x = x * this.size.gap + this.pos.x;
                     block.position.y = this.pos.y;
                     block.position.z = this.pos.z;
 
@@ -103,7 +108,13 @@ export class Terrain {
     }
 
     private resetBlock(block: THREE.Mesh): void {
+        let fBlock = this.blocks[0];
         
+        for(const b of this.blocks) {
+            if(b.position.x > fBlock.position.x) fBlock = b;
+        }
+
+        block.position.x = fBlock.position.x + this.size.gap;
     }
 
     private async loadShader(url: string): Promise<string> {
@@ -116,10 +127,11 @@ export class Terrain {
         if(!this.mesh) return;
 
         for(const b of this.blocks) {
-            //b.position.x -= this.speed;
+            b.position.x -= this.speed * deltaTime;
 
             const objBox = new THREE.Box3().setFromObject(b);
-            if(collDetector.isColliding(objBox)) this.resetBlock(b);
+            if(collDetector.isObjColliding(objBox)) this.resetBlock(b);
+            if(collDetector.isColliding(objBox)) collDetector.applyClipping(b);
         }
 
         const factor = this.timeCycle.getTimeFactor();
@@ -128,7 +140,7 @@ export class Terrain {
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
         this.material.needsUpdate = true;
-    } 
+    }
 
     public async ready(): Promise<THREE.Object3D> {
         await this.setTerrain();

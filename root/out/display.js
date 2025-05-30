@@ -13,7 +13,7 @@ import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
 import { Player } from './el/player.js';
 export class Display {
-    constructor(timeCycle, renderer) {
+    constructor(timeCycle, renderer, scene) {
         this.size = {
             w: 1.99,
             h: 1.8,
@@ -26,7 +26,7 @@ export class Display {
         };
         this.timeCycle = timeCycle;
         this.renderer = renderer;
-        this.collDetector = new CollDetector();
+        this.collDetector = new CollDetector(scene);
         this.display = new THREE.Group;
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
@@ -46,11 +46,12 @@ export class Display {
                     uniforms: {
                         time: { value: 0.0 },
                         timeFactor: { value: 0.0 },
-                        map: { value: tex }
+                        map: { value: tex },
                     },
                     vertexShader,
                     fragmentShader,
-                    side: THREE.DoubleSide
+                    side: THREE.DoubleSide,
+                    clipping: true
                 });
                 yield new Promise((res) => {
                     this.loader.load(path, (obj) => {
@@ -68,8 +69,6 @@ export class Display {
                         const center = displayBox.getCenter(new THREE.Vector3());
                         const size = displayBox.getSize(new THREE.Vector3()).multiplyScalar(0.48);
                         const scaledBox = new THREE.Box3(center.clone().sub(size.clone()), center.clone().add(size.clone()));
-                        const boxHelper = new THREE.Box3Helper(scaledBox, new THREE.Color('rgb(216, 19, 19)'));
-                        this.display.add(boxHelper);
                         this.collDetector.setZone(scaledBox);
                         res();
                     });
@@ -119,6 +118,7 @@ export class Display {
     update(deltaTime) {
         if (!this.material || !this.mesh)
             return;
+        this.collDetector.checkBounds(); //if doenst work, switch later to below needsUpdate
         if (this.renderTerrain)
             this.renderTerrain.update(deltaTime, this.collDetector);
         if (this.renderPlayer)
@@ -128,7 +128,6 @@ export class Display {
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
         this.material.needsUpdate = true;
-        this.collDetector.checkBounds();
     }
     ready() {
         return __awaiter(this, void 0, void 0, function* () {

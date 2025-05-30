@@ -18,7 +18,7 @@ renderer.autoClear = false;
 renderer.localClippingEnabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 
-const scene = new THREE.Scene();
+export const scene = new THREE.Scene();
 
 //Render
     //Time and Skybox
@@ -36,7 +36,7 @@ const scene = new THREE.Scene();
     scene.add(camera.camera);
 
     //Main Display
-    const renderDisplay = new Display(timeCycle, renderer);
+    const renderDisplay = new Display(timeCycle, renderer, scene);
 
     renderDisplay.ready().then(() => {
         scene.add(renderDisplay.display);

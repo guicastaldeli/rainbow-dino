@@ -23,10 +23,10 @@ export class Display {
     private renderTerrain!: Terrain;
     private renderPlayer!: Player;
 
-    constructor(timeCycle: Time, renderer: THREE.WebGLRenderer) {
+    constructor(timeCycle: Time, renderer: THREE.WebGLRenderer, scene: THREE.Scene) {
         this.timeCycle = timeCycle;
         this.renderer = renderer;
-        this.collDetector = new CollDetector();
+        this.collDetector = new CollDetector(scene);
 
         this.display = new THREE.Group;
         this.loader = new OBJLoader();
@@ -62,11 +62,12 @@ export class Display {
                 uniforms: {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
-                    map: { value: tex }
+                    map: { value: tex },
                 },
                 vertexShader,
                 fragmentShader,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+                clipping: true
             });
 
             await new Promise<void>((res) => {
@@ -93,8 +94,6 @@ export class Display {
                         center.clone().add(size.clone())
                     );
 
-                    const boxHelper = new THREE.Box3Helper(scaledBox, new THREE.Color('rgb(216, 19, 19)'));
-                    this.display.add(boxHelper);
                     this.collDetector.setZone(scaledBox);
                     res();
                 });
@@ -146,6 +145,7 @@ export class Display {
     public update(deltaTime: number) {
         if(!this.material || !this.mesh) return;
 
+        this.collDetector.checkBounds(); //if doenst work, switch later to below needsUpdate
         if(this.renderTerrain) this.renderTerrain.update(deltaTime, this.collDetector);
         if(this.renderPlayer) this.renderPlayer.update(deltaTime);
 
@@ -155,8 +155,6 @@ export class Display {
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
         this.material.needsUpdate = true;
-
-        this.collDetector.checkBounds();
     }
 
     public async ready(): Promise<THREE.Group> {

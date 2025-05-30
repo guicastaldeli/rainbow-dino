@@ -9,25 +9,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { CollDetector } from '../coll-detector.js';
 export class Terrain {
     constructor(timeCycle) {
         this.blocks = [];
-        this.speed = 0.03;
-        this.length = 10;
+        this.speed = 4;
+        this.length = 15;
         this.size = {
             w: 1,
             h: 1,
             d: 0.1,
-            nw: 1.1
+            gap: 1.1
         };
         this.pos = {
-            x: -4.95,
+            x: -7,
             y: -2.59,
             z: -3
         };
         this.timeCycle = timeCycle;
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
+        this.collDetector = new CollDetector();
     }
     createTerrain(x) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -43,11 +45,13 @@ export class Terrain {
                     uniforms: {
                         time: { value: 0.0 },
                         timeFactor: { value: 0.0 },
-                        map: { value: tex }
+                        map: { value: tex },
+                        clippingPlanes: { value: this.collDetector.clippingPlanes }
                     },
                     vertexShader,
                     fragmentShader,
-                    side: THREE.DoubleSide
+                    side: THREE.DoubleSide,
+                    clipping: true
                 });
                 return new Promise((res) => {
                     this.loader.load(path, (obj) => {
@@ -61,7 +65,7 @@ export class Terrain {
                         });
                         if (!block)
                             throw new Error("err");
-                        block.position.x = x * this.size.nw + this.pos.x;
+                        block.position.x = x * this.size.gap + this.pos.x;
                         block.position.y = this.pos.y;
                         block.position.z = this.pos.z;
                         res(block);
@@ -89,6 +93,12 @@ export class Terrain {
         return this.blocks;
     }
     resetBlock(block) {
+        let fBlock = this.blocks[0];
+        for (const b of this.blocks) {
+            if (b.position.x > fBlock.position.x)
+                fBlock = b;
+        }
+        block.position.x = fBlock.position.x + this.size.gap;
     }
     loadShader(url) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -102,10 +112,12 @@ export class Terrain {
         if (!this.mesh)
             return;
         for (const b of this.blocks) {
-            //b.position.x -= this.speed;
+            b.position.x -= this.speed * deltaTime;
             const objBox = new THREE.Box3().setFromObject(b);
-            if (collDetector.isColliding(objBox))
+            if (collDetector.isObjColliding(objBox))
                 this.resetBlock(b);
+            if (collDetector.isColliding(objBox))
+                collDetector.applyClipping(b);
         }
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;

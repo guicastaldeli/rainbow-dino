@@ -8,12 +8,21 @@ export class CollDetector {
     public clippingPlanes: THREE.Plane[] = [];
     private scene!: THREE.Scene;
 
-    constructor(scene: THREE.Scene) {
+    private clipPlane = new THREE.Plane();
+    private lColl?: THREE.Box3;
+    private lCollObjs = new Set<THREE.Object3D>();
+    private rColl?: THREE.Box3;
+    private collMatUpd!: THREE.ShaderMaterial;
+    private collMatColor = new THREE.Color('rgb(0, 0, 0)');
+
+    constructor(scene: THREE.Scene, obj: THREE.Object3D) {
         this.scene = scene;
+        this.collMaterial(obj);
     }
 
     public setZone(box: THREE.Box3) {
         this.zone = box;
+        this.isColliding();
         this.box = box;
     }
 
@@ -53,63 +62,122 @@ export class CollDetector {
         for(const obj of this.objs) {
             if(!obj || !obj.position) continue;
             obj.updateMatrixWorld(true);
-
-            const box = new THREE.Box3().setFromObject(obj, true);
         }
     }
 
-    public isColliding(): THREE.Plane[] {
-        if(!this.zone) return [];
+    public isColliding() {
+        if(!this.zone) return;
 
-        const lOffset = 37;
-        const rOffset = -37;
+        const lOffset = -38;
+        const rOffset = 37;
 
-         const lCollMin = new THREE.Vector3(
-            (this.zone.min.x * 2 + rOffset) / 5,
-            this.zone.min.y,
-            this.zone.min.z
-        );
-        const lCollMax = new THREE.Vector3(
-            (this.zone.max.x * 1.3 + rOffset) / 5,
-            this.zone.max.y,
-            this.zone.max.z
-        );
-
-        const rCollMin = new THREE.Vector3(
-            (this.zone.min.x * 1.3 + lOffset) / 5,
-            this.zone.min.y,
-            this.zone.min.z
-        );
-        const rCollMax = new THREE.Vector3(
-            (this.zone.max.x * 2.5 + lOffset) / 5,
-            this.zone.max.y,
-            this.zone.max.z
+        this.lColl = new THREE.Box3(
+            new THREE.Vector3(
+                (this.zone.min.x * 2 + lOffset) / 5,
+                this.zone.min.y,
+                this.zone.min.z
+            ),
+            new THREE.Vector3(
+                (this.zone.max.x * 1.3 + lOffset) / 5,
+                this.zone.max.y,
+                this.zone.max.z
+            )
         );
 
-        const lCollBox = new THREE.Box3(lCollMin, lCollMax);
-    const rCollBox = new THREE.Box3(rCollMin, rCollMax);
-    const lHelper = new THREE.Box3Helper(lCollBox, 0xff0000);
-    const rHelper = new THREE.Box3Helper(rCollBox, 0x0000ff);
-    this.scene.add(lHelper);
-    this.scene.add(rHelper);
-        
-        const planes: THREE.Plane[] = [];
+        this.rColl = new THREE.Box3(
+            new THREE.Vector3(
+                (this.zone.min.x * 1.3 + rOffset) / 5,
+                this.zone.min.y,
+                this.zone.min.z
+            ),
+            new THREE.Vector3(
+                (this.zone.max.x * 2.5 + rOffset) / 5,
+                this.zone.max.y,
+                this.zone.max.z
+            )
+        );
 
-        planes.push(new THREE.Plane(new THREE.Vector3(1, 0, 0), -lCollMax.x)); //Right
-        planes.push(new THREE.Plane(new THREE.Vector3(-1, 0, 0), lCollMin.x)); //Left
-        planes.push(new THREE.Plane(new THREE.Vector3(0, 1, 0), -lCollMax.y)); //Top
-        planes.push(new THREE.Plane(new THREE.Vector3(0, -1, 0), lCollMin.y)); //Bottom
-        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, 1), -lCollMax.z)); //Front
-        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, -1), lCollMin.z)); //Back
+        const helper = new THREE.Box3Helper(this.lColl, new THREE.Color('rgb(255, 0, 0)'));
+        this.scene.add(helper);
+    }
 
-        planes.push(new THREE.Plane(new THREE.Vector3(1, 0, 0), -rCollMax.x)); //Right
-        planes.push(new THREE.Plane(new THREE.Vector3(-1, 0, 0), rCollMin.x)); //Left
-        planes.push(new THREE.Plane(new THREE.Vector3(0, 1, 0), -rCollMax.y)); //Top
-        planes.push(new THREE.Plane(new THREE.Vector3(0, -1, 0), rCollMin.y)); //Bottom
-        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, 1), -rCollMax.z)); //Front
-        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, -1), rCollMin.z)); 
+    public async collMaterial(obj: THREE.Object3D): Promise<THREE.ShaderMaterial> {
+        const [vertexShader, fragmentShader] = await Promise.all([
+            fetch('../main/shaders/collVertexShader.glsl').then(res => res.text()),
+            fetch('../main/shaders/collFragShader.glsl').then(res => res.text())
+        ]);
 
-        return planes;
+        const tex = this.getObjTex(obj);
+
+        const mat = new THREE.ShaderMaterial({
+            uniforms: {
+                isColl: { value: false },
+                map: { value: tex },
+                clipNormal: { value: new THREE.Vector3(1, 0, 0) },
+                clipConstant: { value: 0 }
+            },
+            vertexShader,
+            fragmentShader,
+        });
+
+        this.collMatUpd = mat;
+        return this.collMatUpd;
+    }
+
+    public checkColl(obj: THREE.Object3D, objBox: THREE.Box3): void {
+        if(!this.lColl || !(obj instanceof THREE.Mesh)) return;
+
+        const isColl = objBox.intersectsBox(this.lColl);
+
+        if(isColl) {
+            const center = new THREE.Vector3();
+            this.lColl.getCenter(center);
+
+            const objPos = new THREE.Vector3();
+            obj.getWorldPosition(objPos);
+
+            const leftNormal = new THREE.Vector3(-1, 0, 0);
+            const leftPoint = new THREE.Vector3(this.lColl.max.x, 0, 0);
+            this.clipPlane.setFromNormalAndCoplanarPoint(leftNormal, leftPoint);
+
+            const mat = this.collMatUpd.clone();
+            mat.uniforms.clipNormal.value = this.clipPlane.normal;
+            mat.uniforms.clipConstant.value = -this.clipPlane.constant;
+            obj.material = mat;
+        }
+    }
+
+    private getObjTex(obj: THREE.Object3D): THREE.Texture | null {
+        if(obj instanceof THREE.Mesh) {
+            const mat = obj.material;
+
+            if(Array.isArray(obj.material)) {
+                for(const m of mat) {
+                    const tex = this.extractTex(mat);
+                    if(tex) return tex;
+                }
+            } else {
+                const tex = this.extractTex(obj.material);
+                if(tex) return tex;
+            }
+        }
+
+        return null;
+    }
+
+    private extractTex(mat: THREE.Material): THREE.Texture | null {
+        if(mat instanceof THREE.ShaderMaterial) {
+            if('map' in mat.uniforms && mat.uniforms.map.value instanceof THREE.Texture) {
+                return mat.uniforms.map.value;
+            }
+
+        }
+
+        if('map' in mat && mat['map'] instanceof THREE.Texture) {
+            return mat['map'];
+        }
+
+        return null;
     }
 
     public isObjColliding(objBox: THREE.Box3): boolean {
@@ -129,6 +197,9 @@ export class CollDetector {
                 this.zone.max.z
             )
         );
+
+        const helper = new THREE.Box3Helper(coll, 0xffff00);
+        this.scene.add(helper);
 
         const collided = objBox.intersectsBox(coll);
         return collided;

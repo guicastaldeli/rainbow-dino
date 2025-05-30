@@ -15,13 +15,13 @@ import { Player } from './el/player.js';
 export class Display {
     constructor(timeCycle, renderer, scene) {
         this.size = {
-            w: 1.99,
-            h: 1.8,
-            d: 0.5
+            w: 2.1,
+            h: 1.9,
+            d: 2
         };
         this.pos = {
             x: 0,
-            y: -3.5,
+            y: -3.7,
             z: -3
         };
         this.timeCycle = timeCycle;
@@ -63,6 +63,7 @@ export class Display {
                         this.mesh.renderOrder = 1;
                         this.mesh.scale.x = this.size.w;
                         this.mesh.scale.y = this.size.h;
+                        this.mesh.scale.z = this.size.d;
                         this.mesh.position.x = this.pos.x,
                             this.mesh.position.y = this.pos.y,
                             this.mesh.position.z = this.pos.z;
@@ -120,7 +121,6 @@ export class Display {
     update(deltaTime) {
         if (!this.material || !this.mesh)
             return;
-        this.collDetector.checkBounds(); //if doenst work, switch later to below needsUpdate
         if (this.renderTerrain)
             this.renderTerrain.update(deltaTime, this.collDetector);
         if (this.renderPlayer)

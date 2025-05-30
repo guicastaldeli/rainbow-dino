@@ -36,14 +36,14 @@ export class Display {
     }
 
     size = {
-        w: 1.99,
-        h: 1.8,
-        d: 0.5
+        w: 2.1,
+        h: 1.9,
+        d: 2
     }
 
     pos = {
         x: 0,
-        y: -3.5,
+        y: -3.7,
         z: -3
     }
 
@@ -81,6 +81,7 @@ export class Display {
                     this.mesh.renderOrder = 1;
                     this.mesh.scale.x = this.size.w;
                     this.mesh.scale.y = this.size.h;
+                    this.mesh.scale.z = this.size.d;
     
                     this.mesh.position.x = this.pos.x,
                     this.mesh.position.y = this.pos.y,
@@ -147,7 +148,6 @@ export class Display {
     public update(deltaTime: number) {
         if(!this.material || !this.mesh) return;
 
-        this.collDetector.checkBounds(); //if doenst work, switch later to below needsUpdate
         if(this.renderTerrain) this.renderTerrain.update(deltaTime, this.collDetector);
         if(this.renderPlayer) this.renderPlayer.update(deltaTime);
 

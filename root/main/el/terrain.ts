@@ -24,13 +24,13 @@ export class Terrain {
         h: 1,
         d: 0.1,
 
-        gap: 1.1
+        gap: 2
     }
 
     pos = {
         x: -7,
         y: -2.59,
-        z: -3
+        z: -3.1
     }
 
     constructor(timeCycle: Time) {
@@ -38,7 +38,7 @@ export class Terrain {
 
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
-        this.collDetector = new CollDetector();
+        this.collDetector = new CollDetector(this.mesh);
     }
 
     private async createTerrain(x: number): Promise<THREE.Mesh> {
@@ -57,7 +57,6 @@ export class Terrain {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
                     map: { value: tex },
-                    clippingPlanes: { value: [] }
                 },
                 vertexShader,
                 fragmentShader,
@@ -102,8 +101,7 @@ export class Terrain {
 
         const block = await Promise.all(blockArray);
         this.blocks.push(...block);
-
-        for(const b of block) this.blockGroup.add(b);
+        this.blockGroup.add(...block);
     }
 
     public getTerrainBlocks(): THREE.Mesh[] {
@@ -131,20 +129,15 @@ export class Terrain {
         
         for(const b of this.blocks) {
             b.position.x -= this.speed * deltaTime;
-
             const objBox = new THREE.Box3().setFromObject(b);
+
+            collDetector.checkColl(b, objBox);
             if(collDetector.isObjColliding(objBox)) this.resetBlock(b);
         }
 
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
 
-        const allClippingPlanes = collDetector.isColliding();
-
-        this.material.uniforms.clippingPlanes.value = allClippingPlanes;
-        this.material.clippingPlanes = allClippingPlanes;
-        this.material.clipIntersection = true;
-        this.material.clipShadows = true;
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
         this.material.needsUpdate = true;
@@ -152,6 +145,6 @@ export class Terrain {
 
     public async ready(): Promise<THREE.Object3D> {
         await this.setTerrain();
-        return this.mesh;
+        return this.blockGroup;
     }
 }

@@ -12,6 +12,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { CollDetector } from '../coll-detector.js';
 export class Terrain {
     constructor(timeCycle) {
+        this.blockGroup = new THREE.Group();
         this.blocks = [];
         this.speed = 4;
         this.length = 15;
@@ -46,7 +47,7 @@ export class Terrain {
                         time: { value: 0.0 },
                         timeFactor: { value: 0.0 },
                         map: { value: tex },
-                        clippingPlanes: { value: this.collDetector.clippingPlanes }
+                        clippingPlanes: { value: [] }
                     },
                     vertexShader,
                     fragmentShader,
@@ -87,6 +88,8 @@ export class Terrain {
             }
             const block = yield Promise.all(blockArray);
             this.blocks.push(...block);
+            for (const b of block)
+                this.blockGroup.add(b);
         });
     }
     getTerrainBlocks() {
@@ -116,11 +119,14 @@ export class Terrain {
             const objBox = new THREE.Box3().setFromObject(b);
             if (collDetector.isObjColliding(objBox))
                 this.resetBlock(b);
-            if (collDetector.isColliding(objBox))
-                collDetector.applyClipping(b);
         }
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
+        const allClippingPlanes = collDetector.isColliding();
+        this.material.uniforms.clippingPlanes.value = allClippingPlanes;
+        this.material.clippingPlanes = allClippingPlanes;
+        this.material.clipIntersection = true;
+        this.material.clipShadows = true;
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
         this.material.needsUpdate = true;

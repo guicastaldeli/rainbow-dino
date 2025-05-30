@@ -11,6 +11,7 @@ export class Terrain {
     private texLoader!: THREE.TextureLoader;
     private mesh!: THREE.Object3D;
     private material!: THREE.ShaderMaterial;
+    private blockGroup = new THREE.Group();
 
     private blocks: THREE.Mesh[] = [];
     private speed = 4;
@@ -56,7 +57,7 @@ export class Terrain {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
                     map: { value: tex },
-                    clippingPlanes: { value: this.collDetector.clippingPlanes }
+                    clippingPlanes: { value: [] }
                 },
                 vertexShader,
                 fragmentShader,
@@ -101,6 +102,8 @@ export class Terrain {
 
         const block = await Promise.all(blockArray);
         this.blocks.push(...block);
+
+        for(const b of block) this.blockGroup.add(b);
     }
 
     public getTerrainBlocks(): THREE.Mesh[] {
@@ -125,18 +128,23 @@ export class Terrain {
 
     public update(deltaTime: number, collDetector: CollDetector): void {
         if(!this.mesh) return;
-
+        
         for(const b of this.blocks) {
             b.position.x -= this.speed * deltaTime;
 
             const objBox = new THREE.Box3().setFromObject(b);
             if(collDetector.isObjColliding(objBox)) this.resetBlock(b);
-            if(collDetector.isColliding(objBox)) collDetector.applyClipping(b);
         }
 
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
 
+        const allClippingPlanes = collDetector.isColliding();
+
+        this.material.uniforms.clippingPlanes.value = allClippingPlanes;
+        this.material.clippingPlanes = allClippingPlanes;
+        this.material.clipIntersection = true;
+        this.material.clipShadows = true;
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
         this.material.needsUpdate = true;

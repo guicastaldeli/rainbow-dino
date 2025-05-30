@@ -14,8 +14,6 @@ export class CollDetector {
 
     public setZone(box: THREE.Box3) {
         this.zone = box;
-        this.updateClipping();
-
         this.box = box;
     }
 
@@ -23,21 +21,6 @@ export class CollDetector {
         if(obj && obj.position) this.objs.push(obj);
     }
 
-    private updateClipping() {
-        if(!this.zone) return;
-
-        const center = this.zone.getCenter(new THREE.Vector3());
-        const size = this.zone.getSize(new THREE.Vector3());
-
-        this.clippingPlanes = [
-            new THREE.Plane(new THREE.Vector3(1, 0, 0), -(center.x + size.x/2)), //Right
-            new THREE.Plane(new THREE.Vector3(-1, 0, 0), center.x - size.x/2), //Left
-            new THREE.Plane(new THREE.Vector3(0, 1, 0), -(center.y + size.y/2)), //Top
-            new THREE.Plane(new THREE.Vector3(0, -1, 0), center.y - size.y/2), //Bottom
-            new THREE.Plane(new THREE.Vector3(0, 0, 1), -(center.z + size.z/2)), //Front
-            new THREE.Plane(new THREE.Vector3(0, 0, -1), center.z - size.z/2) //Back
-        ];
-    }
 
     public applyClipping(obj: THREE.Object3D) {
         if(obj instanceof THREE.Mesh) {
@@ -72,62 +55,61 @@ export class CollDetector {
             obj.updateMatrixWorld(true);
 
             const box = new THREE.Box3().setFromObject(obj, true);
-
-            if(this.isColliding(box)) {
-                if(obj instanceof THREE.Mesh && obj.material) {
-                    if(Array.isArray(obj.material)) {
-                        obj.material.forEach(mat => this.applyClipping(mat));
-                    } else {
-                        this.applyClipping(obj.material);
-                    }
-                }
-            }
         }
     }
 
-    public isColliding(objBox: THREE.Box3): [boolean, boolean] {
-        if(!this.zone) return [false, false];
+    public isColliding(): THREE.Plane[] {
+        if(!this.zone) return [];
 
         const lOffset = 37;
         const rOffset = -37;
 
-        const lColl = new THREE.Box3(
-            new THREE.Vector3(
-                (this.zone.min.x * 2 + rOffset) / 5,
-                this.zone.min.y,
-                this.zone.min.z,
-            ),
-            new THREE.Vector3(
-                (this.zone.max.x * 1.3 + rOffset) / 5,
-                this.zone.max.y,
-                this.zone.max.z
-            )
+         const lCollMin = new THREE.Vector3(
+            (this.zone.min.x * 2 + rOffset) / 5,
+            this.zone.min.y,
+            this.zone.min.z
+        );
+        const lCollMax = new THREE.Vector3(
+            (this.zone.max.x * 1.3 + rOffset) / 5,
+            this.zone.max.y,
+            this.zone.max.z
         );
 
-        const rColl = new THREE.Box3(
-            new THREE.Vector3(
-                (this.zone.min.x * 1.3 + lOffset) / 5,
-                this.zone.min.y,
-                this.zone.min.z,
-            ),
-            new THREE.Vector3(
-                (this.zone.max.x * 2.5 + lOffset) / 5,
-                this.zone.max.y,
-                this.zone.max.z
-            )
+        const rCollMin = new THREE.Vector3(
+            (this.zone.min.x * 1.3 + lOffset) / 5,
+            this.zone.min.y,
+            this.zone.min.z
+        );
+        const rCollMax = new THREE.Vector3(
+            (this.zone.max.x * 2.5 + lOffset) / 5,
+            this.zone.max.y,
+            this.zone.max.z
         );
 
-        const lHelper = new THREE.Box3Helper(lColl, 0xff0000); // Red for left collision
-        const rHelper = new THREE.Box3Helper(rColl, 0x0000ff); // Blue for right collision
+        const lCollBox = new THREE.Box3(lCollMin, lCollMax);
+    const rCollBox = new THREE.Box3(rCollMin, rCollMax);
+    const lHelper = new THREE.Box3Helper(lCollBox, 0xff0000);
+    const rHelper = new THREE.Box3Helper(rCollBox, 0x0000ff);
+    this.scene.add(lHelper);
+    this.scene.add(rHelper);
         
-        // Add to scene
-        //this.scene.add(lHelper);
-        //this.scene.add(rHelper);
+        const planes: THREE.Plane[] = [];
 
-        const lCollIntersect = objBox.intersectsBox(lColl);
-        const rCollIntersect = objBox.intersectsBox(rColl);
+        planes.push(new THREE.Plane(new THREE.Vector3(1, 0, 0), -lCollMax.x)); //Right
+        planes.push(new THREE.Plane(new THREE.Vector3(-1, 0, 0), lCollMin.x)); //Left
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 1, 0), -lCollMax.y)); //Top
+        planes.push(new THREE.Plane(new THREE.Vector3(0, -1, 0), lCollMin.y)); //Bottom
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, 1), -lCollMax.z)); //Front
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, -1), lCollMin.z)); //Back
 
-        return [lCollIntersect, rCollIntersect];
+        planes.push(new THREE.Plane(new THREE.Vector3(1, 0, 0), -rCollMax.x)); //Right
+        planes.push(new THREE.Plane(new THREE.Vector3(-1, 0, 0), rCollMin.x)); //Left
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 1, 0), -rCollMax.y)); //Top
+        planes.push(new THREE.Plane(new THREE.Vector3(0, -1, 0), rCollMin.y)); //Bottom
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, 1), -rCollMax.z)); //Front
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, -1), rCollMin.z)); 
+
+        return planes;
     }
 
     public isObjColliding(objBox: THREE.Box3): boolean {

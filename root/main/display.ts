@@ -38,7 +38,7 @@ export class Display {
     size = {
         w: 1.99,
         h: 1.8,
-        d: 0.1
+        d: 0.5
     }
 
     pos = {
@@ -77,7 +77,8 @@ export class Display {
                     this.mesh.traverse((m) => {
                         if(m instanceof THREE.Mesh) m.material = this.material;
                     });
-    
+
+                    this.mesh.renderOrder = 1;
                     this.mesh.scale.x = this.size.w;
                     this.mesh.scale.y = this.size.h;
     
@@ -128,6 +129,7 @@ export class Display {
             const terrainBlocks = this.renderTerrain.getTerrainBlocks();
 
             terrainBlocks.forEach(block => {
+                block.renderOrder = 0;
                 this.display.add(block);
                 this.collDetector.addObject(block);
             });

@@ -7,26 +7,11 @@ export class CollDetector {
     }
     setZone(box) {
         this.zone = box;
-        this.updateClipping();
         this.box = box;
     }
     addObject(obj) {
         if (obj && obj.position)
             this.objs.push(obj);
-    }
-    updateClipping() {
-        if (!this.zone)
-            return;
-        const center = this.zone.getCenter(new THREE.Vector3());
-        const size = this.zone.getSize(new THREE.Vector3());
-        this.clippingPlanes = [
-            new THREE.Plane(new THREE.Vector3(1, 0, 0), -(center.x + size.x / 2)), //Right
-            new THREE.Plane(new THREE.Vector3(-1, 0, 0), center.x - size.x / 2), //Left
-            new THREE.Plane(new THREE.Vector3(0, 1, 0), -(center.y + size.y / 2)), //Top
-            new THREE.Plane(new THREE.Vector3(0, -1, 0), center.y - size.y / 2), //Bottom
-            new THREE.Plane(new THREE.Vector3(0, 0, 1), -(center.z + size.z / 2)), //Front
-            new THREE.Plane(new THREE.Vector3(0, 0, -1), center.z - size.z / 2) //Back
-        ];
     }
     applyClipping(obj) {
         if (obj instanceof THREE.Mesh) {
@@ -59,33 +44,37 @@ export class CollDetector {
                 continue;
             obj.updateMatrixWorld(true);
             const box = new THREE.Box3().setFromObject(obj, true);
-            if (this.isColliding(box)) {
-                if (obj instanceof THREE.Mesh && obj.material) {
-                    if (Array.isArray(obj.material)) {
-                        obj.material.forEach(mat => this.applyClipping(mat));
-                    }
-                    else {
-                        this.applyClipping(obj.material);
-                    }
-                }
-            }
         }
     }
-    isColliding(objBox) {
+    isColliding() {
         if (!this.zone)
-            return [false, false];
+            return [];
         const lOffset = 37;
         const rOffset = -37;
-        const lColl = new THREE.Box3(new THREE.Vector3((this.zone.min.x * 2 + rOffset) / 5, this.zone.min.y, this.zone.min.z), new THREE.Vector3((this.zone.max.x * 1.3 + rOffset) / 5, this.zone.max.y, this.zone.max.z));
-        const rColl = new THREE.Box3(new THREE.Vector3((this.zone.min.x * 1.3 + lOffset) / 5, this.zone.min.y, this.zone.min.z), new THREE.Vector3((this.zone.max.x * 2.5 + lOffset) / 5, this.zone.max.y, this.zone.max.z));
-        const lHelper = new THREE.Box3Helper(lColl, 0xff0000); // Red for left collision
-        const rHelper = new THREE.Box3Helper(rColl, 0x0000ff); // Blue for right collision
-        // Add to scene
-        //this.scene.add(lHelper);
-        //this.scene.add(rHelper);
-        const lCollIntersect = objBox.intersectsBox(lColl);
-        const rCollIntersect = objBox.intersectsBox(rColl);
-        return [lCollIntersect, rCollIntersect];
+        const lCollMin = new THREE.Vector3((this.zone.min.x * 2 + rOffset) / 5, this.zone.min.y, this.zone.min.z);
+        const lCollMax = new THREE.Vector3((this.zone.max.x * 1.3 + rOffset) / 5, this.zone.max.y, this.zone.max.z);
+        const rCollMin = new THREE.Vector3((this.zone.min.x * 1.3 + lOffset) / 5, this.zone.min.y, this.zone.min.z);
+        const rCollMax = new THREE.Vector3((this.zone.max.x * 2.5 + lOffset) / 5, this.zone.max.y, this.zone.max.z);
+        const lCollBox = new THREE.Box3(lCollMin, lCollMax);
+        const rCollBox = new THREE.Box3(rCollMin, rCollMax);
+        const lHelper = new THREE.Box3Helper(lCollBox, 0xff0000);
+        const rHelper = new THREE.Box3Helper(rCollBox, 0x0000ff);
+        this.scene.add(lHelper);
+        this.scene.add(rHelper);
+        const planes = [];
+        planes.push(new THREE.Plane(new THREE.Vector3(1, 0, 0), -lCollMax.x)); //Right
+        planes.push(new THREE.Plane(new THREE.Vector3(-1, 0, 0), lCollMin.x)); //Left
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 1, 0), -lCollMax.y)); //Top
+        planes.push(new THREE.Plane(new THREE.Vector3(0, -1, 0), lCollMin.y)); //Bottom
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, 1), -lCollMax.z)); //Front
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, -1), lCollMin.z)); //Back
+        planes.push(new THREE.Plane(new THREE.Vector3(1, 0, 0), -rCollMax.x)); //Right
+        planes.push(new THREE.Plane(new THREE.Vector3(-1, 0, 0), rCollMin.x)); //Left
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 1, 0), -rCollMax.y)); //Top
+        planes.push(new THREE.Plane(new THREE.Vector3(0, -1, 0), rCollMin.y)); //Bottom
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, 1), -rCollMax.z)); //Front
+        planes.push(new THREE.Plane(new THREE.Vector3(0, 0, -1), rCollMin.z));
+        return planes;
     }
     isObjColliding(objBox) {
         if (!this.zone)

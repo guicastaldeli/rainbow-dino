@@ -28,9 +28,9 @@ export class CollDetector {
         const lOffset = -38;
         const rOffset = 37;
         //Left Coll
-        this.lColl = new THREE.Box3(new THREE.Vector3((this.zone.min.x * 2 + lOffset) / 5, this.zone.min.y, this.zone.min.z), new THREE.Vector3((this.zone.max.x * 1.3 + lOffset) / 5, this.zone.max.y, this.zone.max.z));
+        this.lColl = new THREE.Box3(new THREE.Vector3((this.zone.min.x + lOffset) / 5, this.zone.min.y, this.zone.min.z), new THREE.Vector3((this.zone.max.x + lOffset) / 5, this.zone.max.y, this.zone.max.z));
         //Right Coll
-        this.rColl = new THREE.Box3(new THREE.Vector3((this.zone.min.x * 1.3 + rOffset) / 5, this.zone.min.y, this.zone.min.z), new THREE.Vector3((this.zone.max.x * 2.5 + rOffset) / 5, this.zone.max.y, this.zone.max.z));
+        this.rColl = new THREE.Box3(new THREE.Vector3((this.zone.min.x + rOffset) / 5, this.zone.min.y, this.zone.min.z), new THREE.Vector3((this.zone.max.x + rOffset) / 5, this.zone.max.y, this.zone.max.z));
         const helper = new THREE.Box3Helper(this.lColl, new THREE.Color('rgb(255, 0, 0)'));
         (_a = this.scene) === null || _a === void 0 ? void 0 : _a.add(helper);
         const helper2 = new THREE.Box3Helper(this.rColl, new THREE.Color('rgb(255, 0, 0)'));
@@ -40,8 +40,8 @@ export class CollDetector {
         var _a;
         if (!this.zone)
             return false;
-        const offset = -50;
-        const coll = new THREE.Box3(new THREE.Vector3((this.zone.min.x * 1.3 + offset) / 5, this.zone.min.y, this.zone.min.z), new THREE.Vector3((this.zone.max.x * 1.3 + offset) / 5, this.zone.max.y, this.zone.max.z));
+        const offset = -45;
+        const coll = new THREE.Box3(new THREE.Vector3((this.zone.min.x + offset) / 5, this.zone.min.y, this.zone.min.z), new THREE.Vector3((this.zone.max.x + offset) / 5, this.zone.max.y, this.zone.max.z));
         const helper = new THREE.Box3Helper(coll, 0xffff00);
         (_a = this.scene) === null || _a === void 0 ? void 0 : _a.add(helper);
         const collided = objBox.intersectsBox(coll);
@@ -60,21 +60,13 @@ export class CollDetector {
             const isRightColl = objBox.intersectsBox(this.rColl);
             const isColl = isLeftColl || isRightColl;
             mat.uniforms.isColl.value = isColl;
-            const coll = isLeftColl ? this.lColl : this.rColl;
             if (isColl) {
-                const normal = new THREE.Vector3(0, 1, 0);
-                const point = new THREE.Vector3(coll.max.x, 0, 0);
+                const normal = new THREE.Vector3(-1, 0, 0);
+                const point = new THREE.Vector3(0, 1, 0);
                 this.clipPlane.setFromNormalAndCoplanarPoint(normal, point);
                 mat.uniforms.clipNormal.value = this.clipPlane.normal;
                 mat.uniforms.clipConstant.value = -this.clipPlane.constant;
             }
-            console.log(`Checking collision for ${obj.name || obj.uuid}:`);
-            console.log(`Obj position:`, obj.position);
-            console.log(`Obj box:`, objBox);
-            console.log(`Left coll box:`, this.lColl);
-            console.log(`Right coll box:`, this.rColl);
-            console.log(`Left collision:`, isLeftColl);
-            console.log(`Right collision:`, isRightColl);
             obj.material = mat;
             mat.needsUpdate = true;
         });

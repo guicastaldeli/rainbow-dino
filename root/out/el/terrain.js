@@ -20,7 +20,7 @@ export class Terrain {
             w: 1,
             h: 1,
             d: 0.1,
-            gap: 2
+            gap: 1.58
         };
         this.pos = {
             x: -7,

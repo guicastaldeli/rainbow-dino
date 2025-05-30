@@ -37,12 +37,12 @@ export class CollDetector {
         //Left Coll
         this.lColl = new THREE.Box3(
             new THREE.Vector3(
-                (this.zone.min.x * 2 + lOffset) / 5,
+                (this.zone.min.x + lOffset) / 5,
                 this.zone.min.y,
                 this.zone.min.z
             ),
             new THREE.Vector3(
-                (this.zone.max.x * 1.3 + lOffset) / 5,
+                (this.zone.max.x + lOffset) / 5,
                 this.zone.max.y,
                 this.zone.max.z
             )
@@ -51,12 +51,12 @@ export class CollDetector {
         //Right Coll
         this.rColl = new THREE.Box3(
             new THREE.Vector3(
-                (this.zone.min.x * 1.3 + rOffset) / 5,
+                (this.zone.min.x + rOffset) / 5,
                 this.zone.min.y,
                 this.zone.min.z
             ),
             new THREE.Vector3(
-                (this.zone.max.x * 2.5 + rOffset) / 5,
+                (this.zone.max.x + rOffset) / 5,
                 this.zone.max.y,
                 this.zone.max.z
             )
@@ -72,16 +72,16 @@ export class CollDetector {
     public isObjColliding(objBox: THREE.Box3): boolean {
         if(!this.zone) return false;
 
-        const offset = -50;
+        const offset = -45;
 
         const coll = new THREE.Box3(
             new THREE.Vector3(
-                (this.zone.min.x * 1.3 + offset) / 5,
+                (this.zone.min.x + offset) / 5,
                 this.zone.min.y,
                 this.zone.min.z,
             ),
             new THREE.Vector3(
-                (this.zone.max.x * 1.3 + offset) / 5,
+                (this.zone.max.x + offset) / 5,
                 this.zone.max.y,
                 this.zone.max.z
             )
@@ -109,24 +109,14 @@ export class CollDetector {
 
         mat.uniforms.isColl.value = isColl;
 
-        const coll = isLeftColl ? this.lColl : this.rColl;
-
         if(isColl) {
-            const normal = new THREE.Vector3(0, 1, 0);
-            const point = new THREE.Vector3(coll.max.x, 0, 0);
+            const normal = new THREE.Vector3(-1, 0, 0);
+            const point = new THREE.Vector3(0, 1, 0);
             this.clipPlane.setFromNormalAndCoplanarPoint(normal, point);
 
             mat.uniforms.clipNormal.value = this.clipPlane.normal;
             mat.uniforms.clipConstant.value = -this.clipPlane.constant;
         }
-
-        console.log(`Checking collision for ${obj.name || obj.uuid}:`);
-        console.log(`Obj position:`, obj.position);
-        console.log(`Obj box:`, objBox);
-        console.log(`Left coll box:`, this.lColl);
-        console.log(`Right coll box:`, this.rColl);
-        console.log(`Left collision:`, isLeftColl);
-        console.log(`Right collision:`, isRightColl);
 
         obj.material = mat;
         mat.needsUpdate = true;

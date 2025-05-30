@@ -22,7 +22,7 @@ export class Terrain {
         h: 1,
         d: 0.1,
 
-        gap: 2
+        gap: 1.58
     }
 
     pos = {

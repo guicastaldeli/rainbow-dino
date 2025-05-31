@@ -1,9 +1,20 @@
+varying vec2 vUv;
+varying vec3 vWorldPosition;
 uniform float time;
 uniform float timeFactor;
+
 uniform sampler2D map;
-varying vec2 vUv;
+uniform vec4 bounds;
 
 void main() {
+    if(vWorldPosition.x < bounds.x || 
+       vWorldPosition.x > bounds.y || 
+       vWorldPosition.y < bounds.z || 
+       vWorldPosition.y > bounds.w) {
+
+        discard;
+    }
+    
     vec4 texColor = texture2D(map, vUv);
 
     vec3 dayColor = texColor.rgb;

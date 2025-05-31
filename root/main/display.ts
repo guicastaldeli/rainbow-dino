@@ -23,6 +23,8 @@ export class Display {
     private renderTerrain!: Terrain;
     private renderPlayer!: Player;
 
+    private scene?: THREE.Scene;
+
     constructor(timeCycle: Time, renderer: THREE.WebGLRenderer, scene: THREE.Scene) {
         this.timeCycle = timeCycle;
         this.renderer = renderer;
@@ -32,18 +34,20 @@ export class Display {
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
 
+        this.scene = scene;
+
         this.createDisplay();
     }
 
     size = {
-        w: 2.1,
-        h: 1.9,
+        w: 0.52,
+        h: 0.51,
         d: 2
     }
 
     pos = {
         x: 0,
-        y: -3.7,
+        y: -3.75,
         z: -3
     }
 
@@ -63,6 +67,7 @@ export class Display {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
                     map: { value: tex },
+                    bounds: { value: new THREE.Vector4() }
                 },
                 vertexShader,
                 fragmentShader,
@@ -86,22 +91,33 @@ export class Display {
                     this.mesh.position.y = this.pos.y,
                     this.mesh.position.z = this.pos.z;
 
-                    const displayBox = new THREE.Box3().setFromObject(this.mesh);
-                    const center = displayBox.getCenter(new THREE.Vector3());
-                    const size = displayBox.getSize(new THREE.Vector3()).multiplyScalar(0.48);
-
-                    const scaledBox = new THREE.Box3(
-                        center.clone().sub(size.clone()),
-                        center.clone().add(size.clone())
-                    );
-
-                    this.collDetector.setZone(scaledBox);
+                    if(this.display) {
+                        const bounds = this.getBounds();
+                        this.material.uniforms.bounds.value.copy(bounds)
+                    }
                     res();
                 });
             })
         } catch(err) {
             console.log(err);
         }
+    }
+
+    public getBounds(): THREE.Vector4 {
+        const displayBox = new THREE.Box3().setFromObject(this.mesh);
+        this.collDetector.setZone(displayBox);
+
+        const min = displayBox.min;
+        const max = displayBox.max;
+        const bounds = new THREE.Vector4(
+            min.x,
+            max.x,
+            min.y,
+            max.y
+        );
+
+        this.material.uniforms.bounds.value = bounds;
+        return bounds;
     }
 
     private async loadShader(url: string): Promise<string> {
@@ -125,7 +141,7 @@ export class Display {
             this.display.add(this.mesh);
 
             //Terrain
-            this.renderTerrain = new Terrain(this.timeCycle);
+            this.renderTerrain = new Terrain(this.timeCycle, this);
             await this.renderTerrain.ready();
             const terrainBlocks = this.renderTerrain.getTerrainBlocks();
 

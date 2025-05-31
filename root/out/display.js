@@ -15,13 +15,13 @@ import { Player } from './el/player.js';
 export class Display {
     constructor(timeCycle, renderer, scene) {
         this.size = {
-            w: 2.1,
-            h: 1.9,
+            w: 0.52,
+            h: 0.51,
             d: 2
         };
         this.pos = {
             x: 0,
-            y: -3.7,
+            y: -3.75,
             z: -3
         };
         this.timeCycle = timeCycle;
@@ -30,6 +30,7 @@ export class Display {
         this.display = new THREE.Group;
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
+        this.scene = scene;
         this.createDisplay();
     }
     createDisplay() {
@@ -47,6 +48,7 @@ export class Display {
                         time: { value: 0.0 },
                         timeFactor: { value: 0.0 },
                         map: { value: tex },
+                        bounds: { value: new THREE.Vector4() }
                     },
                     vertexShader,
                     fragmentShader,
@@ -66,11 +68,10 @@ export class Display {
                         this.mesh.position.x = this.pos.x,
                             this.mesh.position.y = this.pos.y,
                             this.mesh.position.z = this.pos.z;
-                        const displayBox = new THREE.Box3().setFromObject(this.mesh);
-                        const center = displayBox.getCenter(new THREE.Vector3());
-                        const size = displayBox.getSize(new THREE.Vector3()).multiplyScalar(0.48);
-                        const scaledBox = new THREE.Box3(center.clone().sub(size.clone()), center.clone().add(size.clone()));
-                        this.collDetector.setZone(scaledBox);
+                        if (this.display) {
+                            const bounds = this.getBounds();
+                            this.material.uniforms.bounds.value.copy(bounds);
+                        }
                         res();
                     });
                 });
@@ -79,6 +80,15 @@ export class Display {
                 console.log(err);
             }
         });
+    }
+    getBounds() {
+        const displayBox = new THREE.Box3().setFromObject(this.mesh);
+        this.collDetector.setZone(displayBox);
+        const min = displayBox.min;
+        const max = displayBox.max;
+        const bounds = new THREE.Vector4(min.x, max.x, min.y, max.y);
+        this.material.uniforms.bounds.value = bounds;
+        return bounds;
     }
     loadShader(url) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -101,7 +111,7 @@ export class Display {
             //Display
             this.display.add(this.mesh);
             //Terrain
-            this.renderTerrain = new Terrain(this.timeCycle);
+            this.renderTerrain = new Terrain(this.timeCycle, this);
             yield this.renderTerrain.ready();
             const terrainBlocks = this.renderTerrain.getTerrainBlocks();
             terrainBlocks.forEach(block => {

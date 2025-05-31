@@ -1,7 +1,10 @@
+varying vec2 vUv;
+varying vec3 vWorldPosition;
 uniform float time;
 uniform float timeFactor;
+
 uniform sampler2D map;
-varying vec2 vUv;
+uniform vec4 bounds;
 
 void main() {
     vec4 texColor = texture2D(map, vUv);

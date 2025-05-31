@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import { Time } from '../time';
+import { Display } from '../display';
 import { CollDetector } from '../coll-detector.js';
 
 export class Terrain {
@@ -14,8 +15,10 @@ export class Terrain {
     private blockGroup = new THREE.Group();
 
     private blocks: THREE.Mesh[] = [];
-    private speed = 4;
+    private speed = 1;
     private length = 15;
+
+    private display: Display;
 
     size = {
         w: 1,
@@ -27,12 +30,13 @@ export class Terrain {
 
     pos = {
         x: -7,
-        y: -2.59,
+        y: -3,
         z: -3.1
     }
 
-    constructor(timeCycle: Time) {
+    constructor(timeCycle: Time, display: Display) {
         this.timeCycle = timeCycle;
+        this.display = display;
 
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
@@ -49,11 +53,14 @@ export class Terrain {
             const texPath = '../../../assets/textures/terrain-block.png';
             const tex = this.texLoader.load(texPath);
 
+            const bounds = this.display.getBounds();
+
             this.material = new THREE.ShaderMaterial({
                 uniforms: {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
                     map: { value: tex },
+                    bounds: { value: bounds.clone() }
                 },
                 vertexShader,
                 fragmentShader,
@@ -68,6 +75,8 @@ export class Terrain {
                     
                     this.mesh.traverse((m) => {
                         if(m instanceof THREE.Mesh && !block) {
+                            this.material.depthWrite = true;
+                            this.material.depthTest = true;
                             m.material = this.material;
                             block = m;
                         }
@@ -78,10 +87,6 @@ export class Terrain {
                     block.position.x = x * this.size.gap + this.pos.x;
                     block.position.y = this.pos.y;
                     block.position.z = this.pos.z;
-
-                    const collDetector = new CollDetector();
-                    const collMat = await collDetector.collMaterial(block);
-                    block.material = collMat;
 
                     res(block);
                 });
@@ -128,7 +133,6 @@ export class Terrain {
             b.position.x -= this.speed * deltaTime;
             const objBox = new THREE.Box3().setFromObject(b);
 
-            collDetector.checkColl(b, objBox);
             if(collDetector.isObjColliding(objBox)) this.resetBlock(b);
         }
 

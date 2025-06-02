@@ -85,6 +85,7 @@ export class Display {
     getBounds() {
         const displayBox = new THREE.Box3().setFromObject(this.mesh);
         this.collDetector.setZone(displayBox);
+        this.collDetector.outDisplayBounds(displayBox);
         const min = displayBox.min;
         const max = displayBox.max;
         const bounds = new THREE.Vector4(min.x, max.x, min.y, max.y);
@@ -112,7 +113,7 @@ export class Display {
             //Display
             this.display.add(this.mesh);
             //Player
-            this.renderPlayer = new Player(this.timeCycle);
+            this.renderPlayer = new Player(this.timeCycle, this.collDetector);
             const playerObj = yield this.renderPlayer.ready();
             this.display.add(playerObj);
             //Terrain

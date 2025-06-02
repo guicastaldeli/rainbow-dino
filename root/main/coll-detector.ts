@@ -3,14 +3,8 @@ import { scene } from './main';
 
 export class CollDetector {
     private scene?: THREE.Scene;
-
     private zone?: THREE.Box3;
     public box!: THREE.Box3;
-
-    private clipPlane = new THREE.Plane();
-
-    private updMat!: THREE.ShaderMaterial;
-    private matCache = new Map<THREE.Object3D, THREE.ShaderMaterial>();
 
     constructor(scene?: THREE.Scene) {
         this.scene = scene;
@@ -38,10 +32,18 @@ export class CollDetector {
             )
         );
 
-        const helper = new THREE.Box3Helper(coll, 0xffff00);
-        //this.scene?.add(helper);
-
         const collided = objBox.intersectsBox(coll);
         return collided;
+    }
+
+    public outDisplayBounds(objBox: THREE.Box3): boolean {
+        if(!this.zone) return false;
+
+        return (
+            objBox.min.x < this.zone.min.x ||
+            objBox.max.x > this.zone.max.x ||
+            objBox.min.y < this.zone.min.y ||
+            objBox.max.y > this.zone.max.y
+        );
     }
 }

@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 export class Player {
-    constructor(timeCycle) {
+    constructor(timeCycle, collDetector) {
         this.frames = [];
         this.currentParent = null;
         this.currentFrameIndex = 0;
@@ -39,6 +39,7 @@ export class Player {
             z: -3.1
         };
         this.timeCycle = timeCycle;
+        this.collDetector = collDetector;
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
         this.createPlayer();
@@ -92,7 +93,10 @@ export class Player {
         });
     }
     updateMov(deltaTime) {
+        if (!this.mesh)
+            return;
         const { velocity, direction, moveSpeed, acceleration, deceleration, } = this.controls;
+        const prevPos = Object.assign({}, this.pos);
         //Direction
         direction.set(0, 0, 0);
         if (this.mov.FORWARD)
@@ -132,7 +136,17 @@ export class Player {
             this.currentFrameIndex = 0;
             this.saveFrame(0);
         }
-        this.pos.x += velocity.x * deltaTime * moveSpeed;
+        //Collision
+        const updX = this.pos.x + velocity.x * deltaTime * moveSpeed;
+        this.mesh.position.set(updX, this.pos.y, this.pos.z);
+        const playerBox = this.getBoundingBox();
+        if (this.collDetector.outDisplayBounds(playerBox)) {
+            this.pos.x = prevPos.x;
+            velocity.x = 0;
+        }
+        else {
+            this.pos.x = updX;
+        }
         if (this.mesh)
             this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
     }
@@ -174,6 +188,12 @@ export class Player {
     setupControls() {
         window.addEventListener('keydown', (e) => this.onKeyUpdate(e));
         window.addEventListener('keyup', (e) => this.onKeyUpdate(e));
+    }
+    getBoundingBox() {
+        if (!this.mesh)
+            return new THREE.Box3();
+        const box = new THREE.Box3().setFromObject(this.mesh);
+        return box;
     }
     loadShader(url) {
         return __awaiter(this, void 0, void 0, function* () {

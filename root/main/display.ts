@@ -108,6 +108,7 @@ export class Display {
     public getBounds(): THREE.Vector4 {
         const displayBox = new THREE.Box3().setFromObject(this.mesh);
         this.collDetector.setZone(displayBox);
+        this.collDetector.outDisplayBounds(displayBox);
 
         const min = displayBox.min;
         const max = displayBox.max;
@@ -143,7 +144,7 @@ export class Display {
             this.display.add(this.mesh);
 
             //Player
-            this.renderPlayer = new Player(this.timeCycle);
+            this.renderPlayer = new Player(this.timeCycle, this.collDetector);
             const playerObj = await this.renderPlayer.ready();
             this.display.add(playerObj);
 

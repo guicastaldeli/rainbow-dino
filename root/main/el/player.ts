@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import { Time } from '../time';
+import { CollDetector } from '../coll-detector.js';
 
 interface MovState {
     FORWARD: boolean;
@@ -38,6 +39,8 @@ export class Player {
     private jumpVelocity = 0;
     private jumpForce = 13.5;
 
+    private collDetector: CollDetector;
+
     private mov: MovState = {
         FORWARD: false,
         BACKWARD: false,
@@ -57,8 +60,9 @@ export class Player {
         z: -3.1
     }
 
-    constructor(timeCycle: Time) {
+    constructor(timeCycle: Time, collDetector: CollDetector) {
         this.timeCycle = timeCycle;
+        this.collDetector = collDetector;
 
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
@@ -120,17 +124,18 @@ export class Player {
     }
 
     private updateMov(deltaTime: number) {
+        if(!this.mesh) return;
         const {
             velocity,
             direction,
             moveSpeed,
             acceleration,
             deceleration,
-        } = this.controls
+        } = this.controls;
+        const prevPos = {...this.pos};
 
         //Direction
         direction.set(0, 0, 0);
-
         if(this.mov.FORWARD) direction.x += 1;
         if(this.mov.BACKWARD) direction.x -= 1;
 
@@ -171,7 +176,18 @@ export class Player {
             this.saveFrame(0);
         }
 
-        this.pos.x += velocity.x * deltaTime * moveSpeed;
+        //Collision
+        const updX = this.pos.x + velocity.x * deltaTime * moveSpeed;
+        this.mesh.position.set(updX, this.pos.y, this.pos.z);
+        const playerBox = this.getBoundingBox();
+    
+        if(this.collDetector.outDisplayBounds(playerBox)) {
+            this.pos.x = prevPos.x;
+            velocity.x = 0;
+        } else {
+            this.pos.x = updX;
+        }
+
         if(this.mesh) this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
     }
 
@@ -216,6 +232,12 @@ export class Player {
     private setupControls() {
         window.addEventListener('keydown', (e) => this.onKeyUpdate(e));
         window.addEventListener('keyup', (e) => this.onKeyUpdate(e));
+    }
+
+    public getBoundingBox(): THREE.Box3 {
+        if(!this.mesh) return new THREE.Box3();
+        const box = new THREE.Box3().setFromObject(this.mesh);
+        return box;
     }
 
     private async loadShader(url: string): Promise<string> {

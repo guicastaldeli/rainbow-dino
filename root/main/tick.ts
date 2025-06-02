@@ -12,7 +12,6 @@ export class Tick {
         return this.paused ? 0 : this.timeScale;
     }
 
-    
     public togglePause(): void {
         this.paused = !this.paused;
     }

@@ -116,7 +116,13 @@ export class Terrain {
 
     private resetBlock(block: THREE.Mesh): void {
         let fBlock = this.blocks[0];
-        for(const b of this.blocks) if(b.position.x > fBlock.position.x) fBlock = b;
+
+        for(const b of this.blocks) {
+            if(b.position.x > fBlock.position.x) {
+                fBlock = b;
+            }
+        }
+
         block.position.x = fBlock.position.x + this.size.gap;
     }
 

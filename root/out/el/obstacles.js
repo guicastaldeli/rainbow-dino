@@ -22,7 +22,7 @@ export class Obstacles {
             gap: () => Math.random() * (32 - 16) + 16
         };
         this.pos = {
-            x: 3,
+            x: 8,
             y: -3,
             z: -3.1
         };
@@ -77,7 +77,7 @@ export class Obstacles {
                         });
                         if (!obs)
                             throw new Error('err');
-                        obs.position.x = x * this.size.gap() + this.pos.x;
+                        obs.position.x = (x * this.size.gap()) + this.pos.x;
                         obs.position.y = this.pos.y;
                         obs.position.z = this.pos.z;
                         res(obs);
@@ -118,10 +118,12 @@ export class Obstacles {
     }
     resetObs(obs) {
         let fObs = this.obs[0];
-        for (const o of this.obs)
-            if (o.position.x > fObs.position.x)
+        for (const o of this.obs) {
+            if (o.position.x > fObs.position.x) {
                 fObs = o;
-        obs.position.x = fObs.position.x = this.size.gap();
+            }
+        }
+        obs.position.x = fObs.position.x + this.size.gap();
     }
     loadShader(url) {
         return __awaiter(this, void 0, void 0, function* () {

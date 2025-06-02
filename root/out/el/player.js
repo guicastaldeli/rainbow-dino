@@ -34,7 +34,7 @@ export class Player {
             deceleration: 80.0,
         };
         this.pos = {
-            x: 0,
+            x: -5,
             y: -3,
             z: -3.1
         };
@@ -169,7 +169,7 @@ export class Player {
                     this.isJumping = false;
                 break;
         }
-        this.isAnimating = this.mov.FORWARD || this.mov.BACKWARD;
+        this.isAnimating = this.mov.FORWARD || this.mov.BACKWARD || this.isJumping;
     }
     setupControls() {
         window.addEventListener('keydown', (e) => this.onKeyUpdate(e));

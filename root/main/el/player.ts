@@ -52,7 +52,7 @@ export class Player {
     }
 
     pos = {
-        x: 0,
+        x: -5,
         y: -3,
         z: -3.1
     }
@@ -210,7 +210,7 @@ export class Player {
                 break;
         }
 
-        this.isAnimating = this.mov.FORWARD || this.mov.BACKWARD;
+        this.isAnimating = this.mov.FORWARD || this.mov.BACKWARD || this.isJumping;
     }
 
     private setupControls() {

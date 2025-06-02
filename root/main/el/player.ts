@@ -5,6 +5,8 @@ import { Tick } from '../tick';
 import { Time } from '../time';
 import { CollDetector } from '../coll-detector.js';
 
+import { Cactus } from './cactus';
+
 interface MovState {
     FORWARD: boolean;
     BACKWARD: boolean;
@@ -43,6 +45,8 @@ export class Player {
 
     private collDetector: CollDetector;
 
+    private cactus?: Cactus;
+
     private mov: MovState = {
         FORWARD: false,
         BACKWARD: false,
@@ -62,7 +66,7 @@ export class Player {
         z: -3.1
     }
 
-    constructor(tick: Tick, timeCycle: Time, collDetector: CollDetector) {
+    constructor(tick: Tick, timeCycle: Time, collDetector: CollDetector, cactus?: Cactus) {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.collDetector = collDetector;
@@ -72,6 +76,8 @@ export class Player {
 
         this.createPlayer();
         this.setupControls();
+
+        this.cactus = cactus;
     }
     
     private async createPlayer() {
@@ -127,7 +133,6 @@ export class Player {
     }
 
     private updateMov(deltaTime: number) {
-        if(!this.mesh) return;
         const {
             velocity,
             direction,
@@ -135,7 +140,9 @@ export class Player {
             acceleration,
             deceleration,
         } = this.controls;
+        if(!this.mesh) return;
         const prevPos = {...this.pos};
+        const scaledDelta = this.tick.getScaledDelta(deltaTime);
 
         //Direction
         direction.set(0, 0, 0);
@@ -143,10 +150,10 @@ export class Player {
         if(this.mov.BACKWARD) direction.x -= 1;
 
         if(direction.lengthSq() > 0) {
-            const accel = acceleration * deltaTime;
+            const accel = acceleration * scaledDelta;
             velocity.x += direction.x * accel;
         } else {
-            const decel = deceleration * deltaTime;
+            const decel = deceleration * scaledDelta;
             velocity.x -= velocity.x * decel;
         }
 
@@ -157,8 +164,8 @@ export class Player {
             this.isJumping = false;
         }
 
-        this.jumpVelocity += this.gravity * deltaTime;
-        this.pos.y += this.jumpVelocity * deltaTime;
+        this.jumpVelocity += this.gravity * scaledDelta;
+        this.pos.y += this.jumpVelocity * scaledDelta;
 
         if(this.pos.y <= -3) {
             this.pos.y = -3;
@@ -168,7 +175,7 @@ export class Player {
 
         //Animation
         if(this.isAnimating) {
-            this.frameTimer += deltaTime;
+            this.frameTimer += scaledDelta;
 
             if(this.frameTimer >= this.frameInterval) {
                 this.frameTimer = 0;
@@ -180,7 +187,7 @@ export class Player {
         }
 
         //Collision
-        const updX = this.pos.x + velocity.x * deltaTime * moveSpeed;
+        const updX = this.pos.x + velocity.x * scaledDelta * moveSpeed;
         this.mesh.position.set(updX, this.pos.y, this.pos.z);
         const playerBox = this.getBoundingBox();
     
@@ -189,6 +196,12 @@ export class Player {
             velocity.x = 0;
         } else {
             this.pos.x = updX;
+        }
+
+        if(this.cactus) {
+            if(this.collDetector.playerCollision(playerBox, this.cactus.getObs())) {
+                console.log('tst');
+            }
         }
 
         if(this.mesh) this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);

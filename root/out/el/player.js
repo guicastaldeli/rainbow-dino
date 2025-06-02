@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 export class Player {
-    constructor(tick, timeCycle, collDetector) {
+    constructor(tick, timeCycle, collDetector, cactus) {
         this.frames = [];
         this.currentParent = null;
         this.currentFrameIndex = 0;
@@ -45,6 +45,7 @@ export class Player {
         this.texLoader = new THREE.TextureLoader();
         this.createPlayer();
         this.setupControls();
+        this.cactus = cactus;
     }
     createPlayer() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -94,10 +95,11 @@ export class Player {
         });
     }
     updateMov(deltaTime) {
+        const { velocity, direction, moveSpeed, acceleration, deceleration, } = this.controls;
         if (!this.mesh)
             return;
-        const { velocity, direction, moveSpeed, acceleration, deceleration, } = this.controls;
         const prevPos = Object.assign({}, this.pos);
+        const scaledDelta = this.tick.getScaledDelta(deltaTime);
         //Direction
         direction.set(0, 0, 0);
         if (this.mov.FORWARD)
@@ -105,11 +107,11 @@ export class Player {
         if (this.mov.BACKWARD)
             direction.x -= 1;
         if (direction.lengthSq() > 0) {
-            const accel = acceleration * deltaTime;
+            const accel = acceleration * scaledDelta;
             velocity.x += direction.x * accel;
         }
         else {
-            const decel = deceleration * deltaTime;
+            const decel = deceleration * scaledDelta;
             velocity.x -= velocity.x * decel;
         }
         //Jump
@@ -118,8 +120,8 @@ export class Player {
             this.isGrounded = false;
             this.isJumping = false;
         }
-        this.jumpVelocity += this.gravity * deltaTime;
-        this.pos.y += this.jumpVelocity * deltaTime;
+        this.jumpVelocity += this.gravity * scaledDelta;
+        this.pos.y += this.jumpVelocity * scaledDelta;
         if (this.pos.y <= -3) {
             this.pos.y = -3;
             this.jumpVelocity = 0;
@@ -127,7 +129,7 @@ export class Player {
         }
         //Animation
         if (this.isAnimating) {
-            this.frameTimer += deltaTime;
+            this.frameTimer += scaledDelta;
             if (this.frameTimer >= this.frameInterval) {
                 this.frameTimer = 0;
                 this.switchFrame();
@@ -138,7 +140,7 @@ export class Player {
             this.saveFrame(0);
         }
         //Collision
-        const updX = this.pos.x + velocity.x * deltaTime * moveSpeed;
+        const updX = this.pos.x + velocity.x * scaledDelta * moveSpeed;
         this.mesh.position.set(updX, this.pos.y, this.pos.z);
         const playerBox = this.getBoundingBox();
         if (this.collDetector.outDisplayBounds(playerBox)) {
@@ -147,6 +149,11 @@ export class Player {
         }
         else {
             this.pos.x = updX;
+        }
+        if (this.cactus) {
+            if (this.collDetector.playerCollision(playerBox, this.cactus.getObs())) {
+                console.log('tst');
+            }
         }
         if (this.mesh)
             this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);

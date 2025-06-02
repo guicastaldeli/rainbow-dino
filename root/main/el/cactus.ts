@@ -9,6 +9,7 @@ import { CollDetector } from '../coll-detector.js';
 export class Cactus {
     private tick: Tick;
     private timeCycle: Time;
+    private display: Display;
 
     private loader!: OBJLoader;
     private texLoader!: THREE.TextureLoader;
@@ -17,10 +18,10 @@ export class Cactus {
     private obsGroup = new THREE.Group();
 
     private obs: THREE.Mesh[] = [];
+    private obsBox: THREE.Box3[] = [];
+
     private speed = 1;
     private length = 20;
-
-    private display: Display;
 
     size = {
         w: 1,
@@ -100,6 +101,9 @@ export class Cactus {
                     obs.position.y = this.pos.y;
                     obs.position.z = this.pos.z;
 
+                    const box = new THREE.Box3().setFromObject(obs);
+                    this.obsBox.push(box);
+
                     res(obs);
                 });
             });
@@ -149,6 +153,7 @@ export class Cactus {
         }
 
         obs.position.x = fObs.position.x + this.size.gap();
+        this.obsBox[this.obs.indexOf(obs)] = new THREE.Box3().setFromObject(obs);
     }
 
     private async loadShader(url: string): Promise<string> {
@@ -161,11 +166,17 @@ export class Cactus {
         if(!this.mesh || !this.material) return;
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
 
-        for(const o of this.obs) {
+        for(let i = 0; i < this.obs.length; i++) {
+            const o = this.obs[i];
             o.position.x -= this.speed * scaledDelta;
             const objBox = new THREE.Box3().setFromObject(o);
 
-            if(collDetector.isObjColliding(objBox)) this.resetObs(o);
+            if(collDetector.isObjColliding(objBox)) {
+                this.resetObs(o);
+
+                const updObjBox = new THREE.Box3().setFromObject(o);
+                this.obsBox[i] = updObjBox;
+            }
         }
 
         const factor = this.timeCycle.getTimeFactor();

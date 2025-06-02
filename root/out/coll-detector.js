@@ -22,4 +22,15 @@ export class CollDetector {
             objBox.min.y < this.zone.min.y ||
             objBox.max.y > this.zone.max.y);
     }
+    playerCollision(pBox, obs) {
+        if (!pBox)
+            return false;
+        console.log('tst');
+        for (const o of obs) {
+            const obsBox = new THREE.Box3().setFromObject(o);
+            if (pBox.intersectsBox(obsBox))
+                return true;
+        }
+        return false;
+    }
 }

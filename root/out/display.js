@@ -11,10 +11,10 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
-import { Obstacles } from './el/obstacles.js';
+import { Cactus } from './el/cactus.js';
 import { Player } from './el/player.js';
 export class Display {
-    constructor(timeCycle, renderer, scene) {
+    constructor(tick, timeCycle, renderer, scene) {
         this.size = {
             w: 0.52,
             h: 0.51,
@@ -25,6 +25,7 @@ export class Display {
             y: -3.75,
             z: -3
         };
+        this.tick = tick;
         this.timeCycle = timeCycle;
         this.renderer = renderer;
         this.collDetector = new CollDetector(scene);
@@ -113,20 +114,23 @@ export class Display {
             //Display
             this.display.add(this.mesh);
             //Player
-            this.renderPlayer = new Player(this.timeCycle, this.collDetector);
+            this.renderPlayer = new Player(this.tick, this.timeCycle, this.collDetector);
             const playerObj = yield this.renderPlayer.ready();
             this.display.add(playerObj);
             //Terrain
-            this.renderTerrain = new Terrain(this.timeCycle, this);
+            this.renderTerrain = new Terrain(this.tick, this.timeCycle, this);
             yield this.renderTerrain.ready();
             const terrainBlocks = this.renderTerrain.getTerrainBlocks();
             terrainBlocks.forEach(block => {
                 this.display.add(block);
             });
             //Obstacles
-            this.renderObstacles = new Obstacles(this.timeCycle, this);
-            yield this.renderObstacles.ready();
-            const obs = this.renderObstacles.getObs();
+            //Cactus
+            this.renderCactus = new Cactus(this.tick, this.timeCycle, this);
+            yield this.renderCactus.ready();
+            const obs = this.renderCactus.getObs();
+            //Crow
+            //
             obs.forEach(o => {
                 this.display.add(o);
             });
@@ -141,8 +145,8 @@ export class Display {
             this.renderPlayer.update(deltaTime);
         if (this.renderTerrain)
             this.renderTerrain.update(deltaTime, this.collDetector);
-        if (this.renderObstacles)
-            this.renderObstacles.update(deltaTime, this.collDetector);
+        if (this.renderCactus)
+            this.renderCactus.update(deltaTime, this.collDetector);
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
         this.material.uniforms.time.value = totalTime;

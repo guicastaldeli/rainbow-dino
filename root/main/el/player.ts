@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
+import { Tick } from '../tick';
 import { Time } from '../time';
 import { CollDetector } from '../coll-detector.js';
 
@@ -18,6 +19,7 @@ interface Controls {
 }
 
 export class Player {
+    private tick: Tick;
     private timeCycle: Time;
 
     private frames: THREE.Object3D[] = [];
@@ -60,7 +62,8 @@ export class Player {
         z: -3.1
     }
 
-    constructor(timeCycle: Time, collDetector: CollDetector) {
+    constructor(tick: Tick, timeCycle: Time, collDetector: CollDetector) {
+        this.tick = tick;
         this.timeCycle = timeCycle;
         this.collDetector = collDetector;
 
@@ -248,11 +251,12 @@ export class Player {
 
     public update(deltaTime: number) {        
         if(!this.material) return;
-
-        this.updateMov(deltaTime);
+        
+        const scaledDelta = this.tick.getScaledDelta(deltaTime);
+        this.updateMov(scaledDelta);
 
         const factor = this.timeCycle.getTimeFactor();
-        const totalTime = performance.now() * 0.001;
+        const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;

@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
+import { Tick } from '../tick';
 import { Time } from '../time';
 import { Display } from '../display';
 import { CollDetector } from '../coll-detector.js';
 
 export class Terrain {
+    private tick: Tick;
     private timeCycle: Time;
 
     private loader!: OBJLoader;
@@ -34,7 +36,8 @@ export class Terrain {
         z: -3.1
     }
 
-    constructor(timeCycle: Time, display: Display) {
+    constructor(tick: Tick, timeCycle: Time, display: Display) {
+        this.tick = tick;
         this.timeCycle = timeCycle;
         this.display = display;
 
@@ -134,16 +137,17 @@ export class Terrain {
 
     public update(deltaTime: number, collDetector: CollDetector): void {
         if(!this.mesh || !this.material) return;
+        const scaledDelta = this.tick.getScaledDelta(deltaTime);
         
         for(const b of this.blocks) {
-            b.position.x -= this.speed * deltaTime;
+            b.position.x -= this.speed * scaledDelta;
             const objBox = new THREE.Box3().setFromObject(b);
 
             if(collDetector.isObjColliding(objBox)) this.resetBlock(b);
         }
 
         const factor = this.timeCycle.getTimeFactor();
-        const totalTime = performance.now() * 0.001;
+        const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;

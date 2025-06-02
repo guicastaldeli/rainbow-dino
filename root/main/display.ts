@@ -1,13 +1,15 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
+import { Tick } from './tick.js';
 import { Time } from './time.js';
 import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
-import { Obstacles } from './el/obstacles.js';
+import { Cactus } from './el/cactus.js';
 import { Player } from './el/player.js';
 
 export class Display {
+    private tick: Tick;
     private timeCycle: Time;
 
     public display: THREE.Group;
@@ -23,11 +25,12 @@ export class Display {
     //Elements
     private renderPlayer!: Player;
     private renderTerrain!: Terrain;
-    private renderObstacles!: Obstacles;
+    private renderCactus!: Cactus;
 
     private scene?: THREE.Scene;
 
-    constructor(timeCycle: Time, renderer: THREE.WebGLRenderer, scene: THREE.Scene) {
+    constructor(tick: Tick, timeCycle: Time, renderer: THREE.WebGLRenderer, scene: THREE.Scene) {
+        this.tick = tick;
         this.timeCycle = timeCycle;
         this.renderer = renderer;
         this.collDetector = new CollDetector(scene);
@@ -144,12 +147,12 @@ export class Display {
             this.display.add(this.mesh);
 
             //Player
-            this.renderPlayer = new Player(this.timeCycle, this.collDetector);
+            this.renderPlayer = new Player(this.tick, this.timeCycle, this.collDetector);
             const playerObj = await this.renderPlayer.ready();
             this.display.add(playerObj);
 
             //Terrain
-            this.renderTerrain = new Terrain(this.timeCycle, this);
+            this.renderTerrain = new Terrain(this.tick, this.timeCycle, this);
             await this.renderTerrain.ready();
             const terrainBlocks = this.renderTerrain.getTerrainBlocks();
 
@@ -158,9 +161,13 @@ export class Display {
             });
 
             //Obstacles
-            this.renderObstacles = new Obstacles(this.timeCycle, this);
-            await this.renderObstacles.ready();
-            const obs = this.renderObstacles.getObs();
+                //Cactus
+                this.renderCactus = new Cactus(this.tick, this.timeCycle, this);
+                await this.renderCactus.ready();
+                const obs = this.renderCactus.getObs();
+
+                //Crow
+            //
 
             obs.forEach(o => {
                 this.display.add(o);
@@ -175,7 +182,7 @@ export class Display {
 
         if(this.renderPlayer) this.renderPlayer.update(deltaTime);
         if(this.renderTerrain) this.renderTerrain.update(deltaTime, this.collDetector);
-        if(this.renderObstacles) this.renderObstacles.update(deltaTime, this.collDetector);
+        if(this.renderCactus) this.renderCactus.update(deltaTime, this.collDetector);
 
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;

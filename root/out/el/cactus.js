@@ -9,20 +9,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-export class Terrain {
+export class Cactus {
     constructor(tick, timeCycle, display) {
-        this.blockGroup = new THREE.Group();
-        this.blocks = [];
+        this.obsGroup = new THREE.Group();
+        this.obs = [];
         this.speed = 1;
-        this.length = 15;
+        this.length = 20;
         this.size = {
             w: 1,
             h: 1,
             d: 0.1,
-            gap: 1.58
+            gap: () => Math.random() * (32 - 16) + 16
         };
         this.pos = {
-            x: -7,
+            x: 8,
             y: -3,
             z: -3.1
         };
@@ -32,15 +32,27 @@ export class Terrain {
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
     }
-    initMaterial() {
+    createCactus(x) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const [vertexShader, fragmentShader] = yield Promise.all([
                     this.loadShader('./el/shaders/vertexShader.glsl'),
                     this.loadShader('./el/shaders/fragShader.glsl')
                 ]);
-                const texPath = '../../../assets/textures/terrain-block.png';
-                const tex = yield this.texLoader.loadAsync(texPath);
+                const models = [
+                    {
+                        model: '../../../assets/obj/cactus1.obj',
+                        tex: '../../../assets/textures/cactus1.png',
+                        chance: 0.5
+                    },
+                    {
+                        model: '../../../assets/obj/cactus2.obj',
+                        tex: '../../../assets/textures/cactus2.png',
+                        chance: 0.5
+                    }
+                ];
+                const selectedModel = this.randomObjs(models);
+                const tex = yield this.texLoader.loadAsync(selectedModel.tex);
                 const bounds = this.display.getBounds();
                 this.material = new THREE.ShaderMaterial({
                     uniforms: {
@@ -48,64 +60,71 @@ export class Terrain {
                         timeFactor: { value: 0.0 },
                         map: { value: tex },
                         bounds: { value: bounds.clone() },
-                        isObj: { value: false }
+                        isObs: { value: true }
                     },
                     vertexShader,
                     fragmentShader,
-                    side: THREE.DoubleSide,
+                    side: THREE.DoubleSide
+                });
+                return new Promise((res) => {
+                    this.loader.load(selectedModel.model, (obj) => __awaiter(this, void 0, void 0, function* () {
+                        this.mesh = obj;
+                        let obs;
+                        this.mesh.traverse((m) => {
+                            if (m instanceof THREE.Mesh && !obs) {
+                                m.material = this.material;
+                                obs = m;
+                            }
+                        });
+                        if (!obs)
+                            throw new Error('err');
+                        obs.position.x = (x * this.size.gap()) + this.pos.x;
+                        obs.position.y = this.pos.y;
+                        obs.position.z = this.pos.z;
+                        res(obs);
+                    }));
                 });
             }
             catch (err) {
                 console.log(err);
+                throw err;
             }
         });
     }
-    createTerrain(x) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const path = '../../../assets/obj/terrain-block.obj';
-            return new Promise((res, rej) => {
-                this.loader.load(path, (obj) => __awaiter(this, void 0, void 0, function* () {
-                    this.mesh = obj;
-                    let block;
-                    this.mesh.traverse((m) => {
-                        if (m instanceof THREE.Mesh && !block) {
-                            m.material = this.material;
-                            block = m;
-                        }
-                    });
-                    if (!block)
-                        throw new Error("err");
-                    block.position.x = x * this.size.gap + this.pos.x;
-                    block.position.y = this.pos.y;
-                    block.position.z = this.pos.z;
-                    res(block);
-                }), undefined, rej);
-            });
-        });
+    randomObjs(items) {
+        let totalChance = items.reduce((sum, item) => sum + item.chance, 0);
+        let random = Math.random() * totalChance;
+        let current = 0;
+        for (let item of items) {
+            if (random <= item.chance + current)
+                return item;
+            current += item.chance;
+        }
+        return items[0];
     }
-    setTerrain() {
+    setObstacles() {
         return __awaiter(this, void 0, void 0, function* () {
-            const blockArray = [];
+            const obsArray = [];
             for (let i = 0; i < this.length; i++) {
                 const x = i * this.size.w;
-                blockArray.push(this.createTerrain(x));
+                obsArray.push(this.createCactus(x));
             }
-            const block = yield Promise.all(blockArray);
-            this.blocks.push(...block);
-            this.blockGroup.add(...block);
+            const obs = yield Promise.all(obsArray);
+            this.obs.push(...obs);
+            this.obsGroup.add(...obs);
         });
     }
-    getTerrainBlocks() {
-        return this.blocks;
+    getObs() {
+        return this.obs;
     }
-    resetBlock(block) {
-        let fBlock = this.blocks[0];
-        for (const b of this.blocks) {
-            if (b.position.x > fBlock.position.x) {
-                fBlock = b;
+    resetObs(obs) {
+        let fObs = this.obs[0];
+        for (const o of this.obs) {
+            if (o.position.x > fObs.position.x) {
+                fObs = o;
             }
         }
-        block.position.x = fBlock.position.x + this.size.gap;
+        obs.position.x = fObs.position.x + this.size.gap();
     }
     loadShader(url) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -119,11 +138,11 @@ export class Terrain {
         if (!this.mesh || !this.material)
             return;
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
-        for (const b of this.blocks) {
-            b.position.x -= this.speed * scaledDelta;
-            const objBox = new THREE.Box3().setFromObject(b);
+        for (const o of this.obs) {
+            o.position.x -= this.speed * scaledDelta;
+            const objBox = new THREE.Box3().setFromObject(o);
             if (collDetector.isObjColliding(objBox))
-                this.resetBlock(b);
+                this.resetObs(o);
         }
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
@@ -133,15 +152,8 @@ export class Terrain {
     }
     ready() {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                yield this.initMaterial();
-                yield this.setTerrain();
-                return this.blockGroup;
-            }
-            catch (err) {
-                console.log(err);
-                throw err;
-            }
+            yield this.setObstacles();
+            return this.obsGroup;
         });
     }
 }

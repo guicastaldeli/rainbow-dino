@@ -10,8 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 export class Skybox {
-    constructor(timeCycle, count = 300) {
+    constructor(tick, timeCycle, count = 300) {
         this.geometries = [];
+        this.tick = tick;
         this.timeCycle = timeCycle;
         this.generateStars(count);
     }
@@ -37,8 +38,9 @@ export class Skybox {
                 });
                 this.starsMaterial = new THREE.ShaderMaterial({
                     uniforms: {
-                        timeFactor: { value: 0.0 },
+                        timeScale: { value: this.tick.getTimeScale() },
                         time: { value: 0 },
+                        timeFactor: { value: 0.0 },
                         size: { value: 0.3 }
                     },
                     vertexShader: starVertexShader,
@@ -132,10 +134,11 @@ export class Skybox {
     update(deltaTime) {
         if (!this.mesh || !this.points)
             return;
+        const scaledDelta = this.tick.getScaledDelta(deltaTime);
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
         const rotationSpeed = 0.03;
-        this.points.rotation.x += rotationSpeed * deltaTime;
+        this.points.rotation.x += rotationSpeed * scaledDelta;
         this.skyboxMaterial.uniforms.timeFactor.value = factor;
         this.starsMaterial.uniforms.timeFactor.value = factor;
         this.starsMaterial.uniforms.time.value = totalTime;

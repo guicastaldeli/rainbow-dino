@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import { Tick } from './tick.js';
+import { Time } from './time.js';
 import { Display } from './display.js';
 import { Camera } from './camera.js';
-import { Time } from './time.js';
 import { Skybox } from './skybox.js';
 const canvas = (document.getElementById('game--container'));
 canvas.width = window.innerWidth;
@@ -15,10 +16,11 @@ renderer.autoClear = false;
 renderer.localClippingEnabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 export const scene = new THREE.Scene();
+const tick = new Tick();
 //Render
 //Time and Skybox
-const timeCycle = new Time();
-const skybox = new Skybox(timeCycle);
+const timeCycle = new Time(tick);
+const skybox = new Skybox(tick, timeCycle);
 skybox.ready().then(() => {
     scene.add(skybox.mesh);
 }).catch(err => {
@@ -28,7 +30,7 @@ skybox.ready().then(() => {
 const camera = new Camera(renderer);
 scene.add(camera.camera);
 //Main Display
-const renderDisplay = new Display(timeCycle, renderer, scene);
+const renderDisplay = new Display(tick, timeCycle, renderer, scene);
 renderDisplay.ready().then(() => {
     scene.add(renderDisplay.display);
 });
@@ -47,9 +49,10 @@ function render() {
     const now = performance.now();
     const deltaTime = lastTime ? (now - lastTime) / 1000 : 0;
     lastTime = now;
-    timeCycle.update(deltaTime);
-    skybox.update(deltaTime);
-    renderDisplay.update(deltaTime);
+    const scaledDelta = tick.getScaledDelta(deltaTime);
+    timeCycle.update(scaledDelta);
+    skybox.update(scaledDelta);
+    renderDisplay.update(scaledDelta);
     camera.updateCamera();
     renderer.render(scene, camera.camera);
     requestAnimationFrame(render);

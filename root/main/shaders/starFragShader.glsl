@@ -1,7 +1,8 @@
 precision highp float;
 
-uniform float timeFactor;
 uniform float time;
+uniform float timeFactor;
+uniform float timeScale;
 
 varying vec3 vColor;
 varying float vPhase;
@@ -29,7 +30,9 @@ vec2 rotate(vec2 coord, float angle) {
 }
 
 void main() {
-    float rotationAngle = vPhase + time * 0.1;
+    float scaledTime = time * timeScale;
+
+    float rotationAngle = vPhase + scaledTime * 0.1;
     float timeAngle = smoothstep(0.0, 1.0, timeFactor) * 3.14159 * 2.0;
     rotationAngle += timeAngle;
 
@@ -54,13 +57,13 @@ void main() {
 
     //Day
     float dayFade = smoothstep(0.6, 0.998, timeFactor);
-    vec3 baseDayColor = rainbow(vPhase + time * 0.1);
+    vec3 baseDayColor = rainbow(vPhase + scaledTime * 0.1);
     vec3 dayColor = mix(duskDawnColor, baseDayColor, dayFade);
 
     starColor = mix(nightColor, duskDawnColor, smoothstep(0.3, 0.4, timeFactor));
     starColor = mix(starColor, dayColor, smoothstep(0.6, 0.998, timeFactor));
 
-    float twinkle = sin(time * 2.0 + vPhase * 30.0) * 0.2 + 0.8;
+    float twinkle = sin(scaledTime * 2.0 + vPhase * 30.0) * 0.2 + 0.8;
     starColor *= twinkle;
 
     gl_FragColor = vec4(starColor, 1.0);

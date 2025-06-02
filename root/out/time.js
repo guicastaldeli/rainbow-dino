@@ -1,11 +1,13 @@
 export class Time {
-    constructor(daylength = 60) {
+    constructor(tick, daylength = 60) {
+        this.tick = tick;
         this.currentTime = 12.0;
         this.dayLength = daylength;
         this.speed = 24 / daylength;
     }
     update(deltaTime) {
-        this.currentTime += this.speed * deltaTime;
+        const scaledDelta = this.tick.getScaledDelta(deltaTime);
+        this.currentTime += this.speed * scaledDelta;
         if (this.currentTime >= 24)
             this.currentTime -= 24;
     }

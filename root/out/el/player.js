@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 export class Player {
-    constructor(timeCycle, collDetector) {
+    constructor(tick, timeCycle, collDetector) {
         this.frames = [];
         this.currentParent = null;
         this.currentFrameIndex = 0;
@@ -38,6 +38,7 @@ export class Player {
             y: -3,
             z: -3.1
         };
+        this.tick = tick;
         this.timeCycle = timeCycle;
         this.collDetector = collDetector;
         this.loader = new OBJLoader();
@@ -206,9 +207,10 @@ export class Player {
     update(deltaTime) {
         if (!this.material)
             return;
-        this.updateMov(deltaTime);
+        const scaledDelta = this.tick.getScaledDelta(deltaTime);
+        this.updateMov(scaledDelta);
         const factor = this.timeCycle.getTimeFactor();
-        const totalTime = performance.now() * 0.001;
+        const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
         this.material.needsUpdate = true;

@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
+import { Tick } from '../tick';
 import { Time } from '../time';
 import { Display } from '../display';
 import { CollDetector } from '../coll-detector.js';
 
-export class Obstacles {
+export class Cactus {
+    private tick: Tick;
     private timeCycle: Time;
 
     private loader!: OBJLoader;
@@ -34,7 +36,8 @@ export class Obstacles {
         z: -3.1
     }
 
-    constructor(timeCycle: Time, display: Display) {
+    constructor(tick: Tick, timeCycle: Time, display: Display) {
+        this.tick = tick;
         this.timeCycle = timeCycle;
         this.display = display;
 
@@ -42,7 +45,7 @@ export class Obstacles {
         this.texLoader = new THREE.TextureLoader();
     }
 
-    private async createObstacles(x: number): Promise<THREE.Mesh> {
+    private async createCactus(x: number): Promise<THREE.Mesh> {
         try {
             const [vertexShader, fragmentShader] = await Promise.all([
                 this.loadShader('./el/shaders/vertexShader.glsl'),
@@ -124,7 +127,7 @@ export class Obstacles {
 
         for(let i = 0; i < this.length; i++) {
             const x = i * this.size.w;
-            obsArray.push(this.createObstacles(x));
+            obsArray.push(this.createCactus(x));
         }
 
         const obs = await Promise.all(obsArray);
@@ -156,16 +159,17 @@ export class Obstacles {
 
     public update(deltaTime: number, collDetector: CollDetector): void {
         if(!this.mesh || !this.material) return;
+        const scaledDelta = this.tick.getScaledDelta(deltaTime);
 
         for(const o of this.obs) {
-            o.position.x -= this.speed * deltaTime;
+            o.position.x -= this.speed * scaledDelta;
             const objBox = new THREE.Box3().setFromObject(o);
 
             if(collDetector.isObjColliding(objBox)) this.resetObs(o);
         }
 
         const factor = this.timeCycle.getTimeFactor();
-        const totalTime = performance.now() * 0.001;
+        const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;

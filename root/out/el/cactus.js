@@ -79,10 +79,11 @@ export class Cactus {
                         });
                         if (!obs)
                             throw new Error('err');
-                        obs.position.x = (x * this.size.gap()) + this.pos.x;
-                        obs.position.y = this.pos.y;
-                        obs.position.z = this.pos.z;
-                        const box = new THREE.Box3().setFromObject(obs);
+                        const cactusMesh = obs;
+                        cactusMesh.position.x = (x * this.size.gap()) + this.pos.x;
+                        cactusMesh.position.y = this.pos.y;
+                        cactusMesh.position.z = this.pos.z;
+                        const box = new THREE.Box3().setFromObject(cactusMesh);
                         this.obsBox.push(box);
                         res(obs);
                     }));

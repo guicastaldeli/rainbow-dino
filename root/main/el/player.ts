@@ -5,7 +5,7 @@ import { Tick } from '../tick';
 import { Time } from '../time';
 import { CollDetector } from '../coll-detector.js';
 
-import { Cactus } from './cactus';
+import { Obstacle } from './obstacle-manager';
 
 interface MovState {
     FORWARD: boolean;
@@ -45,7 +45,7 @@ export class Player {
 
     private collDetector: CollDetector;
 
-    private cactus?: Cactus;
+    private obstacles: Obstacle[];
 
     private mov: MovState = {
         FORWARD: false,
@@ -66,18 +66,17 @@ export class Player {
         z: -3.1
     }
 
-    constructor(tick: Tick, timeCycle: Time, collDetector: CollDetector, cactus?: Cactus) {
+    constructor(tick: Tick, timeCycle: Time, collDetector: CollDetector, obstacles: Obstacle[]) {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.collDetector = collDetector;
+        this.obstacles = obstacles;
 
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
 
         this.createPlayer();
         this.setupControls();
-
-        this.cactus = cactus;
     }
     
     private async createPlayer() {
@@ -116,7 +115,6 @@ export class Player {
                         });
 
                         res(obj);
-                        
                     });
                 });
             });
@@ -198,9 +196,9 @@ export class Player {
             this.pos.x = updX;
         }
 
-        if(this.cactus) {
-            if(this.collDetector.playerCollision(playerBox, this.cactus.getObs())) {
-                console.log('tst');
+        if(this.obstacles.length > 0) {
+            if(this.collDetector.playerCollision(playerBox, this.obstacles)) {
+                this.tick.gameOver();
             }
         }
 

@@ -5,6 +5,7 @@ import { Tick } from '../tick';
 import { Time } from '../time';
 import { Display } from '../display';
 import { CollDetector } from '../coll-detector.js';
+import { ObstacleManager } from './obstacle-manager';
 
 export class Cactus {
     private tick: Tick;
@@ -97,11 +98,12 @@ export class Cactus {
 
                     if(!obs) throw new Error('err');
 
-                    obs.position.x = (x * this.size.gap()) + this.pos.x;
-                    obs.position.y = this.pos.y;
-                    obs.position.z = this.pos.z;
+                    const cactusMesh = obs as THREE.Mesh & { type: 'cactus' }
+                    cactusMesh.position.x = (x * this.size.gap()) + this.pos.x;
+                    cactusMesh.position.y = this.pos.y;
+                    cactusMesh.position.z = this.pos.z;
 
-                    const box = new THREE.Box3().setFromObject(obs);
+                    const box = new THREE.Box3().setFromObject(cactusMesh);
                     this.obsBox.push(box);
 
                     res(obs);

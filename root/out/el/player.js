@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 export class Player {
-    constructor(tick, timeCycle, collDetector, cactus) {
+    constructor(tick, timeCycle, collDetector, obstacles) {
         this.frames = [];
         this.currentParent = null;
         this.currentFrameIndex = 0;
@@ -41,11 +41,11 @@ export class Player {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.collDetector = collDetector;
+        this.obstacles = obstacles;
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
         this.createPlayer();
         this.setupControls();
-        this.cactus = cactus;
     }
     createPlayer() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -150,9 +150,9 @@ export class Player {
         else {
             this.pos.x = updX;
         }
-        if (this.cactus) {
-            if (this.collDetector.playerCollision(playerBox, this.cactus.getObs())) {
-                console.log('tst');
+        if (this.obstacles.length > 0) {
+            if (this.collDetector.playerCollision(playerBox, this.obstacles)) {
+                this.tick.gameOver();
             }
         }
         if (this.mesh)

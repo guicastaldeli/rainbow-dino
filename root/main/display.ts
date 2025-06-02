@@ -5,6 +5,7 @@ import { Tick } from './tick.js';
 import { Time } from './time.js';
 import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
+import { Obstacle, ObstacleManager } from './el/obstacle-manager.js';
 import { Cactus } from './el/cactus.js';
 import { Player } from './el/player.js';
 
@@ -23,6 +24,8 @@ export class Display {
     private material!: THREE.ShaderMaterial;
 
     //Elements
+    private obstacleManager = new ObstacleManager();
+
     private renderPlayer!: Player;
     private renderTerrain!: Terrain;
     private renderCactus!: Cactus;
@@ -146,11 +149,6 @@ export class Display {
             //Display
             this.display.add(this.mesh);
 
-            //Player
-            this.renderPlayer = new Player(this.tick, this.timeCycle, this.collDetector);
-            const playerObj = await this.renderPlayer.ready();
-            this.display.add(playerObj);
-
             //Terrain
             this.renderTerrain = new Terrain(this.tick, this.timeCycle, this);
             await this.renderTerrain.ready();
@@ -162,16 +160,24 @@ export class Display {
 
             //Obstacles
                 //Cactus
-                this.renderCactus = new Cactus(this.tick, this.timeCycle, this);
-                await this.renderCactus.ready();
-                const obs = this.renderCactus.getObs();
+                    this.renderCactus = new Cactus(this.tick, this.timeCycle, this);
+                    await this.renderCactus.ready();
+                    const cactus = this.renderCactus.getObs();
+                    
+                    cactus.forEach(c => {
+                        this.display.add(c);
+                    });
+                    
+                    this.obstacleManager.addObstacle(cactus as Obstacle[]);
+                //
 
                 //Crow
             //
 
-            obs.forEach(o => {
-                this.display.add(o);
-            });
+            //Player
+            this.renderPlayer = new Player(this.tick, this.timeCycle, this.collDetector, this.obstacleManager.getObstacles());
+            const playerObj = await this.renderPlayer.ready();
+            this.display.add(playerObj);
         //
 
         return this.display;

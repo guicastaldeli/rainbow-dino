@@ -49,8 +49,6 @@ export class CollDetector {
 
     public playerCollision(pBox: THREE.Box3, obs: THREE.Mesh[]): boolean {
         if(!pBox) return false;
-
-        console.log('tst')
         
         for(const o of obs) {
             const obsBox = new THREE.Box3().setFromObject(o);

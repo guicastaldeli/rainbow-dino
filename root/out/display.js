@@ -11,10 +11,13 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
+import { ObstacleManager } from './el/obstacle-manager.js';
 import { Cactus } from './el/cactus.js';
 import { Player } from './el/player.js';
 export class Display {
     constructor(tick, timeCycle, renderer, scene) {
+        //Elements
+        this.obstacleManager = new ObstacleManager();
         this.size = {
             w: 0.52,
             h: 0.51,
@@ -113,10 +116,6 @@ export class Display {
             //Render
             //Display
             this.display.add(this.mesh);
-            //Player
-            this.renderPlayer = new Player(this.tick, this.timeCycle, this.collDetector);
-            const playerObj = yield this.renderPlayer.ready();
-            this.display.add(playerObj);
             //Terrain
             this.renderTerrain = new Terrain(this.tick, this.timeCycle, this);
             yield this.renderTerrain.ready();
@@ -128,12 +127,18 @@ export class Display {
             //Cactus
             this.renderCactus = new Cactus(this.tick, this.timeCycle, this);
             yield this.renderCactus.ready();
-            const obs = this.renderCactus.getObs();
+            const cactus = this.renderCactus.getObs();
+            cactus.forEach(c => {
+                this.display.add(c);
+            });
+            this.obstacleManager.addObstacle(cactus);
+            //
             //Crow
             //
-            obs.forEach(o => {
-                this.display.add(o);
-            });
+            //Player
+            this.renderPlayer = new Player(this.tick, this.timeCycle, this.collDetector, this.obstacleManager.getObstacles());
+            const playerObj = yield this.renderPlayer.ready();
+            this.display.add(playerObj);
             //
             return this.display;
         });

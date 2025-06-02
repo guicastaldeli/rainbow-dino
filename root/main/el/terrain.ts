@@ -9,6 +9,7 @@ import { CollDetector } from '../coll-detector.js';
 export class Terrain {
     private tick: Tick;
     private timeCycle: Time;
+    private display: Display;
 
     private loader!: OBJLoader;
     private texLoader!: THREE.TextureLoader;
@@ -19,8 +20,6 @@ export class Terrain {
     private blocks: THREE.Mesh[] = [];
     private speed = 1;
     private length = 15;
-
-    private display: Display;
 
     size = {
         w: 1,

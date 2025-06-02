@@ -42,59 +42,59 @@ export class Terrain {
         this.texLoader = new THREE.TextureLoader();
     }
 
-    private async createTerrain(x: number): Promise<THREE.Mesh> {
+    private async initMaterial(): Promise<void> {
         try {
             const [vertexShader, fragmentShader] = await Promise.all([
                 this.loadShader('./el/shaders/vertexShader.glsl'),
                 this.loadShader('./el/shaders/fragShader.glsl')
             ]);
-
-            const path = '../../../assets/obj/terrain-block.obj';
+    
             const texPath = '../../../assets/textures/terrain-block.png';
-            const tex = this.texLoader.load(texPath);
-
+            const tex = await this.texLoader.loadAsync(texPath);
+    
             const bounds = this.display.getBounds();
-
+    
             this.material = new THREE.ShaderMaterial({
                 uniforms: {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
                     map: { value: tex },
-                    bounds: { value: bounds.clone() }
+                    bounds: { value: bounds.clone() },
+                    isObj: { value: false }
                 },
                 vertexShader,
                 fragmentShader,
                 side: THREE.DoubleSide,
-                clipping: true
-            });
-
-            return new Promise<THREE.Mesh>((res) => {
-                this.loader.load(path, async (obj) => {
-                    this.mesh = obj;
-                    let block: THREE.Mesh | undefined;
-                    
-                    this.mesh.traverse((m) => {
-                        if(m instanceof THREE.Mesh && !block) {
-                            this.material.depthWrite = true;
-                            this.material.depthTest = true;
-                            m.material = this.material;
-                            block = m;
-                        }
-                    });
-
-                    if(!block) throw new Error("err");
-
-                    block.position.x = x * this.size.gap + this.pos.x;
-                    block.position.y = this.pos.y;
-                    block.position.z = this.pos.z;
-
-                    res(block);
-                });
             });
         } catch(err) {
             console.log(err);
-            return Promise.reject(err);
         }
+    }
+
+    private async createTerrain(x: number): Promise<THREE.Mesh> {
+        const path = '../../../assets/obj/terrain-block.obj';
+
+        return new Promise<THREE.Mesh>((res, rej) => {
+            this.loader.load(path, async (obj) => {
+                this.mesh = obj;
+                let block: THREE.Mesh | undefined;
+                    
+                this.mesh.traverse((m) => {
+                    if(m instanceof THREE.Mesh && !block) {
+                        m.material = this.material;
+                        block = m;
+                    }
+                });
+
+                if(!block) throw new Error("err");
+
+                block.position.x = x * this.size.gap + this.pos.x;
+                block.position.y = this.pos.y;
+                block.position.z = this.pos.z;
+
+                res(block);
+            }, undefined, rej);
+        });
     }
 
     private async setTerrain(): Promise<void> {
@@ -127,7 +127,7 @@ export class Terrain {
     }
 
     public update(deltaTime: number, collDetector: CollDetector): void {
-        if(!this.mesh) return;
+        if(!this.mesh || !this.material) return;
         
         for(const b of this.blocks) {
             b.position.x -= this.speed * deltaTime;
@@ -145,7 +145,13 @@ export class Terrain {
     }
 
     public async ready(): Promise<THREE.Object3D> {
-        await this.setTerrain();
-        return this.blockGroup;
+        try {
+            await this.initMaterial();
+            await this.setTerrain();
+            return this.blockGroup;
+        } catch(err) {
+            console.log(err);
+            throw err;
+        }
     }
 }

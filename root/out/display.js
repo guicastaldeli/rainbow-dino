@@ -11,6 +11,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
+import { Obstacles } from './el/obstacles.js';
 import { Player } from './el/player.js';
 export class Display {
     constructor(timeCycle, renderer, scene) {
@@ -110,6 +111,10 @@ export class Display {
             //Render
             //Display
             this.display.add(this.mesh);
+            //Player
+            this.renderPlayer = new Player(this.timeCycle);
+            const playerObj = yield this.renderPlayer.ready();
+            this.display.add(playerObj);
             //Terrain
             this.renderTerrain = new Terrain(this.timeCycle, this);
             yield this.renderTerrain.ready();
@@ -117,10 +122,13 @@ export class Display {
             terrainBlocks.forEach(block => {
                 this.display.add(block);
             });
-            //Player
-            this.renderPlayer = new Player(this.timeCycle);
-            const playerObj = yield this.renderPlayer.ready();
-            this.display.add(playerObj);
+            //Obstacles
+            this.renderObstacles = new Obstacles(this.timeCycle, this);
+            yield this.renderObstacles.ready();
+            const obs = this.renderObstacles.getObs();
+            obs.forEach(o => {
+                this.display.add(o);
+            });
             //
             return this.display;
         });
@@ -128,10 +136,12 @@ export class Display {
     update(deltaTime) {
         if (!this.material || !this.mesh)
             return;
-        if (this.renderTerrain)
-            this.renderTerrain.update(deltaTime, this.collDetector);
         if (this.renderPlayer)
             this.renderPlayer.update(deltaTime);
+        if (this.renderTerrain)
+            this.renderTerrain.update(deltaTime, this.collDetector);
+        if (this.renderObstacles)
+            this.renderObstacles.update(deltaTime, this.collDetector);
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
         this.material.uniforms.time.value = totalTime;

@@ -1,3 +1,5 @@
+precision highp float;
+
 uniform float timeFactor;
 
 uniform vec2 resolution;

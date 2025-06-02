@@ -1,3 +1,5 @@
+precision highp float;
+
 varying vec2 vUv;
 varying vec3 vWorldPosition;
 uniform float time;

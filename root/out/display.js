@@ -11,12 +11,12 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
+import { Clouds } from './el/clouds.js';
 import { ObstacleManager } from './el/obstacle-manager.js';
 import { Cactus } from './el/cactus.js';
 import { Player } from './el/player.js';
 export class Display {
     constructor(tick, timeCycle, renderer, scene) {
-        //Elements
         this.obstacleManager = new ObstacleManager();
         this.size = {
             w: 0.52,
@@ -116,6 +116,13 @@ export class Display {
             //Render
             //Display
             this.display.add(this.mesh);
+            //Clouds
+            this.renderClouds = new Clouds(this.tick, this.timeCycle, this);
+            yield this.renderClouds.ready();
+            const clouds = this.renderClouds.getClouds();
+            clouds.forEach(c => {
+                this.display.add(c);
+            });
             //Terrain
             this.renderTerrain = new Terrain(this.tick, this.timeCycle, this);
             yield this.renderTerrain.ready();
@@ -146,12 +153,14 @@ export class Display {
     update(deltaTime) {
         if (!this.material || !this.mesh)
             return;
-        if (this.renderPlayer)
-            this.renderPlayer.update(deltaTime);
+        if (this.renderClouds)
+            this.renderClouds.update(deltaTime, this.collDetector);
         if (this.renderTerrain)
             this.renderTerrain.update(deltaTime, this.collDetector);
         if (this.renderCactus)
             this.renderCactus.update(deltaTime, this.collDetector);
+        if (this.renderPlayer)
+            this.renderPlayer.update(deltaTime);
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
         this.material.uniforms.time.value = totalTime;

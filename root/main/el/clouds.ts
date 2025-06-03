@@ -4,38 +4,36 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { Tick } from '../tick';
 import { Time } from '../time';
 import { Display } from '../display';
-import { CollDetector } from '../coll-detector.js';
-import { ObstacleManager } from './obstacle-manager';
+import { CollDetector } from '../coll-detector';
 
-export class Cactus {
+export class Clouds {
     private tick: Tick;
     private timeCycle: Time;
     private display: Display;
 
-    private loader!: OBJLoader;
-    private texLoader!: THREE.TextureLoader;
-    private mesh!: THREE.Object3D
+    private loader: OBJLoader;
+    private texLoader: THREE.TextureLoader;
+    private mesh!: THREE.Object3D;
     private material!: THREE.ShaderMaterial;
-    private obsGroup = new THREE.Group();
+    private cloudGroup = new THREE.Group();
 
-    private obs: THREE.Mesh[] = [];
-    private obsBox: THREE.Box3[] = [];
-
+    private clouds: THREE.Mesh[] = [];
     private speed = 1;
     private length = 20;
 
     size = {
         w: 1,
         h: 1,
-        d: 0.1,
-
-        gap: () => Math.random() * (32 - 16) + 16
+        d: 0.01
     }
 
     pos = {
-        x: 8,
-        y: -3,
-        z: -3.1
+        x: 0,
+        y: 0.8,
+        z: -3.3,
+
+        gapX: () => Math.random() * (8 - 4) * 4,
+        gapY: () => Math.random() * (0.5 - 0.1) * 0.1
     }
 
     constructor(tick: Tick, timeCycle: Time, display: Display) {
@@ -47,7 +45,7 @@ export class Cactus {
         this.texLoader = new THREE.TextureLoader();
     }
 
-    private async createCactus(x: number): Promise<THREE.Mesh> {
+    private async createClouds(x: number, y: number): Promise<THREE.Mesh> {
         try {
             const [vertexShader, fragmentShader] = await Promise.all([
                 this.loadShader('./el/shaders/vertexShader.glsl'),
@@ -56,19 +54,18 @@ export class Cactus {
 
             const models = [
                 {
-                    model: '../../../assets/obj/cactus1.obj',
-                    tex: '../../../assets/textures/cactus1.png',
-                    chance: 0.5
+                    model: '../../../assets/obj/cloud1.obj',
+                    chance: 0.6,
                 },
                 {
-                    model: '../../../assets/obj/cactus2.obj',
-                    tex: '../../../assets/textures/cactus2.png',
-                    chance: 0.5
+                    model: '../../../assets/obj/cloud2.obj',
+                    chance: 0.4
                 }
             ];
 
             const selectedModel = this.randomObjs(models);
-            const tex = await this.texLoader.loadAsync(selectedModel.tex);
+            const texPath = '../../../assets/textures/cloud.png';
+            const tex = await this.texLoader.loadAsync(texPath);
             const bounds = this.display.getBounds();
 
             this.material = new THREE.ShaderMaterial({
@@ -76,46 +73,44 @@ export class Cactus {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
                     map: { value: tex },
-                    bounds: { value: bounds.clone() },
-                    isObs: { value: true }
+                    bounds: { value: bounds.clone() }
                 },
                 vertexShader,
                 fragmentShader,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+                depthTest: true,
+                depthWrite: true,
             });
 
             return new Promise<THREE.Mesh>((res) => {
                 this.loader.load(selectedModel.model, async (obj) => {
                     this.mesh = obj;
-                    let obs: THREE.Mesh | undefined;
+                    let objs: THREE.Mesh | undefined;
 
                     this.mesh.traverse((m) => {
-                        if(m instanceof THREE.Mesh && !obs) {
+                        if(m instanceof THREE.Mesh && !objs) {
                             m.material = this.material;
-                            obs = m;
+                            objs = m;
                         }
                     });
 
-                    if(!obs) throw new Error('err');
+                    if(!objs) return new Error('err');
 
-                    const cactusMesh = obs as THREE.Mesh & { type: 'cactus' }
-                    cactusMesh.position.x = (x * this.size.gap()) + this.pos.x;
-                    cactusMesh.position.y = this.pos.y;
-                    cactusMesh.position.z = this.pos.z;
+                    objs.scale.setScalar(0.4);
+                    objs.position.x = (x * this.pos.gapX()) + this.pos.x;
+                    objs.position.y = (y * this.pos.gapY()) + this.pos.y;
+                    objs.position.z = this.pos.z;
 
-                    const box = new THREE.Box3().setFromObject(cactusMesh);
-                    this.obsBox.push(box);
-
-                    res(obs);
+                    res(objs);
                 });
-            });
+            })
         } catch(err) {
             console.log(err);
             throw err;
         }
     }
 
-    private randomObjs(items: { model: string, tex: string, chance: number }[]) {
+    private randomObjs(items: { model: string, chance: number }[]) {
         let totalChance = items.reduce((sum, item) => sum + item.chance, 0);
         let random = Math.random() * totalChance;
         let current = 0;
@@ -128,34 +123,34 @@ export class Cactus {
         return items[0];
     }
 
-    private async setObstacles(): Promise<void> {
-        const obsArray: Promise<THREE.Mesh>[] = [];
+    private async setClouds(): Promise<void> {
+        const cloudsArray: Promise<THREE.Mesh>[] = [];
 
         for(let i = 0; i < this.length; i++) {
             const x = i * this.size.w;
-            obsArray.push(this.createCactus(x));
+            const y = i * this.size.h;
+            cloudsArray.push(this.createClouds(x, y)); 
         }
 
-        const obs = await Promise.all(obsArray);
-        this.obs.push(...obs);
-        this.obsGroup.add(...obs);
+        const obj = await Promise.all(cloudsArray);
+        this.clouds.push(...obj);
+        this.cloudGroup.add(...obj);
     }
 
-    public getObs(): THREE.Mesh[] {
-        return this.obs;
+    public getClouds(): THREE.Mesh[] {
+        return this.clouds;
     }
 
-    private resetObs(obs: THREE.Mesh): void {
-        let fObs = this.obs[0];
+    private resetCloud(cloud: THREE.Mesh): void {
+        let fCloud = this.clouds[0];
 
-        for(const o of this.obs) {
-            if(o.position.x > fObs.position.x) {
-                fObs = o;
+        for(const c of this.clouds) {
+            if(c.position.x > fCloud.position.x) {
+                fCloud = c;
             }
         }
 
-        obs.position.x = fObs.position.x + this.size.gap();
-        this.obsBox[this.obs.indexOf(obs)] = new THREE.Box3().setFromObject(obs);
+        cloud.position.x = fCloud.position.x + this.pos.gapX();
     }
 
     private async loadShader(url: string): Promise<string> {
@@ -166,20 +161,14 @@ export class Cactus {
 
     public update(deltaTime: number, collDetector: CollDetector): void {
         if(!this.mesh || !this.material) return;
-        
+
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
 
-        for(let i = 0; i < this.obs.length; i++) {
-            const o = this.obs[i];
-            o.position.x -= this.speed * scaledDelta;
-            const objBox = new THREE.Box3().setFromObject(o);
+        for(const c of this.clouds) {
+            c.position.x -= this.speed * scaledDelta;
+            const objBox = new THREE.Box3().setFromObject(c);
 
-            if(collDetector.isColliding(objBox)) {
-                this.resetObs(o);
-
-                const updObjBox = new THREE.Box3().setFromObject(o);
-                this.obsBox[i] = updObjBox;
-            }
+            if(collDetector.isColliding(objBox)) this.resetCloud(c);
         }
 
         const factor = this.timeCycle.getTimeFactor();
@@ -191,7 +180,7 @@ export class Cactus {
     }
 
     public async ready(): Promise<THREE.Object3D> {
-        await this.setObstacles();
-        return this.obsGroup;
+        await this.setClouds();
+        return this.cloudGroup;
     }
 }

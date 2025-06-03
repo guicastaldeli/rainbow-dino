@@ -147,7 +147,7 @@ export class Cactus {
             const o = this.obs[i];
             o.position.x -= this.speed * scaledDelta;
             const objBox = new THREE.Box3().setFromObject(o);
-            if (collDetector.isObjColliding(objBox)) {
+            if (collDetector.isColliding(objBox)) {
                 this.resetObs(o);
                 const updObjBox = new THREE.Box3().setFromObject(o);
                 this.obsBox[i] = updObjBox;

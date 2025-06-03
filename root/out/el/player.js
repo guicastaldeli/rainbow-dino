@@ -94,6 +94,8 @@ export class Player {
                     vertexShader,
                     fragmentShader,
                     side: THREE.DoubleSide,
+                    depthTest: true,
+                    depthWrite: true,
                 });
                 const load = framePath.map(path => {
                     return new Promise((res) => {

@@ -5,6 +5,7 @@ import { Tick } from './tick.js';
 import { Time } from './time.js';
 import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
+import { Clouds } from './el/clouds.js';
 import { Obstacle, ObstacleManager } from './el/obstacle-manager.js';
 import { Cactus } from './el/cactus.js';
 import { Player } from './el/player.js';
@@ -24,11 +25,14 @@ export class Display {
     private material!: THREE.ShaderMaterial;
 
     //Elements
+    private renderClouds!: Clouds;
+
+    private renderTerrain!: Terrain;
+
     private obstacleManager = new ObstacleManager();
+    private renderCactus!: Cactus;
 
     private renderPlayer!: Player;
-    private renderTerrain!: Terrain;
-    private renderCactus!: Cactus;
 
     private scene?: THREE.Scene;
 
@@ -149,6 +153,15 @@ export class Display {
             //Display
             this.display.add(this.mesh);
 
+            //Clouds
+            this.renderClouds = new Clouds(this.tick, this.timeCycle, this);
+            await this.renderClouds.ready();
+            const clouds = this.renderClouds.getClouds();
+
+            clouds.forEach(c => {
+                this.display.add(c);
+            });
+
             //Terrain
             this.renderTerrain = new Terrain(this.tick, this.timeCycle, this);
             await this.renderTerrain.ready();
@@ -186,9 +199,10 @@ export class Display {
     public update(deltaTime: number) {
         if(!this.material || !this.mesh) return;
 
-        if(this.renderPlayer) this.renderPlayer.update(deltaTime);
+        if(this.renderClouds) this.renderClouds.update(deltaTime, this.collDetector);
         if(this.renderTerrain) this.renderTerrain.update(deltaTime, this.collDetector);
         if(this.renderCactus) this.renderCactus.update(deltaTime, this.collDetector);
+        if(this.renderPlayer) this.renderPlayer.update(deltaTime);
 
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;

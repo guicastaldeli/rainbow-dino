@@ -11,8 +11,8 @@ export class Terrain {
     private timeCycle: Time;
     private display: Display;
 
-    private loader!: OBJLoader;
-    private texLoader!: THREE.TextureLoader;
+    private loader: OBJLoader;
+    private texLoader: THREE.TextureLoader;
     private mesh!: THREE.Object3D;
     private material!: THREE.ShaderMaterial;
     private blockGroup = new THREE.Group();
@@ -25,14 +25,14 @@ export class Terrain {
         w: 1,
         h: 1,
         d: 0.1,
-
-        gap: 1.58
     }
-
+    
     pos = {
         x: -7,
         y: -3,
-        z: -3.1
+        z: -3.1,
+
+        gap: 1.58
     }
 
     constructor(tick: Tick, timeCycle: Time, display: Display) {
@@ -90,7 +90,7 @@ export class Terrain {
 
                 if(!block) throw new Error("err");
 
-                block.position.x = x * this.size.gap + this.pos.x;
+                block.position.x = x * this.pos.gap + this.pos.x;
                 block.position.y = this.pos.y;
                 block.position.z = this.pos.z;
 
@@ -125,7 +125,7 @@ export class Terrain {
             }
         }
 
-        block.position.x = fBlock.position.x + this.size.gap;
+        block.position.x = fBlock.position.x + this.pos.gap;
     }
 
     private async loadShader(url: string): Promise<string> {
@@ -142,7 +142,7 @@ export class Terrain {
             b.position.x -= this.speed * scaledDelta;
             const objBox = new THREE.Box3().setFromObject(b);
 
-            if(collDetector.isObjColliding(objBox)) this.resetBlock(b);
+            if(collDetector.isColliding(objBox)) this.resetBlock(b);
         }
 
         const factor = this.timeCycle.getTimeFactor();

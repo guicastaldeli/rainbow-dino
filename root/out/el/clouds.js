@@ -9,22 +9,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-export class Terrain {
+export class Clouds {
     constructor(tick, timeCycle, display) {
-        this.blockGroup = new THREE.Group();
-        this.blocks = [];
+        this.cloudGroup = new THREE.Group();
+        this.clouds = [];
         this.speed = 1;
-        this.length = 15;
+        this.length = 20;
         this.size = {
             w: 1,
             h: 1,
-            d: 0.1,
+            d: 0.01
         };
         this.pos = {
-            x: -7,
-            y: -3,
-            z: -3.1,
-            gap: 1.58
+            x: 0,
+            y: 0.8,
+            z: -3.3,
+            gapX: () => Math.random() * (8 - 4) * 4,
+            gapY: () => Math.random() * (0.5 - 0.1) * 0.1
         };
         this.tick = tick;
         this.timeCycle = timeCycle;
@@ -32,14 +33,25 @@ export class Terrain {
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
     }
-    initMaterial() {
+    createClouds(x, y) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const [vertexShader, fragmentShader] = yield Promise.all([
                     this.loadShader('./el/shaders/vertexShader.glsl'),
                     this.loadShader('./el/shaders/fragShader.glsl')
                 ]);
-                const texPath = '../../../assets/textures/terrain-block.png';
+                const models = [
+                    {
+                        model: '../../../assets/obj/cloud1.obj',
+                        chance: 0.6,
+                    },
+                    {
+                        model: '../../../assets/obj/cloud2.obj',
+                        chance: 0.4
+                    }
+                ];
+                const selectedModel = this.randomObjs(models);
+                const texPath = '../../../assets/textures/cloud.png';
                 const tex = yield this.texLoader.loadAsync(texPath);
                 const bounds = this.display.getBounds();
                 this.material = new THREE.ShaderMaterial({
@@ -47,65 +59,75 @@ export class Terrain {
                         time: { value: 0.0 },
                         timeFactor: { value: 0.0 },
                         map: { value: tex },
-                        bounds: { value: bounds.clone() },
-                        isObj: { value: false }
+                        bounds: { value: bounds.clone() }
                     },
                     vertexShader,
                     fragmentShader,
                     side: THREE.DoubleSide,
+                    depthTest: true,
+                    depthWrite: true,
+                });
+                return new Promise((res) => {
+                    this.loader.load(selectedModel.model, (obj) => __awaiter(this, void 0, void 0, function* () {
+                        this.mesh = obj;
+                        let objs;
+                        this.mesh.traverse((m) => {
+                            if (m instanceof THREE.Mesh && !objs) {
+                                m.material = this.material;
+                                objs = m;
+                            }
+                        });
+                        if (!objs)
+                            return new Error('err');
+                        objs.scale.setScalar(0.4);
+                        objs.position.x = (x * this.pos.gapX()) + this.pos.x;
+                        objs.position.y = (y * this.pos.gapY()) + this.pos.y;
+                        objs.position.z = this.pos.z;
+                        res(objs);
+                    }));
                 });
             }
             catch (err) {
                 console.log(err);
+                throw err;
             }
         });
     }
-    createTerrain(x) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const path = '../../../assets/obj/terrain-block.obj';
-            return new Promise((res, rej) => {
-                this.loader.load(path, (obj) => __awaiter(this, void 0, void 0, function* () {
-                    this.mesh = obj;
-                    let block;
-                    this.mesh.traverse((m) => {
-                        if (m instanceof THREE.Mesh && !block) {
-                            m.material = this.material;
-                            block = m;
-                        }
-                    });
-                    if (!block)
-                        throw new Error("err");
-                    block.position.x = x * this.pos.gap + this.pos.x;
-                    block.position.y = this.pos.y;
-                    block.position.z = this.pos.z;
-                    res(block);
-                }), undefined, rej);
-            });
-        });
+    randomObjs(items) {
+        let totalChance = items.reduce((sum, item) => sum + item.chance, 0);
+        let random = Math.random() * totalChance;
+        let current = 0;
+        for (let item of items) {
+            if (random <= item.chance + current)
+                return item;
+            current += item.chance;
+        }
+        return items[0];
     }
-    setTerrain() {
+    setClouds() {
         return __awaiter(this, void 0, void 0, function* () {
-            const blockArray = [];
+            const cloudsArray = [];
             for (let i = 0; i < this.length; i++) {
                 const x = i * this.size.w;
-                blockArray.push(this.createTerrain(x));
+                const y = i * this.size.h;
+                cloudsArray.push(this.createClouds(x, y));
             }
-            const block = yield Promise.all(blockArray);
-            this.blocks.push(...block);
-            this.blockGroup.add(...block);
+            const obj = yield Promise.all(cloudsArray);
+            this.clouds.push(...obj);
+            this.cloudGroup.add(...obj);
         });
     }
-    getTerrainBlocks() {
-        return this.blocks;
+    getClouds() {
+        return this.clouds;
     }
-    resetBlock(block) {
-        let fBlock = this.blocks[0];
-        for (const b of this.blocks) {
-            if (b.position.x > fBlock.position.x) {
-                fBlock = b;
+    resetCloud(cloud) {
+        let fCloud = this.clouds[0];
+        for (const c of this.clouds) {
+            if (c.position.x > fCloud.position.x) {
+                fCloud = c;
             }
         }
-        block.position.x = fBlock.position.x + this.pos.gap;
+        cloud.position.x = fCloud.position.x + this.pos.gapX();
     }
     loadShader(url) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -119,11 +141,11 @@ export class Terrain {
         if (!this.mesh || !this.material)
             return;
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
-        for (const b of this.blocks) {
-            b.position.x -= this.speed * scaledDelta;
-            const objBox = new THREE.Box3().setFromObject(b);
+        for (const c of this.clouds) {
+            c.position.x -= this.speed * scaledDelta;
+            const objBox = new THREE.Box3().setFromObject(c);
             if (collDetector.isColliding(objBox))
-                this.resetBlock(b);
+                this.resetCloud(c);
         }
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
@@ -133,15 +155,8 @@ export class Terrain {
     }
     ready() {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                yield this.initMaterial();
-                yield this.setTerrain();
-                return this.blockGroup;
-            }
-            catch (err) {
-                console.log(err);
-                throw err;
-            }
+            yield this.setClouds();
+            return this.cloudGroup;
         });
     }
 }

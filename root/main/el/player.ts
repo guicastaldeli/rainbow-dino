@@ -27,6 +27,7 @@ export class Player {
     private frames: THREE.Object3D[] = [];
     private currentParent: THREE.Object3D | null = null;
     private currentFrameIndex = 0;
+    private texPathIndex = 0;
     private frameInterval = 0.1;
     private frameTimer = 0;
     private isAnimating = false;
@@ -66,6 +67,11 @@ export class Player {
         z: -3.1
     }
 
+    private tex: {
+        default: THREE.Texture,
+        hit: THREE.Texture
+    } | null = null;
+
     constructor(tick: Tick, timeCycle: Time, collDetector: CollDetector, obstacles: Obstacle[]) {
         this.tick = tick;
         this.timeCycle = timeCycle;
@@ -90,16 +96,28 @@ export class Player {
                 '../../../assets/obj/dino-0.obj',
                 '../../../assets/obj/dino-1.obj',
                 '../../../assets/obj/dino-2.obj',
+                '../../../assets/obj/dino-hit.obj'
             ];
 
-            const texPath = '../../../assets/textures/rd.png';
-            const tex = this.texLoader.load(texPath);
+            const texPath = {
+                default: { path: '../../../assets/textures/rd.png' },
+                hit: { path: '../../../assets/textures/dino-hit.png' }
+            };
+
+            this.tex = {
+                default: await new Promise<THREE.Texture>((res, rej) => {
+                    this.texLoader.load(texPath.default.path, res, undefined, rej);
+                }),
+                hit: await new Promise<THREE.Texture>((res, rej) => {
+                    this.texLoader.load(texPath.hit.path, res, undefined, rej);
+                })
+            }
             
             this.material = new THREE.ShaderMaterial({
                 uniforms: {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
-                    map: { value: tex },
+                    map: { value: this.tex.default },
                     isObs: { value: false }
                 },
                 vertexShader,
@@ -198,6 +216,14 @@ export class Player {
 
         if(this.obstacles.length > 0) {
             if(this.collDetector.playerCollision(playerBox, this.obstacles)) {
+                this.currentFrameIndex = 3;
+                this.saveFrame(3);
+                
+                if(this.tex) {
+                    this.material.uniforms.map.value = this.tex.hit;
+                    this.material.needsUpdate = true;
+                }
+                
                 this.tick.gameOver();
             }
         }
@@ -236,10 +262,12 @@ export class Player {
             case 'Space':
                 this.isJumping = isKeyDown;
                 if(isKeyDown && this.isGrounded) this.jumpVelocity = this.jumpForce;
+                if(!this.isGrounded) this.frameInterval = 0.08;
                 if(!isKeyDown) this.isJumping = false;
                 break;
         }
 
+        if(this.isGrounded) this.frameInterval = 0.1;
         this.isAnimating = this.mov.FORWARD || this.mov.BACKWARD || this.isJumping;
     }
 

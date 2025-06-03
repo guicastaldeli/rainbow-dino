@@ -14,6 +14,7 @@ export class Player {
         this.frames = [];
         this.currentParent = null;
         this.currentFrameIndex = 0;
+        this.texPathIndex = 0;
         this.frameInterval = 0.1;
         this.frameTimer = 0;
         this.isAnimating = false;
@@ -38,6 +39,7 @@ export class Player {
             y: -3,
             z: -3.1
         };
+        this.tex = null;
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.collDetector = collDetector;
@@ -58,14 +60,25 @@ export class Player {
                     '../../../assets/obj/dino-0.obj',
                     '../../../assets/obj/dino-1.obj',
                     '../../../assets/obj/dino-2.obj',
+                    '../../../assets/obj/dino-hit.obj'
                 ];
-                const texPath = '../../../assets/textures/rd.png';
-                const tex = this.texLoader.load(texPath);
+                const texPath = {
+                    default: { path: '../../../assets/textures/rd.png' },
+                    hit: { path: '../../../assets/textures/dino-hit.png' }
+                };
+                this.tex = {
+                    default: yield new Promise((res, rej) => {
+                        this.texLoader.load(texPath.default.path, res, undefined, rej);
+                    }),
+                    hit: yield new Promise((res, rej) => {
+                        this.texLoader.load(texPath.hit.path, res, undefined, rej);
+                    })
+                };
                 this.material = new THREE.ShaderMaterial({
                     uniforms: {
                         time: { value: 0.0 },
                         timeFactor: { value: 0.0 },
-                        map: { value: tex },
+                        map: { value: this.tex.default },
                         isObs: { value: false }
                     },
                     vertexShader,
@@ -152,6 +165,12 @@ export class Player {
         }
         if (this.obstacles.length > 0) {
             if (this.collDetector.playerCollision(playerBox, this.obstacles)) {
+                this.currentFrameIndex = 3;
+                this.saveFrame(3);
+                if (this.tex) {
+                    this.material.uniforms.map.value = this.tex.hit;
+                    this.material.needsUpdate = true;
+                }
                 this.tick.gameOver();
             }
         }
@@ -187,10 +206,14 @@ export class Player {
                 this.isJumping = isKeyDown;
                 if (isKeyDown && this.isGrounded)
                     this.jumpVelocity = this.jumpForce;
+                if (!this.isGrounded)
+                    this.frameInterval = 0.08;
                 if (!isKeyDown)
                     this.isJumping = false;
                 break;
         }
+        if (this.isGrounded)
+            this.frameInterval = 0.1;
         this.isAnimating = this.mov.FORWARD || this.mov.BACKWARD || this.isJumping;
     }
     setupControls() {

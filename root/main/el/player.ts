@@ -228,7 +228,7 @@ export class Player {
 
         if(this.obstacles.length > 0) {
             if(this.collDetector.playerCollision(playerBox, this.obstacles)) {
-                this.playerHit();
+                this.hitTaken();
                 this.tick.gameOver();
             }
         }
@@ -260,7 +260,8 @@ export class Player {
         if(this.currentParent) this.currentParent.add(this.mesh);
     }
 
-    private playerHit(): void {
+    //
+    private hitTaken(): void {
         this.isHit = true;
         this.currentFrameIndex = 3;
         this.saveFrame(3);
@@ -271,7 +272,7 @@ export class Player {
         }
     }
 
-    private playerShift(): void {
+    private shiftPressed(): void {
         this.isShifted = !this.isShifted;
 
         if(this.isShifted) {
@@ -315,7 +316,7 @@ export class Player {
                 break;
             case 'ShiftLeft':
             case 'ArrowDown':
-                if(isKeyDown !== this.isShifted) this.playerShift();
+                if(isKeyDown !== this.isShifted) this.shiftPressed();
                 break;
         }
 

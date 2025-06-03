@@ -2,6 +2,7 @@ export class Tick {
     constructor() {
         this.timeScale = 1.0;
         this.paused = false;
+        this.gameOverCalls = [];
         this.gameover = false;
     }
     setTimeScale(scale) {
@@ -15,9 +16,15 @@ export class Tick {
     togglePause() {
         this.paused = !this.paused;
     }
+    onGameOver(callback) {
+        this.gameOverCalls.push(callback);
+    }
     gameOver() {
-        this.gameover = true;
-        this.timeScale = 0;
+        if (!this.gameover) {
+            this.gameover = true;
+            this.timeScale = 0;
+            this.gameOverCalls.forEach(cb => cb());
+        }
         return this.gameover;
     }
     getScaledDelta(deltaTime) {

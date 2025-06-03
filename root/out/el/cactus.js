@@ -11,21 +11,21 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 export class Cactus {
     constructor(tick, timeCycle, display) {
-        this.obsGroup = new THREE.Group();
         this.obs = [];
         this.obsBox = [];
+        this.obsGroup = new THREE.Group();
         this.speed = 1;
         this.length = 20;
         this.size = {
             w: 1,
             h: 1,
             d: 0.1,
-            gap: () => Math.random() * (32 - 16) + 16
         };
         this.pos = {
             x: 8,
             y: -3,
-            z: -3.1
+            z: -3.1,
+            gap: () => Math.random() * (32 - 16) + 16
         };
         this.tick = tick;
         this.timeCycle = timeCycle;
@@ -80,7 +80,7 @@ export class Cactus {
                         if (!obs)
                             throw new Error('err');
                         const cactusMesh = obs;
-                        cactusMesh.position.x = (x * this.size.gap()) + this.pos.x;
+                        cactusMesh.position.x = (x * this.pos.gap()) + this.pos.x;
                         cactusMesh.position.y = this.pos.y;
                         cactusMesh.position.z = this.pos.z;
                         const box = new THREE.Box3().setFromObject(cactusMesh);
@@ -106,7 +106,7 @@ export class Cactus {
         }
         return items[0];
     }
-    setObstacles() {
+    setObs() {
         return __awaiter(this, void 0, void 0, function* () {
             const obsArray = [];
             for (let i = 0; i < this.length; i++) {
@@ -128,7 +128,7 @@ export class Cactus {
                 fObs = o;
             }
         }
-        obs.position.x = fObs.position.x + this.size.gap();
+        obs.position.x = fObs.position.x + this.pos.gap();
         this.obsBox[this.obs.indexOf(obs)] = new THREE.Box3().setFromObject(obs);
     }
     loadShader(url) {
@@ -161,7 +161,7 @@ export class Cactus {
     }
     ready() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.setObstacles();
+            yield this.setObs();
             return this.obsGroup;
         });
     }

@@ -39,6 +39,7 @@ export class Player {
     private frameTimer = 0;
     private isAnimating = false;
     private isHit = false;
+    private isGameOver = false;
 
     private gravity = -30;
     private isGrounded = false;
@@ -87,6 +88,10 @@ export class Player {
 
         this.createPlayer();
         this.setupControls();
+
+        this.tick.onGameOver(() => {
+            this.isGameOver = true;
+        });
     }
     
     private async createPlayer() {
@@ -231,7 +236,7 @@ export class Player {
         if(this.obstacles.length > 0) {
             if(this.collDetector.playerCollision(playerBox, this.obstacles)) {
                 this.hitTaken();
-                this.tick.gameOver();
+                //this.tick.gameOver();
             }
         }
 
@@ -275,6 +280,7 @@ export class Player {
     }
 
     private shiftPressed(): void {
+        if(this.isGameOver) return;
         this.isShifted = !this.isShifted;
 
         if(this.isShifted) {
@@ -298,6 +304,7 @@ export class Player {
     }
 
     private onKeyUpdate(e: KeyboardEvent) {
+        if(this.isGameOver) return;
         const isKeyDown = e.type === 'keydown';
 
         switch(e.code) {

@@ -16,10 +16,10 @@ export class Cactus {
     private texLoader!: THREE.TextureLoader;
     private mesh!: THREE.Object3D
     private material!: THREE.ShaderMaterial;
-    private obsGroup = new THREE.Group();
-
+    
     private obs: THREE.Mesh[] = [];
     private obsBox: THREE.Box3[] = [];
+    private obsGroup = new THREE.Group();
 
     private speed = 1;
     private length = 20;
@@ -28,14 +28,14 @@ export class Cactus {
         w: 1,
         h: 1,
         d: 0.1,
-
-        gap: () => Math.random() * (32 - 16) + 16
     }
-
+    
     pos = {
         x: 8,
         y: -3,
-        z: -3.1
+        z: -3.1,
+
+        gap: () => Math.random() * (32 - 16) + 16
     }
 
     constructor(tick: Tick, timeCycle: Time, display: Display) {
@@ -99,7 +99,7 @@ export class Cactus {
                     if(!obs) throw new Error('err');
 
                     const cactusMesh = obs as THREE.Mesh & { type: 'cactus' }
-                    cactusMesh.position.x = (x * this.size.gap()) + this.pos.x;
+                    cactusMesh.position.x = (x * this.pos.gap()) + this.pos.x;
                     cactusMesh.position.y = this.pos.y;
                     cactusMesh.position.z = this.pos.z;
 
@@ -128,7 +128,7 @@ export class Cactus {
         return items[0];
     }
 
-    private async setObstacles(): Promise<void> {
+    private async setObs(): Promise<void> {
         const obsArray: Promise<THREE.Mesh>[] = [];
 
         for(let i = 0; i < this.length; i++) {
@@ -154,7 +154,7 @@ export class Cactus {
             }
         }
 
-        obs.position.x = fObs.position.x + this.size.gap();
+        obs.position.x = fObs.position.x + this.pos.gap();
         this.obsBox[this.obs.indexOf(obs)] = new THREE.Box3().setFromObject(obs);
     }
 
@@ -191,7 +191,7 @@ export class Cactus {
     }
 
     public async ready(): Promise<THREE.Object3D> {
-        await this.setObstacles();
+        await this.setObs();
         return this.obsGroup;
     }
 }

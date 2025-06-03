@@ -21,6 +21,7 @@ export class Player {
         this.frameTimer = 0;
         this.isAnimating = false;
         this.isHit = false;
+        this.isGameOver = false;
         this.gravity = -30;
         this.isGrounded = false;
         this.isJumping = false;
@@ -51,6 +52,9 @@ export class Player {
         this.texLoader = new THREE.TextureLoader();
         this.createPlayer();
         this.setupControls();
+        this.tick.onGameOver(() => {
+            this.isGameOver = true;
+        });
     }
     createPlayer() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -178,7 +182,7 @@ export class Player {
         if (this.obstacles.length > 0) {
             if (this.collDetector.playerCollision(playerBox, this.obstacles)) {
                 this.hitTaken();
-                this.tick.gameOver();
+                //this.tick.gameOver();
             }
         }
         if (this.mesh)
@@ -217,6 +221,8 @@ export class Player {
         }
     }
     shiftPressed() {
+        if (this.isGameOver)
+            return;
         this.isShifted = !this.isShifted;
         if (this.isShifted) {
             this.shiftFrameIndex = 0;
@@ -237,6 +243,8 @@ export class Player {
         }
     }
     onKeyUpdate(e) {
+        if (this.isGameOver)
+            return;
         const isKeyDown = e.type === 'keydown';
         switch (e.code) {
             case 'KeyD':

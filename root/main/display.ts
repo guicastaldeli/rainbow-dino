@@ -8,6 +8,7 @@ import { Terrain } from './el/terrain.js';
 import { Clouds } from './el/clouds.js';
 import { Obstacle, ObstacleManager } from './el/obstacle-manager.js';
 import { Cactus } from './el/cactus.js';
+import { Crow } from './el/crow.js';
 import { Player } from './el/player.js';
 
 export class Display {
@@ -31,6 +32,7 @@ export class Display {
 
     private obstacleManager = new ObstacleManager();
     private renderCactus!: Cactus;
+    private renderCrow!: Crow;
 
     private renderPlayer!: Player;
 
@@ -185,6 +187,16 @@ export class Display {
                 //
 
                 //Crow
+                    this.renderCrow = new Crow(this.tick, this.timeCycle, this);
+                    await this.renderCrow.ready();
+                    const crow = this.renderCrow.getObs();
+
+                    crow.forEach(c => {
+                        this.display.add(c);
+                    });
+
+                    this.obstacleManager.addObstacle(crow as Obstacle[]);
+                //
             //
 
             //Player
@@ -202,6 +214,7 @@ export class Display {
         if(this.renderClouds) this.renderClouds.update(deltaTime, this.collDetector);
         if(this.renderTerrain) this.renderTerrain.update(deltaTime, this.collDetector);
         if(this.renderCactus) this.renderCactus.update(deltaTime, this.collDetector);
+        if(this.renderCrow) this.renderCrow.update(deltaTime, this.collDetector);
         if(this.renderPlayer) this.renderPlayer.update(deltaTime);
 
         const factor = this.timeCycle.getTimeFactor();

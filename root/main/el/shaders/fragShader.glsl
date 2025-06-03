@@ -17,7 +17,7 @@ void main() {
        vWorldPosition.y < bounds.z || 
        vWorldPosition.y > bounds.w) {
 
-        discard;
+        //discard;
     }
     
     vec4 texColor = texture2D(map, vUv);

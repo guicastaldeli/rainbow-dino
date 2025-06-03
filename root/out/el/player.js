@@ -14,10 +14,13 @@ export class Player {
         this.frames = [];
         this.currentParent = null;
         this.currentFrameIndex = 0;
-        this.texPathIndex = 0;
+        this.isShifted = false;
+        this.shiftFrameIndices = [4, 5, 6];
+        this.shiftFrameIndex = 0;
         this.frameInterval = 0.1;
         this.frameTimer = 0;
         this.isAnimating = false;
+        this.isHit = false;
         this.gravity = -30;
         this.isGrounded = false;
         this.isJumping = false;
@@ -60,11 +63,15 @@ export class Player {
                     '../../../assets/obj/dino-0.obj',
                     '../../../assets/obj/dino-1.obj',
                     '../../../assets/obj/dino-2.obj',
-                    '../../../assets/obj/dino-hit.obj'
+                    '../../../assets/obj/dino-hit.obj',
+                    '../../../assets/obj/shift-dino-0.obj',
+                    '../../../assets/obj/shift-dino-1.obj',
+                    '../../../assets/obj/shift-dino-2.obj',
                 ];
                 const texPath = {
                     default: { path: '../../../assets/textures/rd.png' },
-                    hit: { path: '../../../assets/textures/dino-hit.png' }
+                    hit: { path: '../../../assets/textures/dino-hit.png' },
+                    shift: { path: '../../../assets/textures/shift-dino.png' }
                 };
                 this.tex = {
                     default: yield new Promise((res, rej) => {
@@ -72,6 +79,9 @@ export class Player {
                     }),
                     hit: yield new Promise((res, rej) => {
                         this.texLoader.load(texPath.hit.path, res, undefined, rej);
+                    }),
+                    shift: yield new Promise((res, rej) => {
+                        this.texLoader.load(texPath.shift.path, res, undefined, rej);
                     })
                 };
                 this.material = new THREE.ShaderMaterial({
@@ -148,7 +158,7 @@ export class Player {
                 this.switchFrame();
             }
         }
-        else if (this.currentFrameIndex !== 0) {
+        else if (this.currentFrameIndex !== 0 && !this.isShifted) {
             this.currentFrameIndex = 0;
             this.saveFrame(0);
         }
@@ -165,12 +175,7 @@ export class Player {
         }
         if (this.obstacles.length > 0) {
             if (this.collDetector.playerCollision(playerBox, this.obstacles)) {
-                this.currentFrameIndex = 3;
-                this.saveFrame(3);
-                if (this.tex) {
-                    this.material.uniforms.map.value = this.tex.hit;
-                    this.material.needsUpdate = true;
-                }
+                this.playerHit();
                 this.tick.gameOver();
             }
         }
@@ -178,7 +183,13 @@ export class Player {
             this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
     }
     switchFrame() {
-        this.currentFrameIndex = this.currentFrameIndex === 1 ? 2 : 1;
+        if (this.isShifted) {
+            this.shiftFrameIndex = this.shiftFrameIndex === 1 ? 2 : 1;
+            this.currentFrameIndex = this.shiftFrameIndices[this.shiftFrameIndex];
+        }
+        else {
+            this.currentFrameIndex = this.currentFrameIndex === 1 ? 2 : 1;
+        }
         this.saveFrame(this.currentFrameIndex);
     }
     saveFrame(i) {
@@ -193,16 +204,48 @@ export class Player {
         if (this.currentParent)
             this.currentParent.add(this.mesh);
     }
+    playerHit() {
+        this.isHit = true;
+        this.currentFrameIndex = 3;
+        this.saveFrame(3);
+        if (this.tex) {
+            this.material.uniforms.map.value = this.tex.hit;
+            this.material.needsUpdate = true;
+        }
+    }
+    playerShift() {
+        this.isShifted = !this.isShifted;
+        if (this.isShifted) {
+            this.shiftFrameIndex = 0;
+            this.currentFrameIndex = this.shiftFrameIndices[this.shiftFrameIndex];
+            this.saveFrame(this.currentFrameIndex);
+            if (this.tex) {
+                this.material.uniforms.map.value = this.tex.shift;
+                this.material.needsUpdate = true;
+            }
+        }
+        else {
+            this.currentFrameIndex = 0;
+            this.saveFrame(0);
+            if (this.tex) {
+                this.material.uniforms.map.value = this.isHit ? this.tex.hit : this.tex.default;
+                this.material.needsUpdate = true;
+            }
+        }
+    }
     onKeyUpdate(e) {
         const isKeyDown = e.type === 'keydown';
         switch (e.code) {
             case 'KeyD':
+            case 'ArrowRight':
                 this.mov.FORWARD = isKeyDown;
                 break;
             case 'KeyA':
+            case 'ArrowLeft':
                 this.mov.BACKWARD = isKeyDown;
                 break;
             case 'Space':
+            case 'ArrowUp':
                 this.isJumping = isKeyDown;
                 if (isKeyDown && this.isGrounded)
                     this.jumpVelocity = this.jumpForce;
@@ -210,6 +253,11 @@ export class Player {
                     this.frameInterval = 0.08;
                 if (!isKeyDown)
                     this.isJumping = false;
+                break;
+            case 'ShiftLeft':
+            case 'ArrowDown':
+                if (isKeyDown !== this.isShifted)
+                    this.playerShift();
                 break;
         }
         if (this.isGrounded)
@@ -224,6 +272,8 @@ export class Player {
         if (!this.mesh)
             return new THREE.Box3();
         const box = new THREE.Box3().setFromObject(this.mesh);
+        if (this.isShifted)
+            box.max.y *= 0.5;
         return box;
     }
     loadShader(url) {

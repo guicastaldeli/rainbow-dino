@@ -24,18 +24,21 @@ export class Player {
     private tick: Tick;
     private timeCycle: Time;
 
-    private frames: THREE.Object3D[] = [];
-    private currentParent: THREE.Object3D | null = null;
-    private currentFrameIndex = 0;
-    private texPathIndex = 0;
-    private frameInterval = 0.1;
-    private frameTimer = 0;
-    private isAnimating = false;
-
     private loader!: OBJLoader;
     private texLoader!: THREE.TextureLoader;
     private mesh!: THREE.Object3D;
     private material!: THREE.ShaderMaterial;
+
+    private frames: THREE.Object3D[] = [];
+    private currentParent: THREE.Object3D | null = null;
+    private currentFrameIndex = 0;
+    private isShifted = false;
+    private shiftFrameIndices = [4, 5, 6];
+    private shiftFrameIndex = 0;
+    private frameInterval = 0.1;
+    private frameTimer = 0;
+    private isAnimating = false;
+    private isHit = false;
 
     private gravity = -30;
     private isGrounded = false;
@@ -69,7 +72,8 @@ export class Player {
 
     private tex: {
         default: THREE.Texture,
-        hit: THREE.Texture
+        hit: THREE.Texture,
+        shift: THREE.Texture
     } | null = null;
 
     constructor(tick: Tick, timeCycle: Time, collDetector: CollDetector, obstacles: Obstacle[]) {
@@ -96,12 +100,17 @@ export class Player {
                 '../../../assets/obj/dino-0.obj',
                 '../../../assets/obj/dino-1.obj',
                 '../../../assets/obj/dino-2.obj',
-                '../../../assets/obj/dino-hit.obj'
+                '../../../assets/obj/dino-hit.obj',
+
+                '../../../assets/obj/shift-dino-0.obj',
+                '../../../assets/obj/shift-dino-1.obj',
+                '../../../assets/obj/shift-dino-2.obj',
             ];
 
             const texPath = {
                 default: { path: '../../../assets/textures/rd.png' },
-                hit: { path: '../../../assets/textures/dino-hit.png' }
+                hit: { path: '../../../assets/textures/dino-hit.png' },
+                shift: { path: '../../../assets/textures/shift-dino.png' }
             };
 
             this.tex = {
@@ -110,6 +119,9 @@ export class Player {
                 }),
                 hit: await new Promise<THREE.Texture>((res, rej) => {
                     this.texLoader.load(texPath.hit.path, res, undefined, rej);
+                }),
+                shift: await new Promise<THREE.Texture>((res, rej) => {
+                    this.texLoader.load(texPath.shift.path, res, undefined, rej);
                 })
             }
             
@@ -197,7 +209,7 @@ export class Player {
                 this.frameTimer = 0;
                 this.switchFrame();
             }
-        } else if(this.currentFrameIndex !== 0) {
+        } else if(this.currentFrameIndex !== 0 && !this.isShifted) {
             this.currentFrameIndex = 0;
             this.saveFrame(0);
         }
@@ -216,14 +228,7 @@ export class Player {
 
         if(this.obstacles.length > 0) {
             if(this.collDetector.playerCollision(playerBox, this.obstacles)) {
-                this.currentFrameIndex = 3;
-                this.saveFrame(3);
-                
-                if(this.tex) {
-                    this.material.uniforms.map.value = this.tex.hit;
-                    this.material.needsUpdate = true;
-                }
-                
+                this.playerHit();
                 this.tick.gameOver();
             }
         }
@@ -232,7 +237,13 @@ export class Player {
     }
 
     private switchFrame() {
-        this.currentFrameIndex = this.currentFrameIndex === 1 ? 2 : 1;
+        if(this.isShifted) {
+            this.shiftFrameIndex = this.shiftFrameIndex === 1 ? 2 : 1;
+            this.currentFrameIndex = this.shiftFrameIndices[this.shiftFrameIndex];
+        } else {
+            this.currentFrameIndex = this.currentFrameIndex === 1 ? 2 : 1;
+        }
+
         this.saveFrame(this.currentFrameIndex);
     }
 
@@ -249,21 +260,62 @@ export class Player {
         if(this.currentParent) this.currentParent.add(this.mesh);
     }
 
+    private playerHit(): void {
+        this.isHit = true;
+        this.currentFrameIndex = 3;
+        this.saveFrame(3);
+                
+        if(this.tex) {
+            this.material.uniforms.map.value = this.tex.hit;
+            this.material.needsUpdate = true;
+        }
+    }
+
+    private playerShift(): void {
+        this.isShifted = !this.isShifted;
+
+        if(this.isShifted) {
+            this.shiftFrameIndex = 0;
+            this.currentFrameIndex = this.shiftFrameIndices[this.shiftFrameIndex];
+            this.saveFrame(this.currentFrameIndex);
+
+            if(this.tex) {
+                this.material.uniforms.map.value = this.tex.shift;
+                this.material.needsUpdate = true;
+            }
+        } else {
+            this.currentFrameIndex = 0;
+            this.saveFrame(0);
+
+            if(this.tex) {
+                this.material.uniforms.map.value = this.isHit ? this.tex.hit : this.tex.default;
+                this.material.needsUpdate = true;
+            }
+        }
+    }
+
     private onKeyUpdate(e: KeyboardEvent) {
         const isKeyDown = e.type === 'keydown';
 
         switch(e.code) {
             case 'KeyD':
+            case 'ArrowRight':
                 this.mov.FORWARD = isKeyDown;
                 break;
             case 'KeyA':
+            case 'ArrowLeft':
                 this.mov.BACKWARD = isKeyDown;
                 break;
             case 'Space':
+            case 'ArrowUp':
                 this.isJumping = isKeyDown;
                 if(isKeyDown && this.isGrounded) this.jumpVelocity = this.jumpForce;
                 if(!this.isGrounded) this.frameInterval = 0.08;
                 if(!isKeyDown) this.isJumping = false;
+                break;
+            case 'ShiftLeft':
+            case 'ArrowDown':
+                if(isKeyDown !== this.isShifted) this.playerShift();
                 break;
         }
 
@@ -279,6 +331,9 @@ export class Player {
     public getBoundingBox(): THREE.Box3 {
         if(!this.mesh) return new THREE.Box3();
         const box = new THREE.Box3().setFromObject(this.mesh);
+
+        if(this.isShifted) box.max.y *= 0.5;
+        
         return box;
     }
 

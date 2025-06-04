@@ -134,6 +134,8 @@ export class Skybox {
     update(deltaTime) {
         if (!this.mesh || !this.points)
             return;
+        if (this.tick['paused'])
+            return;
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;

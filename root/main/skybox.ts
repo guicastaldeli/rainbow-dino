@@ -159,6 +159,7 @@ export class Skybox {
 
     public update(deltaTime: number) {
         if(!this.mesh || !this.points) return;
+        if(this.tick['paused']) return;
 
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         const factor = this.timeCycle.getTimeFactor();

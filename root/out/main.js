@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Tick } from './tick.js';
 import { Time } from './time.js';
+import { Score } from './score.js';
 import { Display } from './display.js';
 import { Camera } from './camera.js';
 import { Skybox } from './skybox.js';
@@ -26,6 +27,8 @@ skybox.ready().then(() => {
 }).catch(err => {
     console.error(err);
 });
+//Score
+const score = new Score(tick, timeCycle);
 //Camera
 const camera = new Camera(renderer);
 scene.add(camera.camera);
@@ -43,6 +46,12 @@ function resizeRenderer() {
     window.addEventListener('resize', resizeRenderer);
 }
 resizeRenderer();
+//Pause
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        tick.togglePause();
+    }
+});
 //Main Render
 let lastTime = 0;
 function render() {
@@ -51,6 +60,7 @@ function render() {
     lastTime = now;
     const scaledDelta = tick.getScaledDelta(deltaTime);
     timeCycle.update(scaledDelta);
+    score.update(scaledDelta);
     skybox.update(scaledDelta);
     renderDisplay.update(scaledDelta);
     camera.updateCamera();
@@ -58,6 +68,7 @@ function render() {
     requestAnimationFrame(render);
 }
 function init() {
+    resizeRenderer();
     render();
 }
 init();

@@ -19,7 +19,7 @@ export class Clouds {
 
     private clouds: THREE.Mesh[] = [];
     private speed = 0.3;
-    private length = 20;
+    private length = 30;
 
     size = {
         w: 1,
@@ -29,11 +29,11 @@ export class Clouds {
 
     pos = {
         x: -4,
-        y: 0.8,
+        y: 0,
         z: -3.3,
 
-        gapX: () => Math.random() * (10 - 6.5) + 6.5,
-        gapY: () => Math.random() * (0.5 - (-3)) + (-3)
+        gapX: () => Math.random() * (6 - 4) + 4,
+        gapY: () => Math.random() * (0 - (-1.5)) + (-1.5)
     }
 
     constructor(tick: Tick, timeCycle: Time, display: Display) {

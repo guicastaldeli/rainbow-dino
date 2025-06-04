@@ -14,7 +14,7 @@ export class Clouds {
         this.cloudGroup = new THREE.Group();
         this.clouds = [];
         this.speed = 0.3;
-        this.length = 20;
+        this.length = 30;
         this.size = {
             w: 1,
             h: 1,
@@ -22,10 +22,10 @@ export class Clouds {
         };
         this.pos = {
             x: -4,
-            y: 0.8,
+            y: 0,
             z: -3.3,
-            gapX: () => Math.random() * (10 - 6.5) + 6.5,
-            gapY: () => Math.random() * (0.5 - (-3)) + (-3)
+            gapX: () => Math.random() * (6 - 4) + 4,
+            gapY: () => Math.random() * (0 - (-1.5)) + (-1.5)
         };
         this.tick = tick;
         this.timeCycle = timeCycle;

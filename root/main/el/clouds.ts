@@ -74,6 +74,7 @@ export class Clouds {
                     timeFactor: { value: 0.0 },
                     map: { value: tex },
                     bounds: { value: bounds.clone() },
+                    isObs: { value: false }
                 },
                 vertexShader,
                 fragmentShader,

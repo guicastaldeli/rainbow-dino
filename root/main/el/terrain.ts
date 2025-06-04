@@ -62,7 +62,7 @@ export class Terrain {
                     timeFactor: { value: 0.0 },
                     map: { value: tex },
                     bounds: { value: bounds.clone() },
-                    isObj: { value: false }
+                    isObs: { value: false }
                 },
                 vertexShader,
                 fragmentShader,

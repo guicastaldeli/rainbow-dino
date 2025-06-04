@@ -21,7 +21,6 @@ export class Crow {
     private obsBox: THREE.Box3[] = []; 
     private obsGroup = new THREE.Group();
 
-    private speed = 5;
     private length = 10;
 
     private deltaTime!: number;
@@ -197,17 +196,18 @@ export class Crow {
     }
 
     public update(deltaTime: number, collDetector: CollDetector): void {
-        if(this.obs.length === 0) return
+        if(this.obs.length === 0) return;
 
         this.deltaTime = deltaTime;
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
+        const speed = this.timeCycle['scrollSpeed'] * 2;
 
         this.animateObs();
 
         this.obs.forEach((o, i) => {
-            o.position.x -= this.speed * scaledDelta;
+            o.position.x -= speed * scaledDelta;
             const objBox = new THREE.Box3().setFromObject(o);
 
             if(o.material instanceof THREE.ShaderMaterial) {

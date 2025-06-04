@@ -18,7 +18,6 @@ export class Terrain {
     private blockGroup = new THREE.Group();
 
     private blocks: THREE.Mesh[] = [];
-    private speed = 1;
     private length = 15;
 
     size = {
@@ -137,12 +136,13 @@ export class Terrain {
 
     public update(deltaTime: number, collDetector: CollDetector): void {
         if(!this.mesh || !this.material) return;
+
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
+        const speed = this.timeCycle['scrollSpeed'];
         
         for(const b of this.blocks) {
-            b.position.x -= this.speed * scaledDelta;
+            b.position.x -= speed * scaledDelta;
             const objBox = new THREE.Box3().setFromObject(b);
-
             if(collDetector.isColliding(objBox)) this.resetBlock(b);
         }
 

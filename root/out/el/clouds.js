@@ -13,7 +13,6 @@ export class Clouds {
     constructor(tick, timeCycle, display) {
         this.cloudGroup = new THREE.Group();
         this.clouds = [];
-        this.speed = 0.3;
         this.length = 30;
         this.size = {
             w: 1,
@@ -25,7 +24,7 @@ export class Clouds {
             y: 0,
             z: -3.3,
             gapX: () => Math.random() * (6 - 4) + 4,
-            gapY: () => Math.random() * (0 - (-1.5)) + (-1.5)
+            gapY: () => Math.random() * (0.5 - (-0.5)) + (-0.5)
         };
         this.tick = tick;
         this.timeCycle = timeCycle;
@@ -142,8 +141,9 @@ export class Clouds {
         if (!this.mesh || !this.material)
             return;
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
+        const speed = this.timeCycle['scrollSpeed'] / 2;
         for (const c of this.clouds) {
-            c.position.x -= this.speed * scaledDelta;
+            c.position.x -= speed * scaledDelta;
             const objBox = new THREE.Box3().setFromObject(c);
             if (collDetector.isColliding(objBox))
                 this.resetCloud(c);

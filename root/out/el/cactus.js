@@ -14,7 +14,6 @@ export class Cactus {
         this.obs = [];
         this.obsBox = [];
         this.obsGroup = new THREE.Group();
-        this.speed = 1;
         this.length = 20;
         this.size = {
             w: 1,
@@ -144,9 +143,10 @@ export class Cactus {
         if (!this.mesh || !this.material)
             return;
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
+        const speed = this.timeCycle['scrollSpeed'];
         for (let i = 0; i < this.obs.length; i++) {
             const o = this.obs[i];
-            o.position.x -= this.speed * scaledDelta;
+            o.position.x -= speed * scaledDelta;
             const objBox = new THREE.Box3().setFromObject(o);
             if (collDetector.isColliding(objBox)) {
                 this.resetObs(o);

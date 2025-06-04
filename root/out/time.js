@@ -4,12 +4,16 @@ export class Time {
         this.currentTime = 12.0;
         this.dayLength = daylength;
         this.speed = 24 / daylength;
+        this.scrollSpeed = 1.0;
     }
     update(deltaTime) {
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         this.currentTime += this.speed * scaledDelta;
         if (this.currentTime >= 24)
             this.currentTime -= 24;
+        if (this.tick.getTimeScale())
+            this.scrollSpeed = Math.min(this.scrollSpeed + 0.1, 15);
+        console.log(this.scrollSpeed);
     }
     getTimeFactor() {
         if (this.currentTime < 5)

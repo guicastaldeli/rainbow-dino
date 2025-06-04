@@ -20,7 +20,7 @@ export class Camera {
         h: this.targetSize.h,
         fov: 95,
         near: 0.1,
-        far: 100,
+        far: 1000,
         moveSpeed: 0.1,
         
         pos: {
@@ -73,7 +73,7 @@ export class Camera {
         return this.controls;
     }
 
-    public updateCamera() {
+    public update() {
         this.controls.update();
 
         this.camera.position.x = THREE.MathUtils.clamp(

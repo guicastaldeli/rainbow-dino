@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { Tick } from './tick.js';
 import { Time } from './time.js';
-import { Score } from './score.js';
 import { Display } from './display.js';
 import { Camera } from './camera.js';
 import { Skybox } from './skybox.js';
@@ -28,7 +27,7 @@ skybox.ready().then(() => {
     console.error(err);
 });
 //Score
-const score = new Score(tick, timeCycle);
+//const score = new Score(tick, timeCycle);
 //Camera
 const camera = new Camera(renderer);
 scene.add(camera.camera);
@@ -60,10 +59,10 @@ function render() {
     lastTime = now;
     const scaledDelta = tick.getScaledDelta(deltaTime);
     timeCycle.update(scaledDelta);
-    score.update(scaledDelta);
+    //score.update(scaledDelta)
     skybox.update(scaledDelta);
     renderDisplay.update(scaledDelta);
-    camera.updateCamera();
+    camera.update();
     renderer.render(scene, camera.camera);
     requestAnimationFrame(render);
 }

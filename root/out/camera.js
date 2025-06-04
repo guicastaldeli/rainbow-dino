@@ -12,7 +12,7 @@ export class Camera {
             h: this.targetSize.h,
             fov: 95,
             near: 0.1,
-            far: 100,
+            far: 1000,
             moveSpeed: 0.1,
             pos: {
                 x: 0,
@@ -51,7 +51,7 @@ export class Camera {
         this.controls.maxAzimuthAngle = halfRotation;
         return this.controls;
     }
-    updateCamera() {
+    update() {
         this.controls.update();
         this.camera.position.x = THREE.MathUtils.clamp(this.camera.position.x, this.bounds.minX, this.bounds.maxX);
         this.camera.position.y = THREE.MathUtils.clamp(this.camera.position.y, this.bounds.minY, this.bounds.maxY);

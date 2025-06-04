@@ -62,7 +62,7 @@ resizeRenderer();
 
     function render() {
         const now = performance.now();
-        const deltaTime = lastTime ? (now - lastTime) / 1000 : 0;
+        const deltaTime = lastTime ? Math.min((now - lastTime) / 1000, 0.1) : 0;
         lastTime = now;
 
         const scaledDelta = tick.getScaledDelta(deltaTime);
@@ -70,7 +70,7 @@ resizeRenderer();
         timeCycle.update(scaledDelta);
         skybox.update(scaledDelta);
         renderDisplay.update(scaledDelta);
-
+        
         camera.updateCamera();
         renderer.render(scene, camera.camera!);
         requestAnimationFrame(render);

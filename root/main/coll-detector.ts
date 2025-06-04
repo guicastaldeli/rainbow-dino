@@ -32,9 +32,6 @@ export class CollDetector {
             )
         );
 
-        const helper = new THREE.Box3Helper(coll, 0xffff00)
-        //this.scene?.add(helper);
-
         const collided = objBox.intersectsBox(coll);
         return collided;
     }

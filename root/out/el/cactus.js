@@ -61,7 +61,8 @@ export class Cactus {
                         timeFactor: { value: 0.0 },
                         map: { value: tex },
                         bounds: { value: bounds.clone() },
-                        isObs: { value: true }
+                        isObs: { value: true },
+                        isCloud: { value: false }
                     },
                     vertexShader,
                     fragmentShader,

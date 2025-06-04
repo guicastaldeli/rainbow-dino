@@ -131,7 +131,8 @@ export class Player {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
                     map: { value: this.tex.default },
-                    isObs: { value: false }
+                    isObs: { value: false },
+                    isCloud: { value: false }
                 },
                 vertexShader,
                 fragmentShader,
@@ -228,7 +229,7 @@ export class Player {
         if(this.obstacles.length > 0) {
             if(this.collDetector.playerCollision(playerBox, this.obstacles)) {
                 this.hitTaken();
-                this.tick.gameOver();
+                //this.tick.gameOver();
             }
         }
 

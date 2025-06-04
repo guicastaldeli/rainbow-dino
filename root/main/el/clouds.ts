@@ -74,13 +74,13 @@ export class Clouds {
                     timeFactor: { value: 0.0 },
                     map: { value: tex },
                     bounds: { value: bounds.clone() },
-                    isObs: { value: false }
+                    isObs: { value: false },
+                    isCloud: { value: true }
                 },
                 vertexShader,
                 fragmentShader,
                 side: THREE.DoubleSide,
-                depthTest: true,
-                depthWrite: true,
+                transparent: true,
             });
 
             return new Promise<THREE.Mesh>((res) => {

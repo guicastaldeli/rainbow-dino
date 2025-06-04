@@ -47,7 +47,7 @@ resizeRenderer();
 let lastTime = 0;
 function render() {
     const now = performance.now();
-    const deltaTime = lastTime ? (now - lastTime) / 1000 : 0;
+    const deltaTime = lastTime ? Math.min((now - lastTime) / 1000, 0.1) : 0;
     lastTime = now;
     const scaledDelta = tick.getScaledDelta(deltaTime);
     timeCycle.update(scaledDelta);

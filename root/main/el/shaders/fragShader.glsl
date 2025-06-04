@@ -9,20 +9,32 @@ uniform sampler2D map;
 uniform vec4 bounds;
 
 uniform bool isObs;
+uniform bool isCloud;
 
 uniform float opacity;
 
 void main() {
     //Bounds
-    if(vWorldPosition.x < bounds.x || 
-       vWorldPosition.x > bounds.y || 
-       vWorldPosition.y < bounds.z || 
-       vWorldPosition.y > bounds.w) {
+    if(!isCloud) {
+        if(vWorldPosition.x < bounds.x || 
+            vWorldPosition.x > bounds.y || 
+            vWorldPosition.y < bounds.z || 
+            vWorldPosition.y > bounds.w) {
 
-        discard;
+            discard;
+        }
+    } else {
+        if(vWorldPosition.x < bounds.x * 1.02 || 
+            vWorldPosition.x > bounds.y || 
+            vWorldPosition.y < bounds.z || 
+            vWorldPosition.y > bounds.w) {
+
+            discard;
+        }
     }
     
     vec4 texColor = texture2D(map, vUv);
+    float alpha = texColor.a;
 
     vec3 dayColor = texColor.rgb;
 
@@ -33,6 +45,19 @@ void main() {
     vec3 color = mix(nightColor, dayColor, blendFactor);
     vec3 finalColor = color;
 
+    //Cloud
+    if(isCloud) {
+        alpha *= mix(0.7, 0.85, timeFactor);
+
+        if(vWorldPosition.x < bounds.x || 
+            vWorldPosition.x > bounds.y || 
+            vWorldPosition.y < bounds.z || 
+            vWorldPosition.y > bounds.w) {
+
+            //discard;
+        }
+    }
+
     //Obstacles
     if(isObs) {
         vec3 invertedColor = vec3(1.0) - color;
@@ -40,5 +65,5 @@ void main() {
         finalColor = mix(invertedColor, color, obsBlend);
     }
 
-    gl_FragColor = vec4(finalColor, texColor.a);
+    gl_FragColor = vec4(finalColor, alpha);
 }

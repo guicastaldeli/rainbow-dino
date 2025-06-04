@@ -10,6 +10,8 @@ uniform vec4 bounds;
 
 uniform bool isObs;
 
+uniform float opacity;
+
 void main() {
     //Bounds
     if(vWorldPosition.x < bounds.x || 
@@ -17,7 +19,7 @@ void main() {
        vWorldPosition.y < bounds.z || 
        vWorldPosition.y > bounds.w) {
 
-        //discard;
+        discard;
     }
     
     vec4 texColor = texture2D(map, vUv);

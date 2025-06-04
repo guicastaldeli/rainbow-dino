@@ -13,7 +13,7 @@ export class Clouds {
     constructor(tick, timeCycle, display) {
         this.cloudGroup = new THREE.Group();
         this.clouds = [];
-        this.speed = 1;
+        this.speed = 0.3;
         this.length = 20;
         this.size = {
             w: 1,
@@ -21,11 +21,11 @@ export class Clouds {
             d: 0.01
         };
         this.pos = {
-            x: 0,
+            x: -4,
             y: 0.8,
             z: -3.3,
-            gapX: () => Math.random() * (8 - 4) * 4,
-            gapY: () => Math.random() * (0.5 - 0.1) * 0.1
+            gapX: () => Math.random() * (10 - 6.5) + 6.5,
+            gapY: () => Math.random() * (0.5 - (-3)) + (-3)
         };
         this.tick = tick;
         this.timeCycle = timeCycle;
@@ -59,7 +59,7 @@ export class Clouds {
                         time: { value: 0.0 },
                         timeFactor: { value: 0.0 },
                         map: { value: tex },
-                        bounds: { value: bounds.clone() }
+                        bounds: { value: bounds.clone() },
                     },
                     vertexShader,
                     fragmentShader,

@@ -16,8 +16,6 @@ interface Controls {
     velocity: THREE.Vector3;
     direction: THREE.Vector3;
     moveSpeed: number;
-    acceleration: number;
-    deceleration: number;
 }
 
 export class Player {
@@ -60,9 +58,7 @@ export class Player {
     private controls: Controls = {
         velocity: new THREE.Vector3(),
         direction: new THREE.Vector3(),
-        moveSpeed: 1.0,
-        acceleration: 15.0,
-        deceleration: 80.0,
+        moveSpeed: 0.25,
     }
 
     pos = {
@@ -171,9 +167,7 @@ export class Player {
         const {
             velocity,
             direction,
-            moveSpeed,
-            acceleration,
-            deceleration,
+            moveSpeed
         } = this.controls;
         if(!this.mesh) return;
         const prevPos = {...this.pos};
@@ -185,11 +179,9 @@ export class Player {
         if(this.mov.BACKWARD) direction.x -= 1;
 
         if(direction.lengthSq() > 0) {
-            const accel = acceleration * scaledDelta;
-            velocity.x += direction.x * accel;
+            velocity.x += direction.x;
         } else {
-            const decel = deceleration * scaledDelta;
-            velocity.x -= velocity.x * decel;
+            velocity.x -= velocity.x;
         }
 
         //Jump
@@ -236,7 +228,7 @@ export class Player {
         if(this.obstacles.length > 0) {
             if(this.collDetector.playerCollision(playerBox, this.obstacles)) {
                 this.hitTaken();
-                //this.tick.gameOver();
+                this.tick.gameOver();
             }
         }
 
@@ -267,7 +259,7 @@ export class Player {
         if(this.currentParent) this.currentParent.add(this.mesh);
     }
 
-    //
+    //Hit
     private hitTaken(): void {
         this.isHit = true;
         this.currentFrameIndex = 3;
@@ -279,6 +271,7 @@ export class Player {
         }
     }
 
+    //Shift
     private shiftPressed(): void {
         if(this.isGameOver) return;
         this.isShifted = !this.isShifted;

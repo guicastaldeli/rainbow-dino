@@ -18,7 +18,7 @@ export class Clouds {
     private cloudGroup = new THREE.Group();
 
     private clouds: THREE.Mesh[] = [];
-    private speed = 1;
+    private speed = 0.3;
     private length = 20;
 
     size = {
@@ -28,12 +28,12 @@ export class Clouds {
     }
 
     pos = {
-        x: 0,
+        x: -4,
         y: 0.8,
         z: -3.3,
 
-        gapX: () => Math.random() * (8 - 4) * 4,
-        gapY: () => Math.random() * (0.5 - 0.1) * 0.1
+        gapX: () => Math.random() * (10 - 6.5) + 6.5,
+        gapY: () => Math.random() * (0.5 - (-3)) + (-3)
     }
 
     constructor(tick: Tick, timeCycle: Time, display: Display) {
@@ -73,7 +73,7 @@ export class Clouds {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
                     map: { value: tex },
-                    bounds: { value: bounds.clone() }
+                    bounds: { value: bounds.clone() },
                 },
                 vertexShader,
                 fragmentShader,

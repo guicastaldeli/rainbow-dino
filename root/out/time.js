@@ -6,15 +6,6 @@ export class Time {
         this.speed = 24 / daylength;
         this.scrollSpeed = 1.0;
     }
-    update(deltaTime) {
-        const scaledDelta = this.tick.getScaledDelta(deltaTime);
-        this.currentTime += this.speed * scaledDelta;
-        if (this.currentTime >= 24)
-            this.currentTime -= 24;
-        if (this.tick.getTimeScale())
-            this.scrollSpeed = Math.min(this.scrollSpeed + 0.1, 15);
-        console.log(this.scrollSpeed);
-    }
     getTimeFactor() {
         if (this.currentTime < 5)
             return 0.0; //Night
@@ -28,5 +19,17 @@ export class Time {
     }
     getTotalTime() {
         return this.currentTime;
+    }
+    updateSpeed() {
+        if (this.tick.getTimeScale())
+            this.scrollSpeed = Math.min(this.scrollSpeed + 0.001, 15);
+        return this.scrollSpeed;
+    }
+    update(deltaTime) {
+        const scaledDelta = this.tick.getScaledDelta(deltaTime);
+        this.currentTime += this.speed * scaledDelta;
+        if (this.currentTime >= 24)
+            this.currentTime -= 24;
+        this.updateSpeed();
     }
 }

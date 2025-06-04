@@ -105,7 +105,7 @@ export class Terrain {
                 fBlock = b;
             }
         }
-        block.position.x = fBlock.position.x + this.pos.gap;
+        block.position.x = fBlock.position.x + this.size.w;
     }
     loadShader(url) {
         return __awaiter(this, void 0, void 0, function* () {

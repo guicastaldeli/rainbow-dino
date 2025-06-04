@@ -167,7 +167,7 @@ export class Crow {
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
-        const speed = this.timeCycle['scrollSpeed'] * 2;
+        const speed = this.timeCycle['scrollSpeed'] * 1.5;
         this.animateObs();
         this.obs.forEach((o, i) => {
             o.position.x -= speed * scaledDelta;

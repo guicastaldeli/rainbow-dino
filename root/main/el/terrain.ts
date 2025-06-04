@@ -125,7 +125,7 @@ export class Terrain {
             }
         }
 
-        block.position.x = fBlock.position.x + this.pos.gap;
+        block.position.x = fBlock.position.x + this.size.w;
     }
 
     private async loadShader(url: string): Promise<string> {

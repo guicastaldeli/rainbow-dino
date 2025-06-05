@@ -21,11 +21,13 @@ export class Time {
         return this.currentTime;
     }
     updateSpeed() {
-        if (this.tick.getTimeScale())
+        if (this.tick.getTimeScale() > 0)
             this.scrollSpeed = Math.min(this.scrollSpeed + 0.001, 15);
         return this.scrollSpeed;
     }
     update(deltaTime) {
+        if (!this.tick.getTimeScale())
+            return;
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         this.currentTime += this.speed * scaledDelta;
         if (this.currentTime >= 24)

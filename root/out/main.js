@@ -33,7 +33,7 @@ scene.add(camera.camera);
 //Score
 const score = new Score(timeCycle);
 score.ready().then(() => {
-    scene.add(score.getScore());
+    camera.camera.add(score.getScore());
 }).catch(err => {
     console.error(err);
 });

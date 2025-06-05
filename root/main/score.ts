@@ -8,16 +8,29 @@ export class Score {
     private time: Time;
 
     private loader: FontLoader;
+    private mesh!: THREE.Mesh;
     private data?: any;
-    private text: number;
-    private mesh?: THREE.Mesh;
+    
+    private value: number;
 
     constructor(time: Time) {
         this.time = time;
 
-        this.text = 0;
         this.loader = new FontLoader();
         this.loadFont();
+
+        this.value = 0;
+    }
+
+    size = {
+        s: 0.5,
+        d: 0.2 
+    }
+
+    pos = {
+        x: -3,
+        y: 0,
+        z: -4
     }
 
     private async loadFont(): Promise<void> {
@@ -41,35 +54,44 @@ export class Score {
     }
 
     private createScore(): void {
-        const textString = this.text.toString();
+        if(!this.data) return;
 
-        const geometry = new TextGeometry(textString, {
+        const text = this.value.toString();
+
+        const geometry = new TextGeometry(text, {
             font: this.data,
-            size: 1,
-            depth: 0.2,
-            curveSegments: 4,
+            size: this.size.s,
+            depth: this.size.d,
             bevelEnabled: false,
         });
 
-        const meshGeometry = new THREE.BufferGeometry();
-        const meshMat = new THREE.MeshBasicMaterial({ color: 'rgb(255, 0, 174)' });
-        this.mesh = new THREE.Mesh(meshGeometry, meshMat);
+        const material = new THREE.MeshBasicMaterial({ color: 'rgb(255, 0, 174)' });
 
-        if(this.mesh) {
+        if(!this.mesh) {
+            this.mesh = new THREE.Mesh(geometry, material);
+        } else {
             this.mesh.geometry = geometry;
-            this.mesh.position.x = 0;
-            this.mesh.position.y = 0;
-            this.mesh.position.z = -3;
+            this.mesh.material = material;
         }
+
+        this.mesh.position.x = this.pos.x;
+        this.mesh.position.y = this.pos.y;
+        this.mesh.position.z = this.pos.z;
     }
 
+    
     public getScore(): THREE.Mesh {
         if(!this.mesh) throw new Error('mesh err');
         return this.mesh;
     }
 
     public update(): void {
-        this.text = this.time.updateSpeed();
+        if(!this.mesh || !this.data) return;
+
+        const updScore = Math.floor(this.time.updateSpeed() * 1000) / 1000;
+        if(updScore === this.value) return;
+
+        this.value = updScore;
         this.createScore();
     }
 
@@ -79,7 +101,7 @@ export class Score {
             return this.getScore();
         } catch(err) {
             console.log(err);
-            throw err
+            throw err;
         }
     }
 }

@@ -28,15 +28,17 @@ export class Time {
     }
 
     public updateSpeed(): number {
-        if(this.tick.getTimeScale()) this.scrollSpeed = Math.min(this.scrollSpeed + 0.001, 15);
+        if(this.tick.getTimeScale() > 0) this.scrollSpeed = Math.min(this.scrollSpeed + 0.001, 15);
         return this.scrollSpeed;
     }
 
     public update(deltaTime: number) {
+        if(!this.tick.getTimeScale()) return;
+
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         this.currentTime += this.speed * scaledDelta;
         if(this.currentTime >= 24) this.currentTime -= 24;
+
         this.updateSpeed();
     }
-
 }

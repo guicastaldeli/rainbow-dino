@@ -42,7 +42,7 @@ const tick = new Tick();
     const score = new Score(timeCycle);
     
     score.ready().then(() => {
-        scene.add(score.getScore());
+        camera.camera.add(score.getScore());
     }).catch(err => {
         console.error(err);
     });
@@ -72,7 +72,7 @@ window.addEventListener('keydown', (e) => {
     if(e.key === 'Escape') {
         tick.togglePause();
     }
-})
+});
 
 //Main Render
     let lastTime = 0;

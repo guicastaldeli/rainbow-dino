@@ -21,8 +21,9 @@ export class Time {
         return this.currentTime;
     }
     updateSpeed() {
+        const updScrollSpeed = Math.min(this.scrollSpeed + 0.001, 15);
         if (this.tick.getTimeScale() > 0)
-            this.scrollSpeed = Math.min(this.scrollSpeed + 0.001, 15);
+            this.scrollSpeed = updScrollSpeed;
         return this.scrollSpeed;
     }
     update(deltaTime) {

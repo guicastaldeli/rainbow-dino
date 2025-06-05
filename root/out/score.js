@@ -11,26 +11,29 @@ import * as THREE from 'three';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/Addons.js';
 export class Score {
-    constructor(time) {
+    constructor(tick, timeCycle) {
+        this.maxScore = 9999999;
+        this.scoreMultiplier = 100;
         this.size = {
             s: 0.5,
-            d: 0.2
+            d: 0.02
         };
         this.pos = {
-            x: -3,
-            y: 0,
+            x: 5,
+            y: 3,
             z: -4
         };
-        this.time = time;
+        this.tick = tick;
+        this.timeCycle = timeCycle;
         this.loader = new FontLoader();
         this.loadFont();
-        this.value = 0;
+        this.value = 0.0;
     }
     loadFont() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 this.data = yield new Promise((res, rej) => {
-                    const path = '../../assets/font/CascadiaCodeRegular.json';
+                    const path = '../../assets/font/VCROSDMonoRegular.json';
                     this.loader.load(path, (font) => res(font), undefined, (err) => rej(err));
                 });
                 this.createScore();
@@ -42,40 +45,78 @@ export class Score {
         });
     }
     createScore() {
-        if (!this.data)
-            return;
-        const text = this.value.toString();
-        const geometry = new TextGeometry(text, {
-            font: this.data,
-            size: this.size.s,
-            depth: this.size.d,
-            bevelEnabled: false,
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!this.data)
+                    return;
+                const [vertexShader, fragmentShader] = yield Promise.all([
+                    this.loadShader('../main/shaders/scoreVertexShader.glsl'),
+                    this.loadShader('../main/shaders/scoreFragShader.glsl')
+                ]);
+                const text = Math.floor(this.value).toString().padStart(7, '0');
+                const geometry = new TextGeometry(text, {
+                    font: this.data,
+                    size: this.size.s,
+                    depth: this.size.d,
+                    bevelEnabled: false,
+                });
+                this.material = new THREE.ShaderMaterial({
+                    uniforms: {
+                        time: { value: 0.0 },
+                        timeFactor: { value: 0.0 },
+                    },
+                    vertexShader,
+                    fragmentShader,
+                    side: THREE.DoubleSide
+                });
+                if (!this.mesh) {
+                    this.mesh = new THREE.Mesh(geometry, this.material);
+                }
+                else {
+                    this.mesh.geometry = geometry;
+                    this.mesh.material = this.material;
+                }
+                this.mesh.position.x = this.pos.x;
+                this.mesh.position.y = this.pos.y;
+                this.mesh.position.z = this.pos.z;
+            }
+            catch (err) {
+                console.log(err);
+                throw err;
+            }
         });
-        const material = new THREE.MeshBasicMaterial({ color: 'rgb(255, 0, 174)' });
-        if (!this.mesh) {
-            this.mesh = new THREE.Mesh(geometry, material);
-        }
-        else {
-            this.mesh.geometry = geometry;
-            this.mesh.material = material;
-        }
-        this.mesh.position.x = this.pos.x;
-        this.mesh.position.y = this.pos.y;
-        this.mesh.position.z = this.pos.z;
     }
     getScore() {
         if (!this.mesh)
             throw new Error('mesh err');
         return this.mesh;
     }
-    update() {
+    updateValue() {
+        const scrollSpeed = Math.max(this.timeCycle.updateSpeed(), 0.1);
+        const increment = (0.01 * this.scoreMultiplier) / scrollSpeed;
+        const updValue = Math.min(this.value + increment, this.maxScore);
+        if (this.tick.getTimeScale() > 0)
+            this.value = updValue;
+        return this.value;
+    }
+    loadShader(url) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield fetch(url);
+            if (!res.ok)
+                throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
+            return res.text();
+        });
+    }
+    update(deltaTime) {
         if (!this.mesh || !this.data)
             return;
-        const updScore = Math.floor(this.time.updateSpeed() * 1000) / 1000;
-        if (updScore === this.value)
-            return;
-        this.value = updScore;
         this.createScore();
+        this.updateValue();
+        const factor = this.timeCycle.getTimeFactor();
+        const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
+        this.material.uniforms.time.value = totalTime;
+        this.material.uniforms.timeFactor.value = factor;
+        this.material.needsUpdate = true;
     }
     ready() {
         return __awaiter(this, void 0, void 0, function* () {

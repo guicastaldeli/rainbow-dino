@@ -39,7 +39,7 @@ const tick = new Tick();
     scene.add(camera.camera);
 
     //Score
-    const score = new Score(timeCycle);
+    const score = new Score(tick, timeCycle);
     
     score.ready().then(() => {
         camera.camera.add(score.getScore());
@@ -85,7 +85,7 @@ window.addEventListener('keydown', (e) => {
         const scaledDelta = tick.getScaledDelta(deltaTime);
 
         timeCycle.update(scaledDelta);
-        score.update();
+        score.update(scaledDelta);
         skybox.update(scaledDelta);
         renderDisplay.update(scaledDelta);
         

@@ -24,7 +24,7 @@ export class Crow {
         this.size = {
             w: 1,
             h: 1,
-            d: 0.1
+            d: 1
         };
         this.pos = {
             x: 0,
@@ -89,6 +89,9 @@ export class Crow {
                 });
                 const mesh = new THREE.Mesh(geometry.clone(), material);
                 const crowMesh = mesh;
+                crowMesh.scale.x = this.size.w;
+                crowMesh.scale.x = this.size.h;
+                crowMesh.scale.x = this.size.d;
                 crowMesh.position.x = (x * this.pos.gap()) + this.pos.x;
                 crowMesh.position.y = this.pos.y();
                 crowMesh.position.z = this.pos.z;

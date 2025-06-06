@@ -21,17 +21,17 @@ export class Clouds {
     private length = 30;
 
     size = {
-        w: 1,
-        h: 1,
-        d: 0.01
+        w: 0.5,
+        h: 0.5,
+        d: 0.5
     }
 
     pos = {
         x: -4,
         y: 0,
-        z: -3.3,
+        z: -3.1,
 
-        gapX: () => Math.random() * (6 - 4) + 4,
+        gapX: () => Math.random() * (20 - 2) + 2,
         gapY: () => Math.random() * (0.5 - (-0.5)) + (-0.5)
     }
 
@@ -85,23 +85,26 @@ export class Clouds {
             return new Promise<THREE.Mesh>((res) => {
                 this.loader.load(selectedModel.model, async (obj) => {
                     this.mesh = obj;
-                    let objs: THREE.Mesh | undefined;
+                    let clouds: THREE.Mesh | undefined;
 
                     this.mesh.traverse((m) => {
-                        if(m instanceof THREE.Mesh && !objs) {
+                        if(m instanceof THREE.Mesh && !clouds) {
                             m.material = this.material;
-                            objs = m;
+                            clouds = m;
                         }
                     });
 
-                    if(!objs) return new Error('err');
+                    if(!clouds) return new Error('err');
 
-                    objs.scale.setScalar(0.4);
-                    objs.position.x = (x * this.pos.gapX()) + this.pos.x;
-                    objs.position.y = (y * this.pos.gapY()) + this.pos.y;
-                    objs.position.z = this.pos.z;
+                    clouds.scale.x = this.size.w;
+                    clouds.scale.y = this.size.h;
+                    clouds.scale.z = this.size.d;
 
-                    res(objs);
+                    clouds.position.x = (x * this.pos.gapX()) + this.pos.x;
+                    clouds.position.y = (y * this.pos.gapY()) + this.pos.y;
+                    clouds.position.z = this.pos.z;
+
+                    res(clouds);
                 });
             })
         } catch(err) {

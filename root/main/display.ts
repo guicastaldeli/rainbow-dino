@@ -26,8 +26,9 @@ export class Display {
     private material!: THREE.ShaderMaterial;
 
     //Elements
-    private renderClouds!: Clouds;
+    private scene?: THREE.Scene;
 
+    private renderClouds!: Clouds;
     private renderTerrain!: Terrain;
 
     private obstacleManager = new ObstacleManager();
@@ -35,8 +36,6 @@ export class Display {
     private renderCrow!: Crow;
 
     private renderPlayer!: Player;
-
-    private scene?: THREE.Scene;
 
     constructor(tick: Tick, timeCycle: Time, renderer: THREE.WebGLRenderer, scene: THREE.Scene) {
         this.tick = tick;

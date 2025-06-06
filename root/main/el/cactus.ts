@@ -26,7 +26,7 @@ export class Cactus {
     size = {
         w: 1,
         h: 1,
-        d: 0.1,
+        d: 1,
     }
     
     pos = {
@@ -99,6 +99,11 @@ export class Cactus {
                     if(!obs) throw new Error('err');
 
                     const cactusMesh = obs as THREE.Mesh & { type: 'cactus' }
+
+                    cactusMesh.scale.x = this.size.w;
+                    cactusMesh.scale.y = this.size.h;
+                    cactusMesh.scale.z = this.size.d;
+
                     cactusMesh.position.x = (x * this.pos.gap()) + this.pos.x;
                     cactusMesh.position.y = this.pos.y;
                     cactusMesh.position.z = this.pos.z;

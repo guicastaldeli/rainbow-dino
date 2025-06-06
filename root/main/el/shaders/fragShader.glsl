@@ -13,26 +13,7 @@ uniform bool isCloud;
 
 uniform float opacity;
 
-void main() {
-    //Bounds
-    if(!isCloud) {
-        if(vWorldPosition.x < bounds.x || 
-            vWorldPosition.x > bounds.y || 
-            vWorldPosition.y < bounds.z || 
-            vWorldPosition.y > bounds.w) {
-
-            //discard;
-        }
-    } else {
-        if(vWorldPosition.x < bounds.x * 1.02 || 
-            vWorldPosition.x > bounds.y || 
-            vWorldPosition.y < bounds.z || 
-            vWorldPosition.y > bounds.w) {
-
-            discard;
-        }
-    }
-    
+void main() {    
     vec4 texColor = texture2D(map, vUv);
     float alpha = texColor.a;
 
@@ -45,16 +26,24 @@ void main() {
     vec3 color = mix(nightColor, dayColor, blendFactor);
     vec3 finalColor = color;
 
-    //Cloud
-    if(isCloud) {
-        alpha *= mix(0.7, 0.85, timeFactor);
-
+    //Bounds
+    if(!isCloud) {
         if(vWorldPosition.x < bounds.x || 
             vWorldPosition.x > bounds.y || 
             vWorldPosition.y < bounds.z || 
             vWorldPosition.y > bounds.w) {
 
             //discard;
+        }
+    } else {
+        alpha *= mix(0.7, 0.85, timeFactor);
+
+        if(vWorldPosition.x < bounds.x * 1.02 || 
+            vWorldPosition.x > bounds.y || 
+            vWorldPosition.y < bounds.z || 
+            vWorldPosition.y > bounds.w) {
+
+            discard;
         }
     }
 

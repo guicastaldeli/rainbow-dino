@@ -13,17 +13,17 @@ export class Terrain {
     constructor(tick, timeCycle, display) {
         this.blocks = [];
         this.blockGroup = new THREE.Group();
-        this.length = 15;
+        this.length = 20;
         this.size = {
             w: 1,
             h: 1,
-            d: 0.1,
+            d: 1,
         };
         this.pos = {
             x: -15,
             y: -3,
             z: -3.1,
-            gap: 1.6
+            gap: 1
         };
         this.tick = tick;
         this.timeCycle = timeCycle;
@@ -75,6 +75,9 @@ export class Terrain {
                     });
                     if (!block)
                         throw new Error("err");
+                    block.scale.x = this.size.w;
+                    block.scale.y = this.size.h;
+                    block.scale.z = this.size.d;
                     block.position.x = x * this.pos.gap + this.pos.x;
                     block.position.y = this.pos.y;
                     block.position.z = this.pos.z;

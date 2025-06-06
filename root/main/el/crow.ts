@@ -20,7 +20,6 @@ export class Crow {
     private obs: THREE.Mesh[] = [];
     private obsBox: THREE.Box3[] = []; 
     private obsGroup = new THREE.Group();
-
     private length = 10;
 
     private deltaTime!: number;
@@ -37,7 +36,7 @@ export class Crow {
     size = {
         w: 1,
         h: 1,
-        d: 0.1
+        d: 1
     }
 
     pos = {
@@ -113,6 +112,10 @@ export class Crow {
 
             const mesh = new THREE.Mesh(geometry.clone(), material);
             const crowMesh = mesh as THREE.Mesh & { type: 'crow' }
+
+            crowMesh.scale.x = this.size.w;
+            crowMesh.scale.x = this.size.h;
+            crowMesh.scale.x = this.size.d;
 
             crowMesh.position.x = (x * this.pos.gap()) + this.pos.x;
             crowMesh.position.y = this.pos.y();

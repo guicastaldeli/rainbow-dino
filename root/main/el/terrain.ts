@@ -18,12 +18,12 @@ export class Terrain {
     
     private blocks: THREE.Mesh[] = [];
     private blockGroup = new THREE.Group();
-    private length = 15;
+    private length = 20;
 
     size = {
         w: 1,
         h: 1,
-        d: 0.1,
+        d: 1,
     }
     
     pos = {
@@ -31,7 +31,7 @@ export class Terrain {
         y: -3,
         z: -3.1,
 
-        gap: 1.6
+        gap: 1
     }
 
     constructor(tick: Tick, timeCycle: Time, display: Display) {
@@ -89,6 +89,10 @@ export class Terrain {
                 });
 
                 if(!block) throw new Error("err");
+
+                block.scale.x = this.size.w;
+                block.scale.y = this.size.h;
+                block.scale.z = this.size.d;
 
                 block.position.x = x * this.pos.gap + this.pos.x;
                 block.position.y = this.pos.y;

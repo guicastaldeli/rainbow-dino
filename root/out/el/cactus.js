@@ -18,7 +18,7 @@ export class Cactus {
         this.size = {
             w: 1,
             h: 1,
-            d: 0.1,
+            d: 1,
         };
         this.pos = {
             x: 8,
@@ -80,6 +80,9 @@ export class Cactus {
                         if (!obs)
                             throw new Error('err');
                         const cactusMesh = obs;
+                        cactusMesh.scale.x = this.size.w;
+                        cactusMesh.scale.y = this.size.h;
+                        cactusMesh.scale.z = this.size.d;
                         cactusMesh.position.x = (x * this.pos.gap()) + this.pos.x;
                         cactusMesh.position.y = this.pos.y;
                         cactusMesh.position.z = this.pos.z;

@@ -106,8 +106,8 @@ export class Terrain {
     private async setTerrain(): Promise<void> {
         const bArray: Promise<THREE.Mesh>[] = [];
         for(let i = 0; i < this.length; i++) bArray.push(this.createTerrain(i));
-        const b = await Promise.all(bArray);
 
+        const b = await Promise.all(bArray);
         this.blocks.push(...b);
         this.blockGroup.add(...b);
     }

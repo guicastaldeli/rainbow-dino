@@ -135,11 +135,7 @@ export class Cactus {
 
     private async setObs(): Promise<void> {
         const obsArray: Promise<THREE.Mesh>[] = [];
-
-        for(let i = 0; i < this.length; i++) {
-            const x = i * this.size.w;
-            obsArray.push(this.createCactus(x));
-        }
+        for(let i = 0; i < this.length; i++) obsArray.push(this.createCactus(i));
 
         const obs = await Promise.all(obsArray);
         this.obs.push(...obs);

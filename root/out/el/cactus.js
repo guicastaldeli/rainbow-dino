@@ -112,10 +112,8 @@ export class Cactus {
     setObs() {
         return __awaiter(this, void 0, void 0, function* () {
             const obsArray = [];
-            for (let i = 0; i < this.length; i++) {
-                const x = i * this.size.w;
-                obsArray.push(this.createCactus(x));
-            }
+            for (let i = 0; i < this.length; i++)
+                obsArray.push(this.createCactus(i));
             const obs = yield Promise.all(obsArray);
             this.obs.push(...obs);
             this.obsGroup.add(...obs);

@@ -21,7 +21,7 @@ void main() {
             vWorldPosition.y < bounds.z || 
             vWorldPosition.y > bounds.w) {
 
-            discard;
+            //discard;
         }
     } else {
         if(vWorldPosition.x < bounds.x * 1.02 || 

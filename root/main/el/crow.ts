@@ -131,7 +131,7 @@ export class Crow {
     private animateObs() {
         if(this.tick['paused'] || this.tick['gameover']) return;
         
-        const currentTime = performance.now() * 0.001;
+        const currentTime = performance.now() * this.timeCycle['initSpeed'];
 
         if(currentTime - this.lastSwitchTime >= this.switchInterval) {
             this.currentModelIndex = (this.currentModelIndex + 1) % this.models.length;
@@ -201,7 +201,7 @@ export class Crow {
         this.deltaTime = deltaTime;
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         const factor = this.timeCycle.getTimeFactor();
-        const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
+        const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
         const speed = this.timeCycle['scrollSpeed'] * 1.5;
 
         this.animateObs();

@@ -3,16 +3,19 @@ import { Tick } from "./tick";
 export class Time {
     private tick: Tick;
     private currentTime: number;
-    private speed: number;
-    private scrollSpeed: number;
     private dayLength: number;
+
+    private speed: number;
+    private scrollSpeed: number = 1.0;
+    private initSpeed: number = 0.001;
+    private finalSpeed: number = 15;
 
     constructor(tick: Tick, daylength: number = 60) {
         this.tick = tick;
         this.currentTime = 12.0;
         this.dayLength = daylength;
+
         this.speed = 24 / daylength;
-        this.scrollSpeed = 1.0;
     }
 
     public getTimeFactor(): number {
@@ -28,7 +31,7 @@ export class Time {
     }
 
     public updateSpeed(): number {
-        const updScrollSpeed = Math.min(this.scrollSpeed + 0.001, 15);
+        const updScrollSpeed = Math.min(this.scrollSpeed + this.initSpeed, this.finalSpeed);
         if(this.tick.getTimeScale() > 0) this.scrollSpeed = updScrollSpeed
         return this.scrollSpeed;
     }

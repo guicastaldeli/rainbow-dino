@@ -11,8 +11,8 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 export class Terrain {
     constructor(tick, timeCycle, display) {
-        this.blockGroup = new THREE.Group();
         this.blocks = [];
+        this.blockGroup = new THREE.Group();
         this.length = 15;
         this.size = {
             w: 1,
@@ -85,27 +85,28 @@ export class Terrain {
     }
     setTerrain() {
         return __awaiter(this, void 0, void 0, function* () {
-            const blockArray = [];
-            for (let i = 0; i < this.length; i++) {
-                const x = i + (this.pos.gap * this.size.w);
-                blockArray.push(this.createTerrain(x));
-            }
-            const block = yield Promise.all(blockArray);
-            this.blocks.push(...block);
-            this.blockGroup.add(...block);
+            const bArray = [];
+            for (let i = 0; i < this.length; i++)
+                bArray.push(this.createTerrain(i));
+            const b = yield Promise.all(bArray);
+            this.blocks.push(...b);
+            this.blockGroup.add(...b);
         });
     }
     getTerrainBlocks() {
         return this.blocks;
     }
-    resetBlock(block) {
-        let fBlock = this.blocks[0];
-        for (const b of this.blocks) {
-            if (b.position.x > fBlock.position.x) {
-                fBlock = b;
-            }
+    movBlocks(b, speed, scaledDelta) {
+        b.position.x -= speed * scaledDelta;
+    }
+    resetBlock(b) {
+        let fx = this.blocks[0];
+        for (let i = 0; i < this.blocks.length; i++) {
+            const block = this.blocks[i];
+            if (block.position.x > fx.position.x)
+                fx = block;
         }
-        block.position.x = fBlock.position.x + (this.pos.gap * this.size.w);
+        b.position.x = fx.position.x + (this.pos.gap * this.size.w);
     }
     loadShader(url) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -120,14 +121,15 @@ export class Terrain {
             return;
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         const speed = this.timeCycle['scrollSpeed'];
-        for (const b of this.blocks) {
-            b.position.x -= speed * scaledDelta;
-            const objBox = new THREE.Box3().setFromObject(b);
-            if (collDetector.isColliding(objBox))
+        for (let i = 0; i < this.blocks.length; i++) {
+            const b = this.blocks[i];
+            const box = new THREE.Box3().setFromObject(b);
+            this.movBlocks(b, speed, scaledDelta);
+            if (collDetector.isColliding(box))
                 this.resetBlock(b);
         }
         const factor = this.timeCycle.getTimeFactor();
-        const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
+        const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
         this.material.needsUpdate = true;

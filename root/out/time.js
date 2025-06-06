@@ -1,10 +1,12 @@
 export class Time {
     constructor(tick, daylength = 60) {
+        this.scrollSpeed = 1.0;
+        this.initSpeed = 0.001;
+        this.finalSpeed = 15;
         this.tick = tick;
         this.currentTime = 12.0;
         this.dayLength = daylength;
         this.speed = 24 / daylength;
-        this.scrollSpeed = 1.0;
     }
     getTimeFactor() {
         if (this.currentTime < 5)
@@ -21,7 +23,7 @@ export class Time {
         return this.currentTime;
     }
     updateSpeed() {
-        const updScrollSpeed = Math.min(this.scrollSpeed + 0.001, 15);
+        const updScrollSpeed = Math.min(this.scrollSpeed + this.initSpeed, this.finalSpeed);
         if (this.tick.getTimeScale() > 0)
             this.scrollSpeed = updScrollSpeed;
         return this.scrollSpeed;

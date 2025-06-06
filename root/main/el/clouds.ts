@@ -173,7 +173,7 @@ export class Clouds {
         }
 
         const factor = this.timeCycle.getTimeFactor();
-        const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
+        const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;

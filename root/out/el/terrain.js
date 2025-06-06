@@ -20,10 +20,10 @@ export class Terrain {
             d: 0.1,
         };
         this.pos = {
-            x: -7,
+            x: -15,
             y: -3,
             z: -3.1,
-            gap: 1.58
+            gap: 1.6
         };
         this.tick = tick;
         this.timeCycle = timeCycle;
@@ -87,7 +87,7 @@ export class Terrain {
         return __awaiter(this, void 0, void 0, function* () {
             const blockArray = [];
             for (let i = 0; i < this.length; i++) {
-                const x = i * this.size.w;
+                const x = i + (this.pos.gap * this.size.w);
                 blockArray.push(this.createTerrain(x));
             }
             const block = yield Promise.all(blockArray);
@@ -105,7 +105,7 @@ export class Terrain {
                 fBlock = b;
             }
         }
-        block.position.x = fBlock.position.x + this.size.w;
+        block.position.x = fBlock.position.x + (this.pos.gap * this.size.w);
     }
     loadShader(url) {
         return __awaiter(this, void 0, void 0, function* () {

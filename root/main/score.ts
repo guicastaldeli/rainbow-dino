@@ -18,6 +18,9 @@ export class Score {
     private readonly maxScore = 9999999;
     private readonly scoreMultiplier = 100;
 
+    private isBlinking = false;
+    private blinkInterval?: number;
+
     constructor(tick: Tick, timeCycle: Time) {
         this.tick = tick;
         this.timeCycle = timeCycle;
@@ -81,6 +84,7 @@ export class Score {
                 uniforms: {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
+                    shouldBlink: { value: false }
                 },
                 vertexShader,
                 fragmentShader,
@@ -107,13 +111,33 @@ export class Score {
         if(!this.mesh) throw new Error('mesh err');
         return this.mesh;
     }
+
+    private activateBlink(): void {
+        if(this.isBlinking) {
+            this.material.uniforms.shouldBlink.value = this.isBlinking;
+        }
+    }
     
     private updateValue(): number {
         const scrollSpeed = Math.max(this.timeCycle.updateSpeed(), 0.1);
-        const increment = (0.01 * this.scoreMultiplier) / scrollSpeed;
-
+        const increment = (0.0005 * this.scoreMultiplier) * scrollSpeed;
         const updValue = Math.min(this.value + increment, this.maxScore);
-        if(this.tick.getTimeScale() > 0) this.value = updValue;
+
+        if(this.tick.getTimeScale() > 0) {
+            const prevThousands = Math.floor(this.value / 100);
+            const newThousands = Math.floor(updValue / 100);
+
+            if(newThousands > prevThousands) {
+                this.isBlinking = true;
+                this.activateBlink();
+
+                setTimeout(() => {
+                    this.isBlinking = false;
+                }, 1000);
+            }
+
+            this.value = updValue;
+        }
 
         return this.value;
     }

@@ -19,6 +19,8 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.autoClear = false;
 renderer.localClippingEnabled = true;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 export const scene = new THREE.Scene();
@@ -60,6 +62,7 @@ const tick = new Tick();
     const lightning = new Lightning();
     scene.add(lightning.addAmbientLight());
     scene.add(lightning.addDirectionalLight());
+    scene.add(lightning.getLightHelper());
 //
 
 function resizeRenderer() {
@@ -95,6 +98,7 @@ window.addEventListener('keydown', (e) => {
         score.update(scaledDelta);
         skybox.update(scaledDelta);
         renderDisplay.update(scaledDelta);
+        lightning.updateLightHelper();
         
         camera.update();
         renderer.render(scene, camera.camera!);

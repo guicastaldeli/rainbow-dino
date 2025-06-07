@@ -76,6 +76,8 @@ export class Terrain {
                     this.mesh.traverse((m) => {
                         if (m instanceof THREE.Mesh && !block) {
                             m.material = this.material;
+                            m.castShadow = true;
+                            m.receiveShadow = true;
                             block = m;
                         }
                     });
@@ -87,7 +89,6 @@ export class Terrain {
                     block.position.x = this.pos.x + (x * this.size.w * this.pos.gap());
                     block.position.y = this.pos.y;
                     block.position.z = this.pos.z;
-                    block.receiveShadow = true;
                     res(block);
                 }), undefined, rej);
             });

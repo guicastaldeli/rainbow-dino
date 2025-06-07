@@ -22,6 +22,9 @@ export class Display {
         this.lightning = new Lightning();
         this.ambientLightColor = this.lightning['color'];
         this.ambientLightIntensity = this.lightning['intensity'];
+        this.directionalLightColor = this.lightning['dlColor'];
+        this.directionalLightIntensity = this.lightning['dlIntensity'];
+        this.directionalLightPosition = this.lightning['dlPosition'];
         this.obstacleManager = new ObstacleManager();
         this.size = {
             w: 0.52,
@@ -60,7 +63,10 @@ export class Display {
                         map: { value: tex },
                         bounds: { value: new THREE.Vector4() },
                         ambientLightColor: { value: this.ambientLightColor },
-                        ambientLightIntensity: { value: this.ambientLightIntensity }
+                        ambientLightIntensity: { value: this.ambientLightIntensity },
+                        directionalLightColor: { value: this.directionalLightColor },
+                        directionalLightIntensity: { value: this.directionalLightIntensity },
+                        directionalLightPosition: { value: this.directionalLightPosition }
                     },
                     vertexShader,
                     fragmentShader,
@@ -71,8 +77,11 @@ export class Display {
                     this.loader.load(path, (obj) => {
                         this.mesh = obj;
                         this.mesh.traverse((m) => {
-                            if (m instanceof THREE.Mesh)
+                            if (m instanceof THREE.Mesh) {
                                 m.material = this.material;
+                                m.castShadow = true;
+                                m.receiveShadow = true;
+                            }
                         });
                         this.mesh.scale.x = this.size.w;
                         this.mesh.scale.y = this.size.h;
@@ -185,6 +194,8 @@ export class Display {
         this.material.uniforms.timeFactor.value = factor;
         this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
         this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+        this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
+        this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
         this.material.needsUpdate = true;
     }
     ready() {

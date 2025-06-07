@@ -143,11 +143,13 @@ export class Player {
                     map: { value: this.tex.default },
                     isObs: { value: false },
                     isCloud: { value: false },
+                    shadowMap: { value: null },
                     ambientLightColor: { value: this.ambientLightColor },
                     ambientLightIntensity: { value: this.ambientLightIntensity },
                     directionalLightColor: { value: this.directionalLightColor },
                     directionalLightIntensity: { value: this.directionalLightIntensity },
-                    directionalLightPosition: { value: this.directionalLightPosition }
+                    directionalLightPosition: { value: this.directionalLightPosition },
+                    directionalLightMatrix: { value: new THREE.Matrix4() }
                 },
                 vertexShader,
                 fragmentShader,
@@ -160,7 +162,11 @@ export class Player {
                 return new Promise<THREE.Object3D>((res) => {
                     this.loader.load(path, (obj) => {
                         obj.traverse((m) => {
-                            if(m instanceof THREE.Mesh) m.material = this.material;
+                            if(m instanceof THREE.Mesh) {
+                                m.material = this.material;
+                                m.receiveShadow = true;
+                                m.castShadow = true;
+                            }
                         });
 
                         res(obj);
@@ -174,8 +180,6 @@ export class Player {
             this.mesh.position.x = this.pos.x;
             this.mesh.position.y = this.pos.y;
             this.mesh.position.z = this.pos.z;
-
-            this.mesh.receiveShadow = true;
         } catch(err) {
             console.log(err);
         }

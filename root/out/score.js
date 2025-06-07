@@ -34,7 +34,7 @@ export class Score {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 this.data = yield new Promise((res, rej) => {
-                    const path = '../../assets/font/HomeVideoRegular.json';
+                    const path = '../../assets/fonts/HomeVideoRegular.json';
                     this.loader.load(path, (font) => res(font), undefined, (err) => rej(err));
                 });
                 this.createScore();

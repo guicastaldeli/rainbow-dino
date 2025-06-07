@@ -45,7 +45,7 @@ export class Score {
     private async loadFont(): Promise<void> {
         try {
             this.data = await new Promise((res, rej) => {
-                const path = '../../assets/font/HomeVideoRegular.json';
+                const path = '../../assets/fonts/HomeVideoRegular.json';
 
                 this.loader.load(
                     path, 

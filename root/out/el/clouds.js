@@ -9,8 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { Lightning } from '../lightning.js';
 export class Clouds {
     constructor(tick, timeCycle, display) {
+        this.lightning = new Lightning();
+        this.ambientLightColor = this.lightning['color'];
+        this.ambientLightIntensity = this.lightning['intensity'];
         this.cloudGroup = new THREE.Group();
         this.clouds = [];
         this.length = 30;
@@ -60,7 +64,9 @@ export class Clouds {
                         map: { value: tex },
                         bounds: { value: bounds.clone() },
                         isObs: { value: false },
-                        isCloud: { value: true }
+                        isCloud: { value: true },
+                        ambientLightColor: { value: this.ambientLightColor },
+                        ambientLightIntensity: { value: this.ambientLightIntensity }
                     },
                     vertexShader,
                     fragmentShader,
@@ -85,6 +91,7 @@ export class Clouds {
                         clouds.position.x = (x * this.pos.gapX()) + this.pos.x;
                         clouds.position.y = (y * this.pos.gapY()) + this.pos.y;
                         clouds.position.z = this.pos.z;
+                        clouds.receiveShadow = true;
                         res(clouds);
                     }));
                 });
@@ -154,6 +161,8 @@ export class Clouds {
         const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
+        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+        this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
         this.material.needsUpdate = true;
     }
     ready() {

@@ -9,8 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { Lightning } from '../lightning.js';
 export class Player {
     constructor(tick, timeCycle, collDetector, obstacles) {
+        this.lightning = new Lightning();
+        this.ambientLightColor = this.lightning['color'];
+        this.ambientLightIntensity = this.lightning['intensity'];
+        this.directionalLightColor = this.lightning['dlColor'];
+        this.directionalLightIntensity = this.lightning['dlIntensity'];
+        this.directionalLightPosition = this.lightning['dlPosition'];
         this.frames = [];
         this.currentParent = null;
         this.currentFrameIndex = 0;
@@ -92,7 +99,12 @@ export class Player {
                         timeFactor: { value: 0.0 },
                         map: { value: this.tex.default },
                         isObs: { value: false },
-                        isCloud: { value: false }
+                        isCloud: { value: false },
+                        ambientLightColor: { value: this.ambientLightColor },
+                        ambientLightIntensity: { value: this.ambientLightIntensity },
+                        directionalLightColor: { value: this.directionalLightColor },
+                        directionalLightIntensity: { value: this.directionalLightIntensity },
+                        directionalLightPosition: { value: this.directionalLightPosition }
                     },
                     vertexShader,
                     fragmentShader,
@@ -116,6 +128,7 @@ export class Player {
                 this.mesh.position.x = this.pos.x;
                 this.mesh.position.y = this.pos.y;
                 this.mesh.position.z = this.pos.z;
+                this.mesh.receiveShadow = true;
             }
             catch (err) {
                 console.log(err);
@@ -302,6 +315,10 @@ export class Player {
         const totalTime = performance.now() * 0.001 * this.tick.getTimeScale();
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
+        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+        this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+        this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
+        this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
         this.material.needsUpdate = true;
     }
     ready() {

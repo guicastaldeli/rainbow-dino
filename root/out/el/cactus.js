@@ -9,8 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { Lightning } from '../lightning.js';
 export class Cactus {
     constructor(tick, timeCycle, display) {
+        this.lightning = new Lightning();
+        this.ambientLightColor = this.lightning['color'];
+        this.ambientLightIntensity = this.lightning['intensity'];
         this.obs = [];
         this.obsBox = [];
         this.obsGroup = new THREE.Group();
@@ -61,7 +65,9 @@ export class Cactus {
                         map: { value: tex },
                         bounds: { value: bounds.clone() },
                         isObs: { value: true },
-                        isCloud: { value: false }
+                        isCloud: { value: false },
+                        ambientLightColor: { value: this.ambientLightColor },
+                        ambientLightIntensity: { value: this.ambientLightIntensity }
                     },
                     vertexShader,
                     fragmentShader,
@@ -86,6 +92,7 @@ export class Cactus {
                         cactusMesh.position.x = (x * this.pos.gap()) + this.pos.x;
                         cactusMesh.position.y = this.pos.y;
                         cactusMesh.position.z = this.pos.z;
+                        cactusMesh.receiveShadow = true;
                         const box = new THREE.Box3().setFromObject(cactusMesh);
                         this.obsBox.push(box);
                         res(obs);
@@ -159,6 +166,8 @@ export class Cactus {
         const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
+        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+        this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
         this.material.needsUpdate = true;
     }
     ready() {

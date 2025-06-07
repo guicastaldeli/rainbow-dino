@@ -3,6 +3,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import { Tick } from '../tick';
 import { Time } from '../time';
+import { Lightning } from '../lightning.js';
 import { CollDetector } from '../coll-detector.js';
 
 import { Obstacle } from './obstacle-manager';
@@ -21,6 +22,15 @@ interface Controls {
 export class Player {
     private tick: Tick;
     private timeCycle: Time;
+
+    private readonly lightning = new Lightning();
+
+    private readonly ambientLightColor = this.lightning['color'];
+    private readonly ambientLightIntensity = this.lightning['intensity'];
+
+    private readonly directionalLightColor = this.lightning['dlColor'];
+    private readonly directionalLightIntensity = this.lightning['dlIntensity'];
+    private readonly directionalLightPosition = this.lightning['dlPosition'];
 
     private loader!: OBJLoader;
     private texLoader!: THREE.TextureLoader;
@@ -132,7 +142,12 @@ export class Player {
                     timeFactor: { value: 0.0 },
                     map: { value: this.tex.default },
                     isObs: { value: false },
-                    isCloud: { value: false }
+                    isCloud: { value: false },
+                    ambientLightColor: { value: this.ambientLightColor },
+                    ambientLightIntensity: { value: this.ambientLightIntensity },
+                    directionalLightColor: { value: this.directionalLightColor },
+                    directionalLightIntensity: { value: this.directionalLightIntensity },
+                    directionalLightPosition: { value: this.directionalLightPosition }
                 },
                 vertexShader,
                 fragmentShader,
@@ -159,6 +174,8 @@ export class Player {
             this.mesh.position.x = this.pos.x;
             this.mesh.position.y = this.pos.y;
             this.mesh.position.z = this.pos.z;
+
+            this.mesh.receiveShadow = true;
         } catch(err) {
             console.log(err);
         }
@@ -358,6 +375,12 @@ export class Player {
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
+
+        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+        this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+        this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
+        this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+
         this.material.needsUpdate = true;
     }
 

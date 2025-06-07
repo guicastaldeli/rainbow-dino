@@ -2,9 +2,10 @@ import * as THREE from 'three';
 
 import { Tick } from './tick.js';
 import { Time } from './time.js';
+import { Camera } from './camera.js';
+import { Lightning } from './lightning.js';
 import { Score } from './score.js';
 import { Display } from './display.js';
-import { Camera } from './camera.js';
 import { Skybox } from './skybox.js';
 
 const canvas = <HTMLCanvasElement>(document.getElementById('game--container'));
@@ -53,6 +54,12 @@ const tick = new Tick();
     renderDisplay.ready().then(() => {
         scene.add(renderDisplay.display);
     });
+//
+
+//Lightning
+    const lightning = new Lightning();
+    scene.add(lightning.addAmbientLight());
+    scene.add(lightning.addDirectionalLight());
 //
 
 function resizeRenderer() {

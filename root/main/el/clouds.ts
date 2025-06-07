@@ -3,6 +3,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import { Tick } from '../tick';
 import { Time } from '../time';
+import { Lightning } from '../lightning.js';
 import { Display } from '../display';
 import { CollDetector } from '../coll-detector';
 
@@ -10,6 +11,10 @@ export class Clouds {
     private tick: Tick;
     private timeCycle: Time;
     private display: Display;
+
+    private readonly lightning = new Lightning();
+    private readonly ambientLightColor = this.lightning['color'];
+    private readonly ambientLightIntensity = this.lightning['intensity'];
 
     private loader: OBJLoader;
     private texLoader: THREE.TextureLoader;
@@ -74,7 +79,9 @@ export class Clouds {
                     map: { value: tex },
                     bounds: { value: bounds.clone() },
                     isObs: { value: false },
-                    isCloud: { value: true }
+                    isCloud: { value: true },
+                    ambientLightColor: { value: this.ambientLightColor },
+                    ambientLightIntensity: { value: this.ambientLightIntensity }
                 },
                 vertexShader,
                 fragmentShader,
@@ -103,6 +110,8 @@ export class Clouds {
                     clouds.position.x = (x * this.pos.gapX()) + this.pos.x;
                     clouds.position.y = (y * this.pos.gapY()) + this.pos.y;
                     clouds.position.z = this.pos.z;
+
+                    clouds.receiveShadow = true;
 
                     res(clouds);
                 });
@@ -180,6 +189,8 @@ export class Clouds {
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
+        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+        this.material.uniforms.ambientLightIntensity.value =this.ambientLightIntensity;
         this.material.needsUpdate = true;
     }
 

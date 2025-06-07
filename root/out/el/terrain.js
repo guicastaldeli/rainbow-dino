@@ -9,8 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { Lightning } from '../lightning.js';
 export class Terrain {
     constructor(tick, timeCycle, display) {
+        this.lightning = new Lightning();
+        this.ambientLightColor = this.lightning['color'];
+        this.ambientLightIntensity = this.lightning['intensity'];
         this.blocks = [];
         this.blockGroup = new THREE.Group();
         this.length = 15;
@@ -25,7 +29,6 @@ export class Terrain {
             z: -3.1,
             gap: () => 1.6
         };
-        this.previousMaxX = null;
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.display = display;
@@ -49,7 +52,9 @@ export class Terrain {
                         map: { value: tex },
                         bounds: { value: bounds.clone() },
                         isObs: { value: false },
-                        isCloud: { value: false }
+                        isCloud: { value: false },
+                        ambientLightColor: { value: this.ambientLightColor },
+                        ambientLightIntensity: { value: this.ambientLightIntensity }
                     },
                     vertexShader,
                     fragmentShader,
@@ -82,6 +87,7 @@ export class Terrain {
                     block.position.x = this.pos.x + (x * this.size.w * this.pos.gap());
                     block.position.y = this.pos.y;
                     block.position.z = this.pos.z;
+                    block.receiveShadow = true;
                     res(block);
                 }), undefined, rej);
             });

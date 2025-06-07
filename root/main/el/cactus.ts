@@ -3,6 +3,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import { Tick } from '../tick';
 import { Time } from '../time';
+import { Lightning } from '../lightning.js';
 import { Display } from '../display';
 import { CollDetector } from '../coll-detector.js';
 import { ObstacleManager } from './obstacle-manager';
@@ -11,6 +12,11 @@ export class Cactus {
     private tick: Tick;
     private timeCycle: Time;
     private display: Display;
+
+    private readonly lightning = new Lightning();
+    private readonly ambientLightColor = this.lightning['color'];
+    private readonly ambientLightIntensity = this.lightning['intensity'];
+
 
     private loader!: OBJLoader;
     private texLoader!: THREE.TextureLoader;
@@ -77,7 +83,9 @@ export class Cactus {
                     map: { value: tex },
                     bounds: { value: bounds.clone() },
                     isObs: { value: true },
-                    isCloud: { value: false }
+                    isCloud: { value: false },
+                    ambientLightColor: { value: this.ambientLightColor },
+                    ambientLightIntensity: { value: this.ambientLightIntensity }
                 },
                 vertexShader,
                 fragmentShader,
@@ -107,6 +115,8 @@ export class Cactus {
                     cactusMesh.position.x = (x * this.pos.gap()) + this.pos.x;
                     cactusMesh.position.y = this.pos.y;
                     cactusMesh.position.z = this.pos.z;
+
+                    cactusMesh.receiveShadow = true;
 
                     const box = new THREE.Box3().setFromObject(cactusMesh);
                     this.obsBox.push(box);
@@ -189,6 +199,8 @@ export class Cactus {
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
+        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+        this.material.uniforms.ambientLightIntensity.value =this.ambientLightIntensity;
         this.material.needsUpdate = true;
     }
 

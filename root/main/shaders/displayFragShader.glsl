@@ -8,6 +8,9 @@ uniform float timeFactor;
 uniform sampler2D map;
 uniform vec4 bounds;
 
+uniform vec3 ambientLightColor;
+uniform float ambientLightIntensity;
+
 void main() {
     vec4 texColor = texture2D(map, vUv);
 
@@ -16,6 +19,9 @@ void main() {
 
     float blendColor = smoothstep(0.3, 0.7, timeFactor);
     vec3 finalColor = mix(nightColor, dayColor, blendColor);
+
+    vec3 ambient = ambientLightColor * ambientLightIntensity;
+    finalColor *= ambient;
 
     gl_FragColor = vec4(finalColor, texColor.a);
 }

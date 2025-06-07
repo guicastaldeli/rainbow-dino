@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { Lightning } from './lightning.js';
 import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
 import { Clouds } from './el/clouds.js';
@@ -18,6 +19,9 @@ import { Crow } from './el/crow.js';
 import { Player } from './el/player.js';
 export class Display {
     constructor(tick, timeCycle, renderer, scene) {
+        this.lightning = new Lightning();
+        this.ambientLightColor = this.lightning['color'];
+        this.ambientLightIntensity = this.lightning['intensity'];
         this.obstacleManager = new ObstacleManager();
         this.size = {
             w: 0.52,
@@ -54,7 +58,9 @@ export class Display {
                         time: { value: 0.0 },
                         timeFactor: { value: 0.0 },
                         map: { value: tex },
-                        bounds: { value: new THREE.Vector4() }
+                        bounds: { value: new THREE.Vector4() },
+                        ambientLightColor: { value: this.ambientLightColor },
+                        ambientLightIntensity: { value: this.ambientLightIntensity }
                     },
                     vertexShader,
                     fragmentShader,
@@ -74,6 +80,7 @@ export class Display {
                         this.mesh.position.x = this.pos.x,
                             this.mesh.position.y = this.pos.y,
                             this.mesh.position.z = this.pos.z;
+                        this.mesh.receiveShadow = true;
                         if (this.display) {
                             const bounds = this.getBounds();
                             this.material.uniforms.bounds.value.copy(bounds);
@@ -176,6 +183,8 @@ export class Display {
         const totalTime = performance.now() * 0.001;
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
+        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+        this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
         this.material.needsUpdate = true;
     }
     ready() {

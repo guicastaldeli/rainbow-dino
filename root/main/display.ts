@@ -3,6 +3,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import { Tick } from './tick.js';
 import { Time } from './time.js';
+import { Lightning } from './lightning.js';
 import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
 import { Clouds } from './el/clouds.js';
@@ -17,6 +18,10 @@ export class Display {
 
     public display: THREE.Group;
     private renderer: THREE.WebGLRenderer;
+
+    private readonly lightning = new Lightning();
+    private readonly ambientLightColor = this.lightning['color'];
+    private readonly ambientLightIntensity = this.lightning['intensity'];
 
     private collDetector: CollDetector;
 
@@ -80,7 +85,9 @@ export class Display {
                     time: { value: 0.0 },
                     timeFactor: { value: 0.0 },
                     map: { value: tex },
-                    bounds: { value: new THREE.Vector4() }
+                    bounds: { value: new THREE.Vector4() },
+                    ambientLightColor: { value: this.ambientLightColor },
+                    ambientLightIntensity: { value: this.ambientLightIntensity }
                 },
                 vertexShader,
                 fragmentShader,
@@ -103,6 +110,8 @@ export class Display {
                     this.mesh.position.x = this.pos.x,
                     this.mesh.position.y = this.pos.y,
                     this.mesh.position.z = this.pos.z;
+
+                    this.mesh.receiveShadow = true;
 
                     if(this.display) {
                         const bounds = this.getBounds();
@@ -221,6 +230,8 @@ export class Display {
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
+        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+        this.material.uniforms.ambientLightIntensity.value =this.ambientLightIntensity;
         this.material.needsUpdate = true;
     }
 

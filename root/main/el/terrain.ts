@@ -3,6 +3,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import { Tick } from '../tick';
 import { Time } from '../time';
+import { Lightning } from '../lightning.js';
 import { Display } from '../display';
 import { CollDetector } from '../coll-detector.js';
 
@@ -10,6 +11,10 @@ export class Terrain {
     private tick: Tick;
     private timeCycle: Time;
     private display: Display;
+
+    private readonly lightning = new Lightning();
+    private readonly ambientLightColor = this.lightning['color'];
+    private readonly ambientLightIntensity = this.lightning['intensity'];
 
     private loader: OBJLoader;
     private texLoader: THREE.TextureLoader;
@@ -62,7 +67,9 @@ export class Terrain {
                     map: { value: tex },
                     bounds: { value: bounds.clone() },
                     isObs: { value: false },
-                    isCloud: { value: false }
+                    isCloud: { value: false },
+                    ambientLightColor: { value: this.ambientLightColor },
+                    ambientLightIntensity: { value: this.ambientLightIntensity }
                 },
                 vertexShader,
                 fragmentShader,
@@ -98,6 +105,8 @@ export class Terrain {
                 block.position.y = this.pos.y;
                 block.position.z = this.pos.z;
 
+                block.receiveShadow = true;
+
                 res(block);
             }, undefined, rej);
         });
@@ -119,8 +128,6 @@ export class Terrain {
     private movBlocks(b: THREE.Mesh, speed: number, scaledDelta: number): void {
         b.position.x -= speed * scaledDelta;
     }
-
-    private previousMaxX: number | null = null;
 
     private resetBlocks(b: THREE.Mesh, speed: number, scaledDelta: number): void {
         let fx = this.blocks[0];

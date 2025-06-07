@@ -9,7 +9,7 @@ export class CollDetector {
     isColliding(objBox) {
         if (!this.zone)
             return false;
-        const offset = -50;
+        const offset = -60;
         const coll = new THREE.Box3(new THREE.Vector3((this.zone.min.x + offset) / 5, this.zone.min.y, (this.zone.min.z - 10)), new THREE.Vector3((this.zone.max.x + offset) / 5, this.zone.max.y, (this.zone.max.z + 10)));
         const collided = objBox.intersectsBox(coll);
         return collided;

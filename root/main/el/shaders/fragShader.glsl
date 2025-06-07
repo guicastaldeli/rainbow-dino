@@ -33,12 +33,12 @@ void main() {
             vWorldPosition.y < bounds.z || 
             vWorldPosition.y > bounds.w) {
 
-            //discard;
+            discard;
         }
     } else {
         alpha *= mix(0.7, 0.85, timeFactor);
 
-        if(vWorldPosition.x < bounds.x * 1.02 || 
+        if(vWorldPosition.x < bounds.x * 1.003 || 
             vWorldPosition.x > bounds.y || 
             vWorldPosition.y < bounds.z || 
             vWorldPosition.y > bounds.w) {

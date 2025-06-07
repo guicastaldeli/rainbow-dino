@@ -17,7 +17,7 @@ export class CollDetector {
     public isColliding(objBox: THREE.Box3): boolean {
         if(!this.zone) return false;
 
-        const offset = -50;
+        const offset = -60;
 
         const coll = new THREE.Box3(
             new THREE.Vector3(

@@ -18,7 +18,7 @@ export class Terrain {
     
     private blocks: THREE.Mesh[] = [];
     private blockGroup = new THREE.Group();
-    private length = 20;
+    private length = 15;
 
     size = {
         w: 1,
@@ -27,11 +27,11 @@ export class Terrain {
     }
     
     pos = {
-        x: -15,
+        x: -10,
         y: -3,
         z: -3.1,
 
-        gap: 1
+        gap: () => 1.6
     }
 
     constructor(tick: Tick, timeCycle: Time, display: Display) {
@@ -94,7 +94,7 @@ export class Terrain {
                 block.scale.y = this.size.h;
                 block.scale.z = this.size.d;
 
-                block.position.x = x * this.pos.gap + this.pos.x;
+                block.position.x = this.pos.x + (x * this.size.w * this.pos.gap());
                 block.position.y = this.pos.y;
                 block.position.z = this.pos.z;
 
@@ -106,7 +106,7 @@ export class Terrain {
     private async setTerrain(): Promise<void> {
         const bArray: Promise<THREE.Mesh>[] = [];
         for(let i = 0; i < this.length; i++) bArray.push(this.createTerrain(i));
-
+        
         const b = await Promise.all(bArray);
         this.blocks.push(...b);
         this.blockGroup.add(...b);
@@ -120,15 +120,18 @@ export class Terrain {
         b.position.x -= speed * scaledDelta;
     }
 
-    private resetBlock(b: THREE.Mesh): void {
+    private previousMaxX: number | null = null;
+
+    private resetBlocks(b: THREE.Mesh, speed: number, scaledDelta: number): void {
         let fx = this.blocks[0];
 
-        for(let i = 0; i < this.blocks.length; i++) {
-            const block = this.blocks[i];
-            if(block.position.x > fx.position.x) fx = block;
-        }
+        this.blocks.forEach(block => {
+            const x = block.position.x - (speed * scaledDelta);
+            if(x > fx.position.x) fx = block;
+        });
 
-        b.position.x = fx.position.x + (this.pos.gap * this.size.w);
+        const updX = fx.position.x + (this.size.w * this.pos.gap()) - (speed * scaledDelta);
+        b.position.x = updX;
     }
 
     private async loadShader(url: string): Promise<string> {
@@ -138,7 +141,7 @@ export class Terrain {
     }
 
     public update(deltaTime: number, collDetector: CollDetector): void {
-        if(!this.mesh || !this.material) return;
+        if(!this.mesh || !this.material || this.blocks.length !== this.length) return;
 
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         const speed = this.timeCycle['scrollSpeed'];
@@ -148,7 +151,7 @@ export class Terrain {
             const box = new THREE.Box3().setFromObject(b);
             this.movBlocks(b, speed, scaledDelta);
 
-            if(collDetector.isColliding(box)) this.resetBlock(b);
+            if(collDetector.isColliding(box)) this.resetBlocks(b, speed, scaledDelta);
         }
 
         const factor = this.timeCycle.getTimeFactor();

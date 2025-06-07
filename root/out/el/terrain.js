@@ -13,18 +13,19 @@ export class Terrain {
     constructor(tick, timeCycle, display) {
         this.blocks = [];
         this.blockGroup = new THREE.Group();
-        this.length = 20;
+        this.length = 15;
         this.size = {
             w: 1,
             h: 1,
             d: 1,
         };
         this.pos = {
-            x: -15,
+            x: -10,
             y: -3,
             z: -3.1,
-            gap: 1
+            gap: () => 1.6
         };
+        this.previousMaxX = null;
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.display = display;
@@ -78,7 +79,7 @@ export class Terrain {
                     block.scale.x = this.size.w;
                     block.scale.y = this.size.h;
                     block.scale.z = this.size.d;
-                    block.position.x = x * this.pos.gap + this.pos.x;
+                    block.position.x = this.pos.x + (x * this.size.w * this.pos.gap());
                     block.position.y = this.pos.y;
                     block.position.z = this.pos.z;
                     res(block);
@@ -102,14 +103,15 @@ export class Terrain {
     movBlocks(b, speed, scaledDelta) {
         b.position.x -= speed * scaledDelta;
     }
-    resetBlock(b) {
+    resetBlocks(b, speed, scaledDelta) {
         let fx = this.blocks[0];
-        for (let i = 0; i < this.blocks.length; i++) {
-            const block = this.blocks[i];
-            if (block.position.x > fx.position.x)
+        this.blocks.forEach(block => {
+            const x = block.position.x - (speed * scaledDelta);
+            if (x > fx.position.x)
                 fx = block;
-        }
-        b.position.x = fx.position.x + (this.pos.gap * this.size.w);
+        });
+        const updX = fx.position.x + (this.size.w * this.pos.gap()) - (speed * scaledDelta);
+        b.position.x = updX;
     }
     loadShader(url) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -120,7 +122,7 @@ export class Terrain {
         });
     }
     update(deltaTime, collDetector) {
-        if (!this.mesh || !this.material)
+        if (!this.mesh || !this.material || this.blocks.length !== this.length)
             return;
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         const speed = this.timeCycle['scrollSpeed'];
@@ -129,7 +131,7 @@ export class Terrain {
             const box = new THREE.Box3().setFromObject(b);
             this.movBlocks(b, speed, scaledDelta);
             if (collDetector.isColliding(box))
-                this.resetBlock(b);
+                this.resetBlocks(b, speed, scaledDelta);
         }
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();

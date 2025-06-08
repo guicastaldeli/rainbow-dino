@@ -19,11 +19,25 @@ export class Time {
     }
 
     public getTimeFactor(): number {
-        if(this.currentTime < 5) return 0.0; //Night
-        if(this.currentTime < 7) return (this.currentTime - 5) / 2; //Dawn
-        if(this.currentTime < 17) return 1.0; //Day
-        if(this.currentTime < 19) return 1.0 - (this.currentTime - 17) / 2; //Dusk
-        return 0.0; //Night
+        const currentTimeCycle = {
+            night: (this.currentTime < 5),
+            dawn: (this.currentTime < 7),
+            day: (this.currentTime < 17),
+            dusk: (this.currentTime < 19)
+        }
+
+        const dayCycle = {
+            night: 0.0,
+            dawn: (this.currentTime - 5) / 2,
+            day: 1.0,
+            dusk: 1.0 -(this.currentTime - 17) / 2
+        }
+
+        if(currentTimeCycle.night) return dayCycle.night;
+        if(currentTimeCycle.dawn) return dayCycle.dawn;
+        if(currentTimeCycle.day) return dayCycle.day;
+        if(currentTimeCycle.dusk) return dayCycle.dusk;
+        return dayCycle.night;
     }
 
     public getTotalTime(): number {

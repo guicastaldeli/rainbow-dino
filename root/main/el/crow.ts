@@ -14,8 +14,14 @@ export class Crow {
     private display: Display;
 
     private readonly lightning = new Lightning();
+
     private readonly ambientLightColor = this.lightning['color'];
     private readonly ambientLightIntensity = this.lightning['intensity'];
+
+    private readonly directionalLight = this.lightning['directionalLight'];
+    private readonly directionalLightColor = this.lightning['dlColor'];
+    private readonly directionalLightIntensity = this.lightning['dlIntensity'];
+    private readonly directionalLightPosition = this.lightning['dlPosition'];
 
     private loader!: OBJLoader;
     private texLoader!: THREE.TextureLoader;
@@ -81,6 +87,8 @@ export class Crow {
                 obj.traverse((o) => {
                     if(o instanceof THREE.Mesh && !geometry) {
                         geometry = o.geometry;
+                        o.receiveShadow = true;
+                        o.castShadow = true;
                     }
                 });
 
@@ -109,8 +117,15 @@ export class Crow {
                     bounds: { value: bounds.clone() },
                     isObs: { value: true },
                     isCloud: { value: false },
+                    shadowMap: { value: null },
+                    shadowBias: { value: 0.01 },
+                    shadowRadius: { value: 1.0 },
                     ambientLightColor: { value: this.ambientLightColor },
-                    ambientLightIntensity: { value: this.ambientLightIntensity }
+                    ambientLightIntensity: { value: this.ambientLightIntensity },
+                    directionalLightColor: { value: this.directionalLightColor },
+                    directionalLightIntensity: { value: this.directionalLightIntensity },
+                    directionalLightPosition: { value: this.directionalLightPosition },
+                    directionalLightMatrix: { value: new THREE.Matrix4() }
                 },
                 vertexShader,
                 fragmentShader,
@@ -221,8 +236,13 @@ export class Crow {
             if(o.material instanceof THREE.ShaderMaterial) {
                 o.material.uniforms.time.value = totalTime;
                 o.material.uniforms.timeFactor.value = factor;
+
                 o.material.uniforms.ambientLightColor.value = this.ambientLightColor;
-                o.material.uniforms.ambientLightIntensity.value =this.ambientLightIntensity;
+                o.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+                o.material.uniforms.directionalLightColor.value = this.directionalLightColor;
+                o.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+                o.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
+
                 o.material.needsUpdate = true;
             }
 

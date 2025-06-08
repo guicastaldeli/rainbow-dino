@@ -13,8 +13,14 @@ export class Terrain {
     private display: Display;
 
     private readonly lightning = new Lightning();
+
     private readonly ambientLightColor = this.lightning['color'];
     private readonly ambientLightIntensity = this.lightning['intensity'];
+
+    private readonly directionalLight = this.lightning['directionalLight'];
+    private readonly directionalLightColor = this.lightning['dlColor'];
+    private readonly directionalLightIntensity = this.lightning['dlIntensity'];
+    private readonly directionalLightPosition = this.lightning['dlPosition'];
 
     private loader: OBJLoader;
     private texLoader: THREE.TextureLoader;
@@ -68,8 +74,15 @@ export class Terrain {
                     bounds: { value: bounds.clone() },
                     isObs: { value: false },
                     isCloud: { value: false },
+                    shadowMap: { value: null },
+                    shadowBias: { value: 0.01 },
+                    shadowRadius: { value: 1.0 },
                     ambientLightColor: { value: this.ambientLightColor },
-                    ambientLightIntensity: { value: this.ambientLightIntensity }
+                    ambientLightIntensity: { value: this.ambientLightIntensity },
+                    directionalLightColor: { value: this.directionalLightColor },
+                    directionalLightIntensity: { value: this.directionalLightIntensity },
+                    directionalLightPosition: { value: this.directionalLightPosition },
+                    directionalLightMatrix: { value: new THREE.Matrix4() }
                 },
                 vertexShader,
                 fragmentShader,
@@ -166,6 +179,13 @@ export class Terrain {
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
+
+        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+        this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+        this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
+        this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+        this.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
+
         this.material.needsUpdate = true;
     }
 

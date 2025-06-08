@@ -100,11 +100,13 @@ void main() {
         }
     }
 
-    //Obstacles
+    //Obstacles <-- THIS
     if(isObs) {
         vec3 invertedColor = vec3(1.0) - color;
         float obsBlend = smoothstep(0.3, 0.7, timeFactor);
-        finalColor = mix(invertedColor, color, obsBlend);
+        vec3 obsColor = mix(invertedColor, color, obsBlend);
+
+        finalColor = obsColor * lightning;
     }
 
     gl_FragColor = vec4(finalColor, alpha);

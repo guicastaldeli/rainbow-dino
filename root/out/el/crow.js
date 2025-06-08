@@ -15,6 +15,10 @@ export class Crow {
         this.lightning = new Lightning();
         this.ambientLightColor = this.lightning['color'];
         this.ambientLightIntensity = this.lightning['intensity'];
+        this.directionalLight = this.lightning['directionalLight'];
+        this.directionalLightColor = this.lightning['dlColor'];
+        this.directionalLightIntensity = this.lightning['dlIntensity'];
+        this.directionalLightPosition = this.lightning['dlPosition'];
         this.obs = [];
         this.obsBox = [];
         this.obsGroup = new THREE.Group();
@@ -60,6 +64,8 @@ export class Crow {
                 obj.traverse((o) => {
                     if (o instanceof THREE.Mesh && !geometry) {
                         geometry = o.geometry;
+                        o.receiveShadow = true;
+                        o.castShadow = true;
                     }
                 });
                 if (!geometry)
@@ -86,8 +92,15 @@ export class Crow {
                         bounds: { value: bounds.clone() },
                         isObs: { value: true },
                         isCloud: { value: false },
+                        shadowMap: { value: null },
+                        shadowBias: { value: 0.01 },
+                        shadowRadius: { value: 1.0 },
                         ambientLightColor: { value: this.ambientLightColor },
-                        ambientLightIntensity: { value: this.ambientLightIntensity }
+                        ambientLightIntensity: { value: this.ambientLightIntensity },
+                        directionalLightColor: { value: this.directionalLightColor },
+                        directionalLightIntensity: { value: this.directionalLightIntensity },
+                        directionalLightPosition: { value: this.directionalLightPosition },
+                        directionalLightMatrix: { value: new THREE.Matrix4() }
                     },
                     vertexShader,
                     fragmentShader,
@@ -185,6 +198,9 @@ export class Crow {
                 o.material.uniforms.timeFactor.value = factor;
                 o.material.uniforms.ambientLightColor.value = this.ambientLightColor;
                 o.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+                o.material.uniforms.directionalLightColor.value = this.directionalLightColor;
+                o.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+                o.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
                 o.material.needsUpdate = true;
             }
             if (collDetector.isColliding(objBox)) {

@@ -15,6 +15,7 @@ export class Player {
         this.lightning = new Lightning();
         this.ambientLightColor = this.lightning['color'];
         this.ambientLightIntensity = this.lightning['intensity'];
+        this.directionalLight = this.lightning['directionalLight'];
         this.directionalLightColor = this.lightning['dlColor'];
         this.directionalLightIntensity = this.lightning['dlIntensity'];
         this.directionalLightPosition = this.lightning['dlPosition'];
@@ -101,6 +102,8 @@ export class Player {
                         isObs: { value: false },
                         isCloud: { value: false },
                         shadowMap: { value: null },
+                        shadowBias: { value: 0.01 },
+                        shadowRadius: { value: 1.0 },
                         ambientLightColor: { value: this.ambientLightColor },
                         ambientLightIntensity: { value: this.ambientLightIntensity },
                         directionalLightColor: { value: this.directionalLightColor },
@@ -323,6 +326,7 @@ export class Player {
         this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
         this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
         this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+        this.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
         this.material.needsUpdate = true;
     }
     ready() {

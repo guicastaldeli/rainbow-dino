@@ -15,6 +15,10 @@ export class Clouds {
         this.lightning = new Lightning();
         this.ambientLightColor = this.lightning['color'];
         this.ambientLightIntensity = this.lightning['intensity'];
+        this.directionalLight = this.lightning['directionalLight'];
+        this.directionalLightColor = this.lightning['dlColor'];
+        this.directionalLightIntensity = this.lightning['dlIntensity'];
+        this.directionalLightPosition = this.lightning['dlPosition'];
         this.cloudGroup = new THREE.Group();
         this.clouds = [];
         this.length = 30;
@@ -65,8 +69,15 @@ export class Clouds {
                         bounds: { value: bounds.clone() },
                         isObs: { value: false },
                         isCloud: { value: true },
+                        shadowMap: { value: null },
+                        shadowBias: { value: 0.01 },
+                        shadowRadius: { value: 1.0 },
                         ambientLightColor: { value: this.ambientLightColor },
-                        ambientLightIntensity: { value: this.ambientLightIntensity }
+                        ambientLightIntensity: { value: this.ambientLightIntensity },
+                        directionalLightColor: { value: this.directionalLightColor },
+                        directionalLightIntensity: { value: this.directionalLightIntensity },
+                        directionalLightPosition: { value: this.directionalLightPosition },
+                        directionalLightMatrix: { value: new THREE.Matrix4() }
                     },
                     vertexShader,
                     fragmentShader,
@@ -80,6 +91,8 @@ export class Clouds {
                         this.mesh.traverse((m) => {
                             if (m instanceof THREE.Mesh && !clouds) {
                                 m.material = this.material;
+                                m.receiveShadow = true;
+                                m.castShadow = true;
                                 clouds = m;
                             }
                         });
@@ -91,7 +104,6 @@ export class Clouds {
                         clouds.position.x = (x * this.pos.gapX()) + this.pos.x;
                         clouds.position.y = (y * this.pos.gapY()) + this.pos.y;
                         clouds.position.z = this.pos.z;
-                        clouds.receiveShadow = true;
                         res(clouds);
                     }));
                 });
@@ -163,6 +175,9 @@ export class Clouds {
         this.material.uniforms.timeFactor.value = factor;
         this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
         this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+        this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
+        this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+        this.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
         this.material.needsUpdate = true;
     }
     ready() {

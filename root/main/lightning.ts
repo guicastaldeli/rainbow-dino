@@ -14,7 +14,7 @@ export class Lightning {
         private directionalLightHelper!: THREE.DirectionalLightHelper;
 
         private pos = {
-            x: 12, 
+            x: 8, 
             y: 15, 
             z: 5
         }

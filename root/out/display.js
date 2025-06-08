@@ -62,11 +62,13 @@ export class Display {
                         timeFactor: { value: 0.0 },
                         map: { value: tex },
                         bounds: { value: new THREE.Vector4() },
+                        shadowMap: { value: null },
                         ambientLightColor: { value: this.ambientLightColor },
                         ambientLightIntensity: { value: this.ambientLightIntensity },
                         directionalLightColor: { value: this.directionalLightColor },
                         directionalLightIntensity: { value: this.directionalLightIntensity },
-                        directionalLightPosition: { value: this.directionalLightPosition }
+                        directionalLightPosition: { value: this.directionalLightPosition },
+                        directionalLightMatrix: { value: new THREE.Matrix4() }
                     },
                     vertexShader,
                     fragmentShader,

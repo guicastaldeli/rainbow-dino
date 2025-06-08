@@ -7,7 +7,7 @@ export class Lightning {
         this.dlColor = new THREE.Color('rgb(255, 255, 255)');
         this.dlIntensity = 1.3;
         this.pos = {
-            x: 12,
+            x: 8,
             y: 15,
             z: 5
         };

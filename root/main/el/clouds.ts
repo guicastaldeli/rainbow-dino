@@ -40,7 +40,7 @@ export class Clouds {
     pos = {
         x: -4,
         y: 0,
-        z: -3.1,
+        z: () => Math.random() * ((-3.45) - (-3.1)) + (-3.1),
 
         gapX: () => Math.random() * (20 - 2) + 2,
         gapY: () => Math.random() * (0.5 - (-0.5)) + (-0.5)
@@ -124,7 +124,7 @@ export class Clouds {
 
                     clouds.position.x = (x * this.pos.gapX()) + this.pos.x;
                     clouds.position.y = (y * this.pos.gapY()) + this.pos.y;
-                    clouds.position.z = this.pos.z;
+                    clouds.position.z = this.pos.z();
 
                     res(clouds);
                 });

@@ -81,7 +81,7 @@ void main() {
 
     //Bounds
     if(!isCloud) {
-        if(vWorldPosition.x < bounds.x || 
+        if(vWorldPosition.x < bounds.x ||
             vWorldPosition.x > bounds.y || 
             vWorldPosition.y < bounds.z || 
             vWorldPosition.y > bounds.w) {
@@ -92,7 +92,7 @@ void main() {
         alpha *= mix(0.7, 0.85, timeFactor);
 
         if(vWorldPosition.x < bounds.x * 1.003 || 
-            vWorldPosition.x > bounds.y || 
+            vWorldPosition.x > bounds.y ||
             vWorldPosition.y < bounds.z || 
             vWorldPosition.y > bounds.w) {
 
@@ -100,7 +100,7 @@ void main() {
         }
     }
 
-    //Obstacles <-- THIS
+    //Obstacles
     if(isObs) {
         vec3 invertedColor = vec3(1.0) - color;
         float obsBlend = smoothstep(0.3, 0.7, timeFactor);

@@ -65,13 +65,13 @@ export class Display {
     size = {
         w: 0.52,
         h: 0.51,
-        d: 2
+        d: 2.5
     }
 
     pos = {
         x: 0,
         y: -3.75,
-        z: -3
+        z: -3.05
     }
 
     private async createDisplay() {

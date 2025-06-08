@@ -29,12 +29,12 @@ export class Display {
         this.size = {
             w: 0.52,
             h: 0.51,
-            d: 2
+            d: 2.5
         };
         this.pos = {
             x: 0,
             y: -3.75,
-            z: -3
+            z: -3.05
         };
         this.tick = tick;
         this.timeCycle = timeCycle;

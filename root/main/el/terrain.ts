@@ -34,7 +34,7 @@ export class Terrain {
     size = {
         w: 1,
         h: 1,
-        d: 1,
+        d: 1.6,
     }
     
     pos = {

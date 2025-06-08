@@ -47,7 +47,7 @@ export class Player {
         this.pos = {
             x: -5,
             y: -3,
-            z: -3.1
+            z: -3.13
         };
         this.tex = null;
         this.tick = tick;

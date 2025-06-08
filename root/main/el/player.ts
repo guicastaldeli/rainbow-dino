@@ -75,7 +75,7 @@ export class Player {
     pos = {
         x: -5,
         y: -3,
-        z: -3.1
+        z: -3.13
     }
 
     private tex: {

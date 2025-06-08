@@ -53,7 +53,7 @@ export class Crow {
     pos = {
         x: 0,
         y: () => Math.random() * (0.5 - (-1)) + (-1),
-        z: -3.2,
+        z: () => Math.random() * ((-3.4) - (-3.2)) + (-3.2),
 
         gap: () => Math.random() * (32 - 16) + 16
     }
@@ -141,7 +141,7 @@ export class Crow {
 
             crowMesh.position.x = (x * this.pos.gap()) + this.pos.x;
             crowMesh.position.y = this.pos.y();
-            crowMesh.position.z = this.pos.z;
+            crowMesh.position.z = this.pos.z();
 
             crowMesh.receiveShadow = true;
 

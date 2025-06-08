@@ -31,7 +31,7 @@ export class Cactus {
         this.pos = {
             x: 8,
             y: -3,
-            z: -3.1,
+            z: -3.2,
             gap: () => Math.random() * (32 - 16) + 16
         };
         this.tick = tick;

@@ -43,7 +43,8 @@ export class Cactus {
         y: -3,
         z: -3.2,
 
-        gap: () => Math.random() * (32 - 16) + 16
+        gap: () => Math.random() * (32 - 16) + 16,
+        minDistance: 16
     }
 
     constructor(tick: Tick, timeCycle: Time, display: Display) {
@@ -187,7 +188,29 @@ export class Cactus {
             }
         }
 
-        obs.position.x = fObs.position.x + this.pos.gap();
+        let newX = fObs.position.x + this.pos.gap();
+        let attempts = 0;
+        let maxAttempts = 10;
+
+        while(attempts < maxAttempts) {
+            const tempBox = new THREE.Box3().setFromObject(obs);
+            tempBox.translate(new THREE.Vector3(newX - obs.position.x, 0, 0));
+            let overlaps = false;
+
+            for(const box of this.obsBox) {
+                if(tempBox.intersectsBox(box)) {
+                    overlaps = true;
+                    break;
+                }
+            }
+
+            if(!overlaps) break;
+
+            newX += this.pos.minDistance;
+            attempts++
+        };
+
+        obs.position.x = newX;
         this.obsBox[this.obs.indexOf(obs)] = new THREE.Box3().setFromObject(obs);
     }
 

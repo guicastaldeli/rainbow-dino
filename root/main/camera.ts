@@ -1,13 +1,33 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { FontLoader } from 'three/addons/Addons.js';
 
 export class Camera {
     public camera!: THREE.PerspectiveCamera;
     public controls!: OrbitControls;
 
+    //Message Props
+        private loader: FontLoader;
+        private mesh!: THREE.Mesh;
+        private material!: THREE.MeshBasicMaterial;
+        private data?: any;
+
+        private hasMessageShown: boolean = false;
+
+        private fadeState: 'in' | 'out' | 'none' = 'none';
+        private fadeProgress: number = 0;
+        private fadeDuration: number = 1000;
+        private showDuration: number = 3000;
+        private lastFadeTime: number = 0;
+    //
+
     constructor(private renderer: THREE.WebGLRenderer) {
         this.initCamera();
         this.setControls();
+
+        this.loader = new FontLoader();
+        setTimeout(() => this.showMessage(), 3000);
     }
 
     targetSize = {
@@ -52,6 +72,8 @@ export class Camera {
         this.camera.position.x = this.cameraProps.pos.x;
         this.camera.position.y = this.cameraProps.pos.y;
         this.camera.position.z = this.cameraProps.pos.z;
+
+        this.resetCamera();
         
         return this.camera;
     }
@@ -73,7 +95,140 @@ export class Camera {
         return this.controls;
     }
 
-    public update() {
+    //Message
+        private async loadFont(): Promise<void> {
+            try {
+                this.data = await new Promise((res, rej) => {
+                    const path = '../../assets/fonts/HomeVideoRegular.json';
+
+                    this.loader.load(
+                        path,
+                        (font) => res(font),
+                        undefined,
+                        (err) => rej(err)
+                    );
+                });
+
+                await this.createMessage();
+            } catch(err) {
+                console.log(err);
+                throw err;
+            }
+        }
+
+        private async showMessage(): Promise<void> {
+            if(this.hasMessageShown) return;
+
+            try {
+                await this.loadFont();
+                this.hasMessageShown = true;
+            } catch(err) {
+                console.log(err);
+            }
+        }
+
+        private async createMessage(): Promise<void> {
+            if(!this.data) return;
+
+            const size = {
+                s: 0.1,
+                d: 0
+            }
+
+            const pos = {
+                x: 0,
+                y: -0.8,
+                z: -1
+            }
+
+            const text = 'To reset camera, press the key "R"';
+
+            const geometry = new TextGeometry(text, {
+                font: this.data,
+                size: size.s,
+                depth: size.d,
+                bevelEnabled: false,
+            });
+            
+            geometry.computeBoundingBox();
+            geometry.center();
+
+            this.material = new THREE.MeshBasicMaterial({ 
+                color: 'rgb(0, 0, 0)',
+                transparent: true,
+                opacity: 0.3
+            });
+
+            this.mesh = new THREE.Mesh(geometry, this.material);
+
+            this.mesh.position.x = pos.x;
+            this.mesh.position.y = pos.y;
+            this.mesh.position.z = pos.z;
+
+            this.camera.add(this.mesh);
+
+            this.startFadeIn();
+        }
+
+        private startFadeIn(): void {
+            this.fadeState = 'in';
+            this.fadeProgress = 0;
+            this.lastFadeTime = performance.now();
+        }
+
+        private startFadeOut(): void {
+            this.fadeState = 'out';
+            this.fadeProgress = 0;
+            this.lastFadeTime = performance.now();
+        }
+
+        private updateFade(deltaTime: number): void {
+            if(this.fadeState === 'none' || !this.mesh || !this.material) return;
+
+            this.fadeProgress += deltaTime * 1000
+            const normalizedProgress = Math.min(this.fadeProgress / this.fadeDuration, 1);
+
+            if(this.fadeState === 'in') {
+                this.material.opacity = THREE.MathUtils.lerp(0, 0.3, normalizedProgress);
+
+                if(normalizedProgress >= 1) {
+                    setTimeout(() => this.startFadeOut(), this.showDuration);
+                }
+            } else if(this.fadeState === 'out') {
+                this.material.opacity = THREE.MathUtils.lerp(0.3, 0, normalizedProgress);
+
+                if(normalizedProgress >= 1) {
+                    this.fadeState = 'none';
+                    this.clearMessage();
+                }
+            }
+        }
+
+        private clearMessage(): void {
+            if(this.mesh) {
+                this.camera.remove(this.mesh);
+                this.mesh.geometry.dispose();
+                if(this.mesh.material instanceof THREE.Material) this.mesh.material.dispose();
+            }
+        }
+    //
+
+    private resetCamera(): void {
+        window.addEventListener('keydown', (e) => {
+            const eKey = e.key.toLowerCase();
+
+            if(eKey === 'r') {
+                this.camera.position.x = this.cameraProps.pos.x;
+                this.camera.position.y = this.cameraProps.pos.y;
+                this.camera.position.z = this.cameraProps.pos.z;
+
+                this.controls.target.set(0, 0, 0);
+                this.controls.update();
+            }
+        });
+    }
+
+    public update(deltaTime: number) {
         this.controls.update();
 
         this.camera.position.x = THREE.MathUtils.clamp(
@@ -93,6 +248,8 @@ export class Camera {
             this.bounds.minZ,
             this.bounds.maxZ
         );
+
+        this.updateFade(deltaTime);
 
         const target = this.controls.target;
         target.x = THREE.MathUtils.clamp(target.x, this.bounds.minX, this.bounds.maxX);

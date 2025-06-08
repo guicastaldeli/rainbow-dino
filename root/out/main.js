@@ -78,7 +78,7 @@ function render() {
     score.update(scaledDelta);
     skybox.update(scaledDelta);
     renderDisplay.update(scaledDelta);
-    camera.update();
+    camera.update(scaledDelta);
     renderer.render(scene, camera.camera);
     requestAnimationFrame(render);
 }

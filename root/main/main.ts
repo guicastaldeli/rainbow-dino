@@ -62,7 +62,6 @@ const tick = new Tick();
     const lightning = new Lightning(tick, timeCycle);
     const lights = lightning.addLights();
     lights.forEach(l => scene.add(l));
-    scene.add(lightning.getLightHelper());
 //
 
 function resizeRenderer() {

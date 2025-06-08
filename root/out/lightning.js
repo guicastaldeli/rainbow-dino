@@ -3,12 +3,10 @@ export class Lightning {
     //
     constructor(tick, timeCycle) {
         this.colors = {
-            night: new THREE.Color('rgb(177, 56, 56)'),
-            dusk: new THREE.Color('rgb(204, 190, 128)'),
+            night: new THREE.Color('rgb(120, 120, 120)'),
             day: new THREE.Color('rgb(203, 203, 203)'),
-            dawn: new THREE.Color('rgb(204, 190, 128)')
         };
-        this.color = this.colors.day;
+        this.color = new THREE.Color();
         this.intensity = 1.0;
         this.dlColor = new THREE.Color('rgb(255, 255, 255)');
         this.dlIntensity = 0.5;
@@ -49,22 +47,23 @@ export class Lightning {
     getColor() {
         return this.colors.night;
     }
+    mixColors(fColor, sColor, factor) {
+        const res = new THREE.Color();
+        res.r = fColor.r + (sColor.r - fColor.r) * factor;
+        res.g = fColor.g + (sColor.g - fColor.g) * factor;
+        res.b = fColor.b + (sColor.b - fColor.b) * factor;
+        return res;
+    }
+    smoothstep(min, max, value) {
+        const x = Math.max(0, Math.min(1, (value - min) / (max - min)));
+        return x * x * (3 - 2 * x);
+    }
     update(deltaTime) {
         if (!deltaTime)
             return this.color;
-        const targetColor = () => {
-            if (this.timeCycle.currentTimeCycle.night)
-                return this.colors.night;
-            if (this.timeCycle.currentTimeCycle.dawn)
-                return this.colors.dawn;
-            if (this.timeCycle.currentTimeCycle.day)
-                return this.colors.day;
-            if (this.timeCycle.currentTimeCycle.dusk)
-                return this.colors.dusk;
-            return this.colors.night;
-        };
-        const updateColor = this.timeCycle['initSpeed'] * deltaTime * this.tick.getTimeScale();
-        this.color.lerp(targetColor(), Math.min(updateColor, 1));
+        const timeFactor = this.timeCycle.getTimeFactor();
+        const blendFactor = this.smoothstep(0.3, 0.7, timeFactor);
+        this.color = this.mixColors(this.colors.night, this.colors.day, blendFactor);
         this.ambientLight.color.copy(this.color);
         return this.color;
     }

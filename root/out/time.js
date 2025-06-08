@@ -2,6 +2,7 @@ export class Time {
     constructor(tick, daylength = 60) {
         this.scrollSpeed = 1.0;
         this.initSpeed = 0.001;
+        this.lightningSpeed = 1.0 / (5 * 60);
         this.finalSpeed = 15;
         this.tick = tick;
         this.currentTime = 12.0;
@@ -25,10 +26,14 @@ export class Time {
         };
     }
     getTimeFactor() {
-        //if(this.currentTimeCycle.night) return this.dayCycle.night;
-        //if(this.currentTimeCycle.dawn) return this.dayCycle.dawn;
-        //if(this.currentTimeCycle.day) return this.dayCycle.day;
-        //if(this.currentTimeCycle.dusk) return this.dayCycle.dusk;
+        if (this.currentTimeCycle.night)
+            return this.dayCycle.night;
+        if (this.currentTimeCycle.dawn)
+            return this.dayCycle.dawn;
+        if (this.currentTimeCycle.day)
+            return this.dayCycle.day;
+        if (this.currentTimeCycle.dusk)
+            return this.dayCycle.dusk;
         return this.dayCycle.night;
     }
     getTotalTime() {

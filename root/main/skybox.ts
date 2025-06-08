@@ -24,11 +24,11 @@ export class Skybox {
     public async loadShaders() {
         try {
             const [
-                    vertexShader, 
-                    fragmentShader, 
-                    starVertexShader, 
-                    starFragShader
-                ] = await Promise.all([
+                vertexShader, 
+                fragmentShader, 
+                starVertexShader, 
+                starFragShader
+            ] = await Promise.all([
                 this.loadShader('../main/shaders/vertexShader.glsl'),
                 this.loadShader('../main/shaders/fragShader.glsl'),
                 this.loadShader('../main/shaders/starVertexShader.glsl'),

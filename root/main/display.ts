@@ -19,14 +19,13 @@ export class Display {
     public display: THREE.Group;
     private renderer: THREE.WebGLRenderer;
 
-    private readonly lightning = new Lightning();
-
-    private readonly ambientLightColor = this.lightning['color'];
-    private readonly ambientLightIntensity = this.lightning['intensity'];
-
-    private readonly directionalLightColor = this.lightning['dlColor'];
-    private readonly directionalLightIntensity = this.lightning['dlIntensity'];
-    private readonly directionalLightPosition = this.lightning['dlPosition'];
+    private lightning: Lightning;
+    private ambientLightColor: THREE.Color;
+    private ambientLightIntensity: number;
+    private directionalLight: THREE.DirectionalLight;
+    private directionalLightColor: THREE.Color;
+    private directionalLightIntensity: number;
+    private directionalLightPosition: THREE.Vector3;
 
     private collDetector: CollDetector;
 
@@ -51,10 +50,23 @@ export class Display {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.renderer = renderer;
-        this.collDetector = new CollDetector(scene);
 
+        //Lightning
+            this.lightning = new Lightning(this.tick, this.timeCycle);
+
+            this.ambientLightColor = this.lightning.getColor();
+            this.ambientLightIntensity = this.lightning['intensity'];
+
+            this.directionalLight = this.lightning['directionalLight'];
+            this.directionalLightColor = this.lightning['dlColor'];
+            this.directionalLightIntensity = this.lightning['dlIntensity'];
+            this.directionalLightPosition = this.lightning['dlPosition'];
+        //
+        
         this.display = new THREE.Group;
         this.loader = new OBJLoader();
+
+        this.collDetector = new CollDetector(scene);
         this.texLoader = new THREE.TextureLoader();
 
         this.scene = scene;
@@ -241,14 +253,18 @@ export class Display {
 
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
+        const ambientColor = this.lightning.update(factor);
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
-        
-        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+
+        this.material.uniforms.ambientLightColor.value = ambientColor;
         this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+
         this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
         this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+        this.material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
+        this.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
 
         this.material.needsUpdate = true;
     }

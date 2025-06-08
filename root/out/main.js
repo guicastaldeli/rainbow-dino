@@ -50,7 +50,6 @@ renderDisplay.ready().then(() => {
 const lightning = new Lightning(tick, timeCycle);
 const lights = lightning.addLights();
 lights.forEach(l => scene.add(l));
-scene.add(lightning.getLightHelper());
 //
 function resizeRenderer() {
     canvas.width = window.innerWidth;

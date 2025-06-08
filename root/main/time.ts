@@ -8,6 +8,7 @@ export class Time {
     private speed: number;
     private scrollSpeed: number = 1.0;
     private initSpeed: number = 0.001;
+    private lightningSpeed: number = 1.0 / (5 * 60);
     private finalSpeed: number = 15;
 
     constructor(tick: Tick, daylength: number = 60) {
@@ -37,10 +38,10 @@ export class Time {
     }
 
     public getTimeFactor(): number {
-        //if(this.currentTimeCycle.night) return this.dayCycle.night;
-        //if(this.currentTimeCycle.dawn) return this.dayCycle.dawn;
-        //if(this.currentTimeCycle.day) return this.dayCycle.day;
-        //if(this.currentTimeCycle.dusk) return this.dayCycle.dusk;
+        if(this.currentTimeCycle.night) return this.dayCycle.night;
+        if(this.currentTimeCycle.dawn) return this.dayCycle.dawn;
+        if(this.currentTimeCycle.day) return this.dayCycle.day;
+        if(this.currentTimeCycle.dusk) return this.dayCycle.dusk;
         return this.dayCycle.night;
     }
 

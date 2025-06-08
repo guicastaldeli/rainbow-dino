@@ -12,13 +12,6 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { Lightning } from '../lightning.js';
 export class Cactus {
     constructor(tick, timeCycle, display) {
-        this.lightning = new Lightning();
-        this.ambientLightColor = this.lightning['color'];
-        this.ambientLightIntensity = this.lightning['intensity'];
-        this.directionalLight = this.lightning['directionalLight'];
-        this.directionalLightColor = this.lightning['dlColor'];
-        this.directionalLightIntensity = this.lightning['dlIntensity'];
-        this.directionalLightPosition = this.lightning['dlPosition'];
         this.obs = [];
         this.obsBox = [];
         this.obsGroup = new THREE.Group();
@@ -37,6 +30,15 @@ export class Cactus {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.display = display;
+        //Lightning
+        this.lightning = new Lightning(this.tick, this.timeCycle);
+        this.ambientLightColor = this.lightning.getColor();
+        this.ambientLightIntensity = this.lightning['intensity'];
+        this.directionalLight = this.lightning['directionalLight'];
+        this.directionalLightColor = this.lightning['dlColor'];
+        this.directionalLightIntensity = this.lightning['dlIntensity'];
+        this.directionalLightPosition = this.lightning['dlPosition'];
+        //
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
     }
@@ -176,12 +178,14 @@ export class Cactus {
         }
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
+        const ambientColor = this.lightning.update(factor);
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
-        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+        this.material.uniforms.ambientLightColor.value = ambientColor;
         this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
         this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
         this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+        this.material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
         this.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
         this.material.needsUpdate = true;
     }

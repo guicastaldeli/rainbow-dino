@@ -8,28 +8,28 @@ export class Time {
         this.dayLength = daylength;
         this.speed = 24 / daylength;
     }
-    getTimeFactor() {
-        const currentTimeCycle = {
-            night: (this.currentTime < 5),
-            dawn: (this.currentTime < 7),
-            day: (this.currentTime < 17),
-            dusk: (this.currentTime < 19)
+    get currentTimeCycle() {
+        return {
+            night: (this.currentTime >= 19 || this.currentTime < 5),
+            dawn: (this.currentTime >= 5 && this.currentTime < 7),
+            day: (this.currentTime >= 7 && this.currentTime < 17),
+            dusk: (this.currentTime >= 17 && this.currentTime < 19)
         };
-        const dayCycle = {
+    }
+    get dayCycle() {
+        return {
             night: 0.0,
             dawn: (this.currentTime - 5) / 2,
             day: 1.0,
             dusk: 1.0 - (this.currentTime - 17) / 2
         };
-        if (currentTimeCycle.night)
-            return dayCycle.night;
-        if (currentTimeCycle.dawn)
-            return dayCycle.dawn;
-        if (currentTimeCycle.day)
-            return dayCycle.day;
-        if (currentTimeCycle.dusk)
-            return dayCycle.dusk;
-        return dayCycle.night;
+    }
+    getTimeFactor() {
+        //if(this.currentTimeCycle.night) return this.dayCycle.night;
+        //if(this.currentTimeCycle.dawn) return this.dayCycle.dawn;
+        //if(this.currentTimeCycle.day) return this.dayCycle.day;
+        //if(this.currentTimeCycle.dusk) return this.dayCycle.dusk;
+        return this.dayCycle.night;
     }
     getTotalTime() {
         return this.currentTime;

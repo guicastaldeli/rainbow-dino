@@ -12,15 +12,13 @@ export class Terrain {
     private timeCycle: Time;
     private display: Display;
 
-    private readonly lightning = new Lightning();
-
-    private readonly ambientLightColor = this.lightning['color'];
-    private readonly ambientLightIntensity = this.lightning['intensity'];
-
-    private readonly directionalLight = this.lightning['directionalLight'];
-    private readonly directionalLightColor = this.lightning['dlColor'];
-    private readonly directionalLightIntensity = this.lightning['dlIntensity'];
-    private readonly directionalLightPosition = this.lightning['dlPosition'];
+    private lightning: Lightning;
+    private ambientLightColor: THREE.Color;
+    private ambientLightIntensity: number;
+    private directionalLight: THREE.DirectionalLight;
+    private directionalLightColor: THREE.Color;
+    private directionalLightIntensity: number;
+    private directionalLightPosition: THREE.Vector3;
 
     private loader: OBJLoader;
     private texLoader: THREE.TextureLoader;
@@ -49,6 +47,18 @@ export class Terrain {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.display = display;
+
+        //Lightning
+            this.lightning = new Lightning(this.tick, this.timeCycle);
+
+            this.ambientLightColor = this.lightning.getColor();
+            this.ambientLightIntensity = this.lightning['intensity'];
+
+            this.directionalLight = this.lightning['directionalLight'];
+            this.directionalLightColor = this.lightning['dlColor'];
+            this.directionalLightIntensity = this.lightning['dlIntensity'];
+            this.directionalLightPosition = this.lightning['dlPosition'];
+        //
 
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
@@ -176,14 +186,17 @@ export class Terrain {
 
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
+        const ambientColor = this.lightning.update(factor);
 
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
 
-        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+        this.material.uniforms.ambientLightColor.value = ambientColor;
         this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+
         this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
         this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+        this.material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
         this.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
 
         this.material.needsUpdate = true;

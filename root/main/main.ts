@@ -59,9 +59,9 @@ const tick = new Tick();
 //
 
 //Lightning
-    const lightning = new Lightning();
-    scene.add(lightning.addAmbientLight());
-    scene.add(lightning.addDirectionalLight());
+    const lightning = new Lightning(tick, timeCycle);
+    const lights = lightning.addLights();
+    lights.forEach(l => scene.add(l));
     scene.add(lightning.getLightHelper());
 //
 
@@ -95,10 +95,13 @@ window.addEventListener('keydown', (e) => {
         const scaledDelta = tick.getScaledDelta(deltaTime);
 
         timeCycle.update(scaledDelta);
+        lightning.update(scaledDelta);
+        lightning.updateLightHelper();
+
         score.update(scaledDelta);
+        
         skybox.update(scaledDelta);
         renderDisplay.update(scaledDelta);
-        lightning.updateLightHelper();
         
         camera.update();
         renderer.render(scene, camera.camera!);

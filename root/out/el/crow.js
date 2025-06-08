@@ -12,13 +12,6 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { Lightning } from '../lightning.js';
 export class Crow {
     constructor(tick, timeCycle, display) {
-        this.lightning = new Lightning();
-        this.ambientLightColor = this.lightning['color'];
-        this.ambientLightIntensity = this.lightning['intensity'];
-        this.directionalLight = this.lightning['directionalLight'];
-        this.directionalLightColor = this.lightning['dlColor'];
-        this.directionalLightIntensity = this.lightning['dlIntensity'];
-        this.directionalLightPosition = this.lightning['dlPosition'];
         this.obs = [];
         this.obsBox = [];
         this.obsGroup = new THREE.Group();
@@ -43,6 +36,15 @@ export class Crow {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.display = display;
+        //Lightning
+        this.lightning = new Lightning(this.tick, this.timeCycle);
+        this.ambientLightColor = this.lightning.getColor();
+        this.ambientLightIntensity = this.lightning['intensity'];
+        this.directionalLight = this.lightning['directionalLight'];
+        this.directionalLightColor = this.lightning['dlColor'];
+        this.directionalLightIntensity = this.lightning['dlIntensity'];
+        this.directionalLightPosition = this.lightning['dlPosition'];
+        //
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
         //Models
@@ -189,6 +191,7 @@ export class Crow {
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
         const speed = this.timeCycle['scrollSpeed'] * 1.5;
+        const ambientColor = this.lightning.update(factor);
         this.animateObs();
         this.obs.forEach((o, i) => {
             o.position.x -= speed * scaledDelta;
@@ -196,10 +199,11 @@ export class Crow {
             if (o.material instanceof THREE.ShaderMaterial) {
                 o.material.uniforms.time.value = totalTime;
                 o.material.uniforms.timeFactor.value = factor;
-                o.material.uniforms.ambientLightColor.value = this.ambientLightColor;
+                o.material.uniforms.ambientLightColor.value = ambientColor;
                 o.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
                 o.material.uniforms.directionalLightColor.value = this.directionalLightColor;
                 o.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+                o.material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
                 o.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
                 o.material.needsUpdate = true;
             }

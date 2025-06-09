@@ -37,6 +37,7 @@ export class ScreenGameOver {
             private fadeDuration: number = 500;
             private showDuration: number = 800;
             private lastFadeTime: number = 0;
+            private messageInterval?: number;
             private intervalDuration: number = 1500;
         //
 
@@ -271,7 +272,6 @@ export class ScreenGameOver {
 
         public async resetGame(): Promise<void> {
             this.camera.camera.remove(this.group);
-            this.group.removeFromParent();
             this.group.clear();
 
             this.tick.resetState(this.initialGameState.tick);
@@ -322,7 +322,8 @@ export class ScreenGameOver {
                 this.group.add(mesh);
 
                 this.startFadeIn();
-                setInterval(async () => await this.showMessage(), this.intervalDuration);
+                if(this.messageInterval) clearInterval(this.messageInterval);
+                this.messageInterval = window.setInterval(async () => await this.showMessage(), this.intervalDuration);
 
                 this.group.position.y = 0.3;
             //

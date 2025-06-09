@@ -219,7 +219,6 @@ export class ScreenGameOver {
     resetGame() {
         return __awaiter(this, void 0, void 0, function* () {
             this.camera.camera.remove(this.group);
-            this.group.removeFromParent();
             this.group.clear();
             this.tick.resetState(this.initialGameState.tick);
             this.time.resetState(this.initialGameState.time);
@@ -263,7 +262,9 @@ export class ScreenGameOver {
                 this.group.add(resetContent);
                 this.group.add(mesh);
                 this.startFadeIn();
-                setInterval(() => __awaiter(this, void 0, void 0, function* () { return yield this.showMessage(); }), this.intervalDuration);
+                if (this.messageInterval)
+                    clearInterval(this.messageInterval);
+                this.messageInterval = window.setInterval(() => __awaiter(this, void 0, void 0, function* () { return yield this.showMessage(); }), this.intervalDuration);
                 this.group.position.y = 0.3;
                 //
                 this.camera.camera.add(this.group);

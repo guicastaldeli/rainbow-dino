@@ -74,7 +74,7 @@ function saveState() {
         },
         tick: {
             paused: tick['paused'],
-            gameOver: tick['gameover']
+            gameOver: tick['gameOver']
         }
     };
 }
@@ -89,20 +89,21 @@ window.addEventListener('keydown', (e) => {
 });
 //Game Over
 const screenGameOver = new ScreenGameOver(gameState, timeCycle, tick, score, camera);
-let isGameOver = false;
 tick.onGameOver(() => __awaiter(void 0, void 0, void 0, function* () {
-    isGameOver = true;
     score.getFinalScore();
     yield screenGameOver.ready();
 }));
-window.addEventListener('keydown', (e) => __awaiter(void 0, void 0, void 0, function* () {
-    if (e.key === 'Escape') {
-        if (isGameOver) {
-            yield screenGameOver.resetGame();
-            isGameOver = false;
+function resetGame() {
+    window.addEventListener('keydown', (e) => __awaiter(this, void 0, void 0, function* () {
+        if (e.key === 'Escape') {
+            if (tick['gameOver']) {
+                yield screenGameOver.resetGame();
+                saveState();
+            }
         }
-    }
-}));
+    }));
+}
+resetGame();
 //
 //
 function resizeRenderer() {

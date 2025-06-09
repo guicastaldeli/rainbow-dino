@@ -81,7 +81,7 @@ const tick = new Tick();
             },
             tick: {
                 paused: tick['paused'],
-                gameOver: tick['gameover']
+                gameOver: tick['gameOver']
             }
         }
     }
@@ -99,22 +99,24 @@ const tick = new Tick();
     
     //Game Over
         const screenGameOver = new ScreenGameOver(gameState, timeCycle, tick, score, camera);
-        let isGameOver = false;
 
         tick.onGameOver(async () => {
-            isGameOver = true;
             score.getFinalScore();
             await screenGameOver.ready();
         });
 
-        window.addEventListener('keydown', async (e) => {
-            if(e.key === 'Escape') {
-                if(isGameOver) {
-                    await screenGameOver.resetGame();
-                    isGameOver = false;
+        function resetGame() {
+            window.addEventListener('keydown', async (e) => {
+                if(e.key === 'Escape') {
+                    if(tick['gameOver']) {
+                        await screenGameOver.resetGame();
+                        saveState();
+                    }
                 }
-            }
-        });
+            });
+        }
+
+        resetGame();
     //
 //
 
@@ -145,7 +147,6 @@ resizeRenderer();
         lightning.updateLightHelper();
 
         score.update(scaledDelta);
-        
         skybox.update(scaledDelta);
         renderDisplay.update(scaledDelta);
 

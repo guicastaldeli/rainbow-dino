@@ -24,7 +24,7 @@ export class Cactus {
         this.pos = {
             x: 8,
             y: -3,
-            z: -3.2,
+            z: -3.23,
             gap: () => Math.random() * (32 - 16) + 16,
             minDistance: 16
         };

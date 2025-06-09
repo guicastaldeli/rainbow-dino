@@ -61,6 +61,50 @@ const lightning = new Lightning(tick, timeCycle);
 const lights = lightning.addLights();
 lights.forEach(l => scene.add(l));
 //
+//Game State
+let gameState;
+function saveState() {
+    gameState = {
+        time: {
+            currentTime: timeCycle.getTotalTime(),
+            scrollSpeed: timeCycle['scrollSpeed']
+        },
+        score: {
+            currentScore: score.getCurrentScore()
+        },
+        tick: {
+            paused: tick['paused'],
+            gameOver: tick['gameover']
+        }
+    };
+}
+saveState();
+//
+//Screens
+//Pause
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        tick.togglePause();
+    }
+});
+//Game Over
+const screenGameOver = new ScreenGameOver(gameState, timeCycle, tick, score, camera);
+let isGameOver = false;
+tick.onGameOver(() => __awaiter(void 0, void 0, void 0, function* () {
+    isGameOver = true;
+    score.getFinalScore();
+    yield screenGameOver.ready();
+}));
+window.addEventListener('keydown', (e) => __awaiter(void 0, void 0, void 0, function* () {
+    if (e.key === 'Escape') {
+        if (isGameOver) {
+            yield screenGameOver.resetGame();
+            isGameOver = false;
+        }
+    }
+}));
+//
+//
 function resizeRenderer() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -69,18 +113,6 @@ function resizeRenderer() {
     window.addEventListener('resize', resizeRenderer);
 }
 resizeRenderer();
-//Screens
-const screenGameOver = new ScreenGameOver(timeCycle, tick, score, camera);
-tick.onGameOver(() => __awaiter(void 0, void 0, void 0, function* () {
-    score.getFinalScore();
-    yield screenGameOver.ready();
-}));
-//Pause
-window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        tick.togglePause();
-    }
-});
 //Main Render
 let lastTime = 0;
 function render() {

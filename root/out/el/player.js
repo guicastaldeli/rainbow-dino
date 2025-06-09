@@ -201,7 +201,7 @@ export class Player {
         if (this.obstacles.length > 0) {
             if (this.collDetector.playerCollision(playerBox, this.obstacles)) {
                 this.hitTaken();
-                this.tick.gameOver();
+                this.tick.setGameOver();
             }
         }
         if (this.mesh)

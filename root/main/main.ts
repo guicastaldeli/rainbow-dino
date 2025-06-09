@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { GameState } from './game-state.js';
 import { Tick } from './tick.js';
 import { Time } from './time.js';
 import { Camera } from './camera.js';
@@ -66,6 +67,57 @@ const tick = new Tick();
     lights.forEach(l => scene.add(l));
 //
 
+//Game State
+    let gameState!: GameState;
+
+    function saveState() {
+        gameState = {
+            time: {
+                currentTime: timeCycle.getTotalTime(),
+                scrollSpeed: timeCycle['scrollSpeed']
+            },
+            score: {
+                currentScore: score.getCurrentScore()
+            },
+            tick: {
+                paused: tick['paused'],
+                gameOver: tick['gameover']
+            }
+        }
+    }
+
+    saveState();
+//
+
+//Screens
+    //Pause
+    window.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') {
+            tick.togglePause();
+        }
+    });
+    
+    //Game Over
+        const screenGameOver = new ScreenGameOver(gameState, timeCycle, tick, score, camera);
+        let isGameOver = false;
+
+        tick.onGameOver(async () => {
+            isGameOver = true;
+            score.getFinalScore();
+            await screenGameOver.ready();
+        });
+
+        window.addEventListener('keydown', async (e) => {
+            if(e.key === 'Escape') {
+                if(isGameOver) {
+                    await screenGameOver.resetGame();
+                    isGameOver = false;
+                }
+            }
+        });
+    //
+//
+
 function resizeRenderer() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -77,21 +129,6 @@ function resizeRenderer() {
 }
 
 resizeRenderer();
-
-//Screens
-const screenGameOver = new ScreenGameOver(timeCycle, tick, score, camera);
-
-tick.onGameOver(async () => {
-    score.getFinalScore();
-    await screenGameOver.ready();
-});
-
-//Pause
-window.addEventListener('keydown', (e) => {
-    if(e.key === 'Escape') {
-        tick.togglePause();
-    }
-});
 
 //Main Render
     let lastTime = 0;

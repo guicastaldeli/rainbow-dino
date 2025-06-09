@@ -129,7 +129,7 @@ export class Crow {
         });
     }
     animateObs() {
-        if (this.tick['paused'] || this.tick['gameover'])
+        if (this.tick['paused'] || this.tick['gameOver'])
             return;
         const currentTime = performance.now() * this.timeCycle['initSpeed'];
         if (currentTime - this.lastSwitchTime >= this.switchInterval) {

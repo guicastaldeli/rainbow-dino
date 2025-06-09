@@ -12,12 +12,12 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/Addons.js';
 export class ScreenGameOver {
     //
-    constructor(time, tick, score, camera) {
+    constructor(initialGameState, time, tick, score, camera) {
         this.lastTime = 0;
         this.hasMessageShown = false;
         this.fadeState = 'none';
         this.fadeProgress = 0;
-        this.fadeDuration = 300;
+        this.fadeDuration = 500;
         this.showDuration = 800;
         this.lastFadeTime = 0;
         this.intervalDuration = 1500;
@@ -32,6 +32,7 @@ export class ScreenGameOver {
             s_night: new THREE.Color('rgb(140, 140, 140)'),
             r_night: new THREE.Color('rgb(122, 122, 122)'),
         };
+        this.initialGameState = initialGameState;
         this.time = time;
         this.tick = tick;
         this.score = score;
@@ -101,7 +102,7 @@ export class ScreenGameOver {
                 };
                 const pos = {
                     x: 0,
-                    y: -0.22,
+                    y: -0.25,
                     z: -2
                 };
                 const text = `SCORE:${this.score.getFinalScore().toString()}`;
@@ -156,13 +157,13 @@ export class ScreenGameOver {
         this.fadeProgress += internalTime * 1000;
         const normalizedProgress = Math.min(this.fadeProgress / this.fadeDuration, 1);
         if (this.fadeState === 'in') {
-            this.resetMat.opacity = THREE.MathUtils.lerp(0, 1.0, normalizedProgress);
+            this.resetMat.opacity = THREE.MathUtils.lerp(0, 0.6, normalizedProgress);
             if (normalizedProgress >= 1) {
                 setTimeout(() => this.startFadeOut(), this.showDuration);
             }
         }
         else if (this.fadeState === 'out') {
-            this.resetMat.opacity = THREE.MathUtils.lerp(1.0, 0, normalizedProgress);
+            this.resetMat.opacity = THREE.MathUtils.lerp(0.6, 0, normalizedProgress);
             if (normalizedProgress >= 1) {
                 this.fadeState = 'none';
                 this.clearMessage();
@@ -185,7 +186,7 @@ export class ScreenGameOver {
                 };
                 const pos = {
                     x: 0,
-                    y: -0.6,
+                    y: -0.65,
                     z: -2
                 };
                 const text = '"ESC" to restart...';
@@ -215,6 +216,17 @@ export class ScreenGameOver {
             }
         });
     }
+    resetGame() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.camera.camera.remove(this.group);
+            this.group.removeFromParent();
+            this.group.clear();
+            this.tick.resetState(this.initialGameState.tick);
+            this.time.resetState(this.initialGameState.time);
+            this.score.resetState(this.initialGameState.score);
+        });
+    }
+    //
     //Main
     createScreenGameOver() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -268,7 +280,6 @@ export class ScreenGameOver {
         const now = performance.now();
         const internalTime = this.lastTime ? Math.min((now - this.lastTime) / 1000, 0.1) : 0;
         this.lastTime = now;
-        //console.log(this.lastTime)
         const timeFactor = this.time.getTimeFactor();
         const dayColor = {
             t: this.colors.t_day,

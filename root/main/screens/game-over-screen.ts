@@ -2,12 +2,14 @@ import * as THREE from 'three';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { Font, FontLoader } from 'three/addons/Addons.js';
 
+import { GameState } from '../game-state';
 import { Time } from '../time';
 import { Tick } from '../tick';
 import { Score } from '../score';
 import { Camera } from '../camera';
 
 export class ScreenGameOver {
+    private initialGameState: GameState;
     private time: Time;
     private tick: Tick;
 
@@ -32,7 +34,7 @@ export class ScreenGameOver {
 
             private fadeState: 'in' | 'out' | 'none' = 'none';
             private fadeProgress: number = 0;
-            private fadeDuration: number = 300;
+            private fadeDuration: number = 500;
             private showDuration: number = 800;
             private lastFadeTime: number = 0;
             private intervalDuration: number = 1500;
@@ -51,7 +53,14 @@ export class ScreenGameOver {
         }
     //
 
-    constructor(time: Time, tick: Tick, score: Score, camera: Camera) {
+    constructor(
+        initialGameState: GameState, 
+        time: Time, 
+        tick: Tick, 
+        score: Score, 
+        camera: Camera
+    ) {
+        this.initialGameState = initialGameState;
         this.time = time;
         this.tick = tick;
 
@@ -134,7 +143,7 @@ export class ScreenGameOver {
 
             const pos = {
                 x: 0,
-                y: -0.22,
+                y: -0.25,
                 z: -2
             }
 
@@ -164,101 +173,112 @@ export class ScreenGameOver {
     }
 
     //Reset
-    private async showMessage(): Promise<void> {
-        if(this.fadeState !== 'none') return;
+        private async showMessage(): Promise<void> {
+            if(this.fadeState !== 'none') return;
 
-        try {
-            this.hasMessageShown = true;
-            this.startFadeIn();
-        } catch(err) {
-            console.log(err);
-        }
-    }
-
-    private startFadeIn(): void {
-        this.fadeState = 'in';
-        this.fadeProgress = 0;
-        this.lastFadeTime = performance.now();
-    }
-
-    private startFadeOut(): void {
-        this.fadeState = 'out';
-        this.fadeProgress = 0;
-        this.lastFadeTime = performance.now();
-    }
-
-    private updateFade(internalTime: number): void {
-        if(this.fadeState === 'none' || !this.resetMesh || !this.resetMat) return;
-    
-        this.fadeProgress += internalTime * 1000;
-        const normalizedProgress = Math.min(this.fadeProgress / this.fadeDuration, 1);
-    
-        if(this.fadeState === 'in') {
-            this.resetMat.opacity = THREE.MathUtils.lerp(0, 1.0, normalizedProgress);
-    
-            if(normalizedProgress >= 1) {
-                setTimeout(() => this.startFadeOut(), this.showDuration);
-            }
-        } else if(this.fadeState === 'out') {
-            this.resetMat.opacity = THREE.MathUtils.lerp(1.0, 0, normalizedProgress);
-    
-            if(normalizedProgress >= 1) {
-                this.fadeState = 'none';
-                this.clearMessage();
+            try {
+                this.hasMessageShown = true;
+                this.startFadeIn();
+            } catch(err) {
+                console.log(err);
             }
         }
-    }
-    
-    private clearMessage(): void {
-        if(this.resetMesh) {
-            this.resetMesh.geometry.dispose();
-            if(this.resetMesh.material instanceof THREE.Material) this.resetMesh.material.dispose();
+
+        private startFadeIn(): void {
+            this.fadeState = 'in';
+            this.fadeProgress = 0;
+            this.lastFadeTime = performance.now();
         }
-    }
 
-    private async resetText(): Promise<THREE.Mesh> {
-        try {
-            const size = {
-                s: 0.15,
-                d: 0
+        private startFadeOut(): void {
+            this.fadeState = 'out';
+            this.fadeProgress = 0;
+            this.lastFadeTime = performance.now();
+        }
+
+        private updateFade(internalTime: number): void {
+            if(this.fadeState === 'none' || !this.resetMesh || !this.resetMat) return;
+        
+            this.fadeProgress += internalTime * 1000;
+            const normalizedProgress = Math.min(this.fadeProgress / this.fadeDuration, 1);
+        
+            if(this.fadeState === 'in') {
+                this.resetMat.opacity = THREE.MathUtils.lerp(0, 0.6, normalizedProgress);
+        
+                if(normalizedProgress >= 1) {
+                    setTimeout(() => this.startFadeOut(), this.showDuration);
+                }
+            } else if(this.fadeState === 'out') {
+                this.resetMat.opacity = THREE.MathUtils.lerp(0.6, 0, normalizedProgress);
+        
+                if(normalizedProgress >= 1) {
+                    this.fadeState = 'none';
+                    this.clearMessage();
+                }
             }
-
-            const pos = {
-                x: 0,
-                y: -0.6,
-                z: -2
+        }
+        
+        private clearMessage(): void {
+            if(this.resetMesh) {
+                this.resetMesh.geometry.dispose();
+                if(this.resetMesh.material instanceof THREE.Material) this.resetMesh.material.dispose();
             }
+        }
 
-            const text = '"ESC" to restart...';
+        private async resetText(): Promise<THREE.Mesh> {
+            try {
+                const size = {
+                    s: 0.15,
+                    d: 0
+                }
 
-            const geometry = new TextGeometry(text, {
-                font: this.data,
-                size: size.s,
-                depth: size.d,
-                bevelEnabled: false
-            });
+                const pos = {
+                    x: 0,
+                    y: -0.65,
+                    z: -2
+                }
 
-            geometry.center();
+                const text = '"ESC" to restart...';
 
-            if(!this.resetMat) {
-                this.resetMat = new THREE.MeshBasicMaterial({ 
-                    color: this.colors.r_day,
-                    transparent: true,
-                    opacity: 0.0
+                const geometry = new TextGeometry(text, {
+                    font: this.data,
+                    size: size.s,
+                    depth: size.d,
+                    bevelEnabled: false
                 });
+
+                geometry.center();
+
+                if(!this.resetMat) {
+                    this.resetMat = new THREE.MeshBasicMaterial({ 
+                        color: this.colors.r_day,
+                        transparent: true,
+                        opacity: 0.0
+                    });
+                }
+
+                this.resetMesh = new THREE.Mesh(geometry, this.resetMat);
+                this.resetMesh.position.x = pos.x;
+                this.resetMesh.position.y = pos.y;
+                this.resetMesh.position.z = pos.z;
+
+                return this.resetMesh;
+            } catch(err) {
+                console.log(err);
+                throw err;
             }
-
-            this.resetMesh = new THREE.Mesh(geometry, this.resetMat);
-            this.resetMesh.position.x = pos.x;
-            this.resetMesh.position.y = pos.y;
-            this.resetMesh.position.z = pos.z;
-
-            return this.resetMesh;
-        } catch(err) {
-            console.log(err);
-            throw err;
         }
-    }
+
+        public async resetGame(): Promise<void> {
+            this.camera.camera.remove(this.group);
+            this.group.removeFromParent();
+            this.group.clear();
+
+            this.tick.resetState(this.initialGameState.tick);
+            this.time.resetState(this.initialGameState.time);
+            this.score.resetState(this.initialGameState.score);
+        } 
+    //
 
     //Main
     private async createScreenGameOver(): Promise<void> {
@@ -320,7 +340,6 @@ export class ScreenGameOver {
         const now = performance.now();
         const internalTime = this.lastTime ? Math.min((now - this.lastTime) / 1000, 0.1) : 0;
         this.lastTime = now;
-        //console.log(this.lastTime)
 
         const timeFactor = this.time.getTimeFactor();
 

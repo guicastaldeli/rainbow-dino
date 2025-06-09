@@ -39,6 +39,11 @@ export class Time {
     getTotalTime() {
         return this.currentTime;
     }
+    resetState(state) {
+        var _a, _b;
+        this.currentTime = (_a = state === null || state === void 0 ? void 0 : state.currentTime) !== null && _a !== void 0 ? _a : 12.0;
+        this.scrollSpeed = (_b = state === null || state === void 0 ? void 0 : state.scrollSpeed) !== null && _b !== void 0 ? _b : 1.0;
+    }
     updateSpeed() {
         const updScrollSpeed = Math.min(this.scrollSpeed + this.initSpeed, this.finalSpeed);
         if (this.tick.getTimeScale() > 0)

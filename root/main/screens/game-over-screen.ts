@@ -271,6 +271,15 @@ export class ScreenGameOver {
         }
 
         public async resetGame(): Promise<void> {
+            if(this.messageInterval) {
+                clearInterval(this.messageInterval);
+                this.messageInterval = undefined;
+            }
+
+            this.fadeState = 'none';
+            this.fadeProgress = 0;
+            this.hasMessageShown = false;
+            
             this.camera.camera.remove(this.group);
             this.group.clear();
 

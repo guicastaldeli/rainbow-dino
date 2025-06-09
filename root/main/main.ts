@@ -109,6 +109,8 @@ const tick = new Tick();
             window.addEventListener('keydown', async (e) => {
                 if(e.key === 'Escape') {
                     if(tick['gameOver']) {
+                        e.preventDefault();
+
                         await screenGameOver.resetGame();
                         saveState();
                     }

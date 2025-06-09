@@ -4,6 +4,7 @@ export class Tick {
         this.paused = false;
         this.gameOverCalls = [];
         this.gameOver = false;
+        this.resetedState = false;
     }
     setTimeScale(scale) {
         if (this.gameOver)
@@ -20,20 +21,21 @@ export class Tick {
         this.gameOverCalls.push(callback);
     }
     setGameOver() {
-        if (!this.gameOver) {
-            this.gameOver = true;
-            this.timeScale = 0;
-            this.gameOverCalls.forEach(cb => cb());
-        }
-        return this.gameOver;
+        if (this.gameOver || this.resetedState)
+            return false;
+        this.gameOver = true;
+        this.timeScale = 0;
+        this.gameOverCalls.forEach(cb => cb());
+        return true;
     }
     getScaledDelta(deltaTime) {
         return deltaTime * this.getTimeScale();
     }
     resetState(state) {
         var _a, _b;
+        this.resetedState = true;
         this.paused = (_a = state === null || state === void 0 ? void 0 : state.paused) !== null && _a !== void 0 ? _a : false;
         this.gameOver = (_b = state === null || state === void 0 ? void 0 : state.gameOver) !== null && _b !== void 0 ? _b : false;
-        this.getScaledDelta(this.timeScale);
+        this.timeScale = 1.0;
     }
 }

@@ -97,6 +97,7 @@ function resetGame() {
     window.addEventListener('keydown', (e) => __awaiter(this, void 0, void 0, function* () {
         if (e.key === 'Escape') {
             if (tick['gameOver']) {
+                e.preventDefault();
                 yield screenGameOver.resetGame();
                 saveState();
             }

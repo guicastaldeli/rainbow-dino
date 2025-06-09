@@ -5,6 +5,7 @@ export class Tick {
     private paused: boolean = false;
     private gameOverCalls: (() => void)[] = [];
     private gameOver: boolean = false;
+    private resetedState: boolean = false;
 
     public setTimeScale(scale: number): void {
         if(this.gameOver) return;
@@ -24,13 +25,13 @@ export class Tick {
     }
     
     public setGameOver(): boolean {
-        if(!this.gameOver) {
-            this.gameOver = true;
-            this.timeScale = 0;
-            this.gameOverCalls.forEach(cb => cb());
-        }
+        if(this.gameOver || this.resetedState) return false;
+
+        this.gameOver = true;
+        this.timeScale = 0;
+        this.gameOverCalls.forEach(cb => cb());
         
-        return this.gameOver;
+        return true;
     }
 
     public getScaledDelta(deltaTime: number): number {
@@ -38,8 +39,9 @@ export class Tick {
     }
 
     public resetState(state?: Partial<GameState['tick']>): void {
+        this.resetedState = true;
         this.paused = state?.paused ?? false;
         this.gameOver = state?.gameOver ?? false;
-        this.getScaledDelta(this.timeScale);
+        this.timeScale = 1.0;
     }
 }

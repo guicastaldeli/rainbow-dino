@@ -218,6 +218,13 @@ export class ScreenGameOver {
     }
     resetGame() {
         return __awaiter(this, void 0, void 0, function* () {
+            if (this.messageInterval) {
+                clearInterval(this.messageInterval);
+                this.messageInterval = undefined;
+            }
+            this.fadeState = 'none';
+            this.fadeProgress = 0;
+            this.hasMessageShown = false;
             this.camera.camera.remove(this.group);
             this.group.clear();
             this.tick.resetState(this.initialGameState.tick);

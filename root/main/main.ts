@@ -8,6 +8,8 @@ import { Score } from './score.js';
 import { Display } from './display.js';
 import { Skybox } from './skybox.js';
 
+import { ScreenGameOver } from './screens/game-over-screen.js';
+
 const canvas = <HTMLCanvasElement>(document.getElementById('game--container'));
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -76,6 +78,14 @@ function resizeRenderer() {
 
 resizeRenderer();
 
+//Screens
+const screenGameOver = new ScreenGameOver(timeCycle, tick, score, camera);
+
+tick.onGameOver(async () => {
+    score.getFinalScore();
+    await screenGameOver.ready();
+});
+
 //Pause
 window.addEventListener('keydown', (e) => {
     if(e.key === 'Escape') {
@@ -101,6 +111,8 @@ window.addEventListener('keydown', (e) => {
         
         skybox.update(scaledDelta);
         renderDisplay.update(scaledDelta);
+
+        screenGameOver.update(scaledDelta);
         
         camera.update(scaledDelta);
         renderer.render(scene, camera.camera!);

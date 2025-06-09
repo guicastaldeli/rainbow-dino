@@ -93,6 +93,17 @@ export class Score {
             throw new Error('mesh err');
         return this.mesh;
     }
+    getCurrentScore() {
+        return Math.floor(this.value);
+    }
+    saveScore() {
+        this.finalScore = this.getCurrentScore();
+        localStorage.setItem('final-score', this.finalScore.toString());
+        return this.finalScore;
+    }
+    getFinalScore() {
+        return this.saveScore();
+    }
     activateBlink() {
         if (this.isBlinking) {
             this.material.uniforms.shouldBlink.value = this.isBlinking;

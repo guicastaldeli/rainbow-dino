@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import * as THREE from 'three';
 import { Tick } from './tick.js';
 import { Time } from './time.js';
@@ -6,6 +15,7 @@ import { Lightning } from './lightning.js';
 import { Score } from './score.js';
 import { Display } from './display.js';
 import { Skybox } from './skybox.js';
+import { ScreenGameOver } from './screens/game-over-screen.js';
 const canvas = (document.getElementById('game--container'));
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -59,6 +69,12 @@ function resizeRenderer() {
     window.addEventListener('resize', resizeRenderer);
 }
 resizeRenderer();
+//Screens
+const screenGameOver = new ScreenGameOver(timeCycle, tick, score, camera);
+tick.onGameOver(() => __awaiter(void 0, void 0, void 0, function* () {
+    score.getFinalScore();
+    yield screenGameOver.ready();
+}));
 //Pause
 window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -78,6 +94,7 @@ function render() {
     score.update(scaledDelta);
     skybox.update(scaledDelta);
     renderDisplay.update(scaledDelta);
+    screenGameOver.update(scaledDelta);
     camera.update(scaledDelta);
     renderer.render(scene, camera.camera);
     requestAnimationFrame(render);

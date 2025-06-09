@@ -5,9 +5,13 @@ import { FontLoader } from 'three/addons/Addons.js';
 import { Tick } from './tick';
 import { Time } from './time';
 
+import { ScreenGameOver } from './screens/game-over-screen';
+
 export class Score {
     private tick: Tick;
     private timeCycle: Time;
+
+    private finalScore!: number;
 
     private loader: FontLoader;
     private mesh!: THREE.Mesh;
@@ -110,6 +114,20 @@ export class Score {
     public getScore(): THREE.Mesh {
         if(!this.mesh) throw new Error('mesh err');
         return this.mesh;
+    }
+
+    private getCurrentScore(): number {
+        return Math.floor(this.value);
+    }
+
+    private saveScore(): number {
+        this.finalScore = this.getCurrentScore();
+        localStorage.setItem('final-score', this.finalScore.toString());
+        return this.finalScore;
+    }
+
+    public getFinalScore(): number {
+        return this.saveScore();
     }
 
     private activateBlink(): void {

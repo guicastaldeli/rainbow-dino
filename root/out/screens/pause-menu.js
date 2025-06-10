@@ -20,6 +20,7 @@ export class ScreenPauseMenu {
         this.fadeDuration = 500;
         this.showDuration = 800;
         this.lastFadeTime = 0;
+        this.initInterval = 0;
         this.intervalDuration = 1500;
         this.colors = {
             //Day
@@ -51,9 +52,10 @@ export class ScreenPauseMenu {
     }
     showMessage() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.state.current === 'paused' || this.fadeState !== 'none')
+            if (this.fadeState !== 'none')
                 return;
             try {
+                this.camera.camera.add(this.mesh);
                 this.hasMessageShown = true;
                 this.startFadeIn();
             }
@@ -62,19 +64,21 @@ export class ScreenPauseMenu {
             }
         });
     }
-    startFadeIn() {
-        this.fadeState = 'in';
-        this.fadeProgress = 0;
-        this.lastFadeTime = performance.now();
-    }
     hideMessage() {
         if (this.messageInterval) {
             clearInterval(this.messageInterval);
             this.messageInterval = undefined;
         }
-        this.clearMessage();
+        if (this.material)
+            this.material.visible = false;
         this.fadeState = 'none';
         this.fadeProgress = 0;
+        this.hasMessageShown = false;
+    }
+    startFadeIn() {
+        this.fadeState = 'in';
+        this.fadeProgress = 0;
+        this.lastFadeTime = performance.now();
     }
     startFadeOut() {
         this.fadeState = 'out';
@@ -131,14 +135,14 @@ export class ScreenPauseMenu {
                     this.material = new THREE.MeshBasicMaterial({
                         color: this.colors.r_day,
                         transparent: true,
-                        opacity: 0.0
+                        opacity: 0.0,
+                        visible: true
                     });
                 }
                 this.mesh = new THREE.Mesh(geometry, this.material);
                 this.mesh.position.x = pos.x;
                 this.mesh.position.y = pos.y;
                 this.mesh.position.z = pos.z;
-                this.camera.camera.add(this.mesh);
                 return this.mesh;
             }
             catch (err) {
@@ -148,7 +152,7 @@ export class ScreenPauseMenu {
         });
     }
     update(deltaTime) {
-        if (this.state.current === 'paused' || !this.material || !this.time)
+        if (this.state.current !== 'paused' || !this.material || !this.time)
             return;
         const now = performance.now();
         const internalTime = this.lastTime ? Math.min((now - this.lastTime) / 1000, 0.1) : 0;
@@ -162,9 +166,12 @@ export class ScreenPauseMenu {
     }
     ready() {
         return __awaiter(this, void 0, void 0, function* () {
+            if (this.messageInterval)
+                clearInterval(this.messageInterval);
+            if (!this.mesh)
+                yield this.pausedText();
             yield this.showMessage();
-            this.messageInterval = setInterval(() => this.showMessage(), this.intervalDuration);
-            return Promise.resolve();
+            this.messageInterval = setInterval(() => this.showMessage(), this.initInterval);
         });
     }
 }

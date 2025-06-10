@@ -280,7 +280,6 @@ export class Display {
 
     public async ready(): Promise<THREE.Group> {
         const group = await this._mainGroup();
-        this.state.current = 'running';
         return group;
     }
 

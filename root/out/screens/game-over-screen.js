@@ -221,13 +221,6 @@ export class ScreenGameOver {
             }
         });
     }
-    handleReset() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.state.current === 'game-over') {
-                window.location.reload();
-            }
-        });
-    }
     //
     //Main
     createScreenGameOver() {

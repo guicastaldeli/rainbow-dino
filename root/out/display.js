@@ -210,7 +210,6 @@ export class Display {
     ready() {
         return __awaiter(this, void 0, void 0, function* () {
             const group = yield this._mainGroup();
-            this.state.current = 'running';
             return group;
         });
     }

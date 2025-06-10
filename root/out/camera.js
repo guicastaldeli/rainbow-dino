@@ -107,7 +107,7 @@ export class Camera {
             if (!this.data)
                 return;
             const size = {
-                s: 0.1,
+                s: 0.08,
                 d: 0
             };
             const pos = {

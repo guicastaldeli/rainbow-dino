@@ -31,39 +31,25 @@ renderer.localClippingEnabled = true;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setSize(window.innerWidth, window.innerHeight);
+//
 export const scene = new THREE.Scene();
-let initialSceneState;
-function saveInitialState() {
-    initialSceneState = scene.clone();
-}
-saveInitialState();
 const tick = new Tick();
+const gameState = tick.getState();
 let lastTime = 0;
 //Game State
-let gameState;
+tick.setState('loading');
 let assetsLoaded = {
     skybox: false,
     score: false,
     display: false
 };
 function checkLoadingComplete() {
-    if (Object.values(assetsLoaded).every(loaded => loaded)) {
-        gameState = {
-            current: 'running',
-            prev: 'loading',
-            tick: { timeScale: 0.0 }
-        };
+    if (Object.values(assetsLoaded)
+        .every(loaded => loaded)) {
+        tick.run();
     }
 }
 checkLoadingComplete();
-function currentState() {
-    gameState = {
-        current: 'loading',
-        prev: null,
-        tick: { timeScale: 0.0 }
-    };
-}
-currentState();
 //
 //Render
 //Time and Skybox
@@ -109,14 +95,17 @@ const screenPause = new ScreenPauseMenu(gameState, timeCycle, tick, camera);
 function pauseGame() {
     return __awaiter(this, void 0, void 0, function* () {
         window.addEventListener('keydown', (e) => __awaiter(this, void 0, void 0, function* () {
-            if (e.key === 'Escape' && gameState.current === 'running') {
-                tick.togglePause();
-                yield screenPause.ready();
+            if (e.key === 'Escape') {
+                if (gameState.current === 'running' || gameState.current == 'paused') {
+                    tick.togglePause();
+                    yield screenPause.ready();
+                }
+                tick.setScreenPause(screenPause);
             }
         }));
     });
 }
-setTimeout(() => pauseGame(), 500);
+setTimeout(() => pauseGame(), 1000);
 //
 //Game Over
 const screenGameOver = new ScreenGameOver(gameState, timeCycle, tick, score, camera, player);
@@ -125,15 +114,17 @@ tick.onGameOver(() => __awaiter(void 0, void 0, void 0, function* () {
     yield screenGameOver.ready();
 }));
 export function resetGame() {
-    window.addEventListener('keydown', (e) => __awaiter(this, void 0, void 0, function* () {
-        if (e.key === 'Escape') {
-            if (gameState.current === 'game-over') {
-                yield screenGameOver.handleReset();
-            }
-        }
-    }));
+    if (gameState.current === 'game-over') {
+        window.location.reload();
+    }
 }
-resetGame();
+window.addEventListener('keydown', (e) => __awaiter(void 0, void 0, void 0, function* () {
+    if (e.key === 'Escape') {
+        if (gameState.current === 'game-over') {
+            resetGame();
+        }
+    }
+}));
 //
 //
 function resizeRenderer() {
@@ -150,8 +141,7 @@ function render() {
     const deltaTime = lastTime ? Math.min((now - lastTime) / 1000, 0.1) : 0;
     lastTime = now;
     const scaledDelta = tick.getScaledDelta(deltaTime);
-    const currentState = tick.getState();
-    if (currentState === 'running') {
+    if (gameState.current === 'running') {
         timeCycle.update(scaledDelta);
         lightning.update(scaledDelta);
         //lightning.updateLightHelper();

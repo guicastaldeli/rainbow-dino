@@ -30,6 +30,7 @@ export class ScreenPauseMenu {
         private fadeDuration: number = 500;
         private showDuration: number = 800;
         private lastFadeTime: number = 0;
+        private initInterval: number = 0;
         private messageInterval?: number | ReturnType<typeof setInterval>;
         private intervalDuration: number = 1500;
     
@@ -74,20 +75,15 @@ export class ScreenPauseMenu {
     }
 
     private async showMessage(): Promise<void> {
-        if(this.state.current === 'paused' || this.fadeState !== 'none') return;
+        if(this.fadeState !== 'none') return;
     
         try {
+            this.camera.camera.add(this.mesh);
             this.hasMessageShown = true;
             this.startFadeIn();
         } catch(err) {
             console.log(err);
         }
-    }
-    
-    private startFadeIn(): void {
-        this.fadeState = 'in';
-        this.fadeProgress = 0;
-        this.lastFadeTime = performance.now();
     }
 
     public hideMessage(): void {
@@ -96,9 +92,16 @@ export class ScreenPauseMenu {
             this.messageInterval = undefined;
         }
 
-        this.clearMessage();
+        if(this.material) this.material.visible = false;
         this.fadeState = 'none';
         this.fadeProgress = 0;
+        this.hasMessageShown = false;
+    }
+    
+    private startFadeIn(): void {
+        this.fadeState = 'in';
+        this.fadeProgress = 0;
+        this.lastFadeTime = performance.now();
     }
     
     private startFadeOut(): void {
@@ -164,7 +167,8 @@ export class ScreenPauseMenu {
                 this.material = new THREE.MeshBasicMaterial({ 
                     color: this.colors.r_day,
                     transparent: true,
-                    opacity: 0.0
+                    opacity: 0.0,
+                    visible: true
                 });
             }
     
@@ -172,8 +176,7 @@ export class ScreenPauseMenu {
             this.mesh.position.x = pos.x;
             this.mesh.position.y = pos.y;
             this.mesh.position.z = pos.z;
-    
-            this.camera.camera.add(this.mesh);
+
             return this.mesh;
         } catch(err) {
             console.log(err);
@@ -183,7 +186,7 @@ export class ScreenPauseMenu {
 
 
     public update(deltaTime: number): void {
-        if(this.state.current === 'paused' || !this.material || !this.time) return;
+        if(this.state.current !== 'paused' || !this.material || !this.time) return;
 
         const now = performance.now();
         const internalTime = this.lastTime ? Math.min((now - this.lastTime) / 1000, 0.1) : 0;
@@ -205,8 +208,9 @@ export class ScreenPauseMenu {
     }
 
     public async ready(): Promise<void> {
+        if(this.messageInterval) clearInterval(this.messageInterval);
+        if(!this.mesh) await this.pausedText();
         await this.showMessage();
-        this.messageInterval = setInterval(() => this.showMessage(), this.intervalDuration);
-        return Promise.resolve();
+        this.messageInterval = setInterval(() => this.showMessage(), this.initInterval);
     }
 }

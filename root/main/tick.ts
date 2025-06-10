@@ -2,24 +2,36 @@ import { GameState } from "./game-state";
 import { ScreenPauseMenu } from "./screens/pause-menu.js";
 
 export class Tick {
+    private state: GameState;
     private timeScale: number = 1.0;
     private gameOverCalls: (() => void)[] = [];
     private pauseCalls: (() => void)[] = [];
     private resumeCalls: (() => void)[] = [];
 
-    private state: GameState = {
-        current: 'running',
-        prev: null,
-        tick: { timeScale: this.timeScale }
+    private screenPause: any;
+
+    constructor() {
+        this.state = {
+            current: 'loading',
+            prev: null,
+            tick: { timeScale: this.timeScale }
+        }
+
+        this.onPause(() => this.screenPause?.ready());
+        this.onResume(() => this.screenPause?.hideMessage());
     }
 
-    private screenPauseMenu?: ScreenPauseMenu;
+    public run() {
+        if(this.state.current === 'loading') {
+            this.state.prev = this.state.current;
+            this.state.current = 'running';
+            this.timeScale = this.timeScale;
+            this.resumeCalls.forEach(cb => cb());
+        }
+    }
 
-    constructor(screenPauseMenu?: ScreenPauseMenu) {
-        this.screenPauseMenu = screenPauseMenu;
-
-        this.onPause(() => this.screenPauseMenu?.ready());
-        this.onResume(() => this.screenPauseMenu?.hideMessage());
+    public setScreenPause(screen: any) {
+        this.screenPause = screen;
     }
 
     public setTimeScale(scale: number): void {
@@ -37,9 +49,8 @@ export class Tick {
 
         if(this.state.current === 'paused') {
             this.resume();
-        } else {
+        } else if(this.state.current === 'running') {
             this.pause();
-            this.screenPauseMenu?.ready();
         }
     }
 
@@ -54,8 +65,8 @@ export class Tick {
     public resume(): void {
         if(this.state.current !== 'paused') return;
 
-        this.state.current = this.state.prev || 'running';
-        this.state.prev = null;
+        this.state.prev = this.state.current;
+        this.state.current = 'running';
         this.resumeCalls.forEach(cb => cb());
     }
 
@@ -86,7 +97,12 @@ export class Tick {
         return deltaTime * this.getTimeScale();
     }
 
-    public getState(): string {
-        return this.state.current;
+    public setState(state: GameState['current']): void {
+        this.state.prev = this.state.current;
+        this.state.current = state;
+    }
+
+    public getState(): GameState {
+        return this.state;
     }
 }

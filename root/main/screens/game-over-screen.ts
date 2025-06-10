@@ -279,12 +279,6 @@ export class ScreenGameOver {
                 throw err;
             }
         }
-
-        public async handleReset(): Promise<void> {
-            if(this.state.current === 'game-over') {
-                window.location.reload();
-            }
-        } 
     //
 
     //Main

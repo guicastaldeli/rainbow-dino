@@ -37,7 +37,7 @@ export class Skybox {
 
             this.skyboxMaterial = new THREE.ShaderMaterial({
                 uniforms: {
-                    timeFactor: { value: 0.0 },
+                    timeFactor: { value: this.timeCycle.getTimeFactor() },
                     resolution: { 
                         value: new THREE.Vector2(window.innerWidth, window.innerHeight) 
                     }
@@ -50,16 +50,16 @@ export class Skybox {
             this.starsMaterial = new THREE.ShaderMaterial({
                 uniforms: {
                     timeScale: { value: this.tick.getTimeScale() },
-                    time: { value: 0 },
-                    timeFactor: { value: 0.0 },
+                    time: { value: 0.0 },
+                    timeFactor: { value: this.timeCycle.getTimeFactor() },
                     size: { value: 0.3 }
                 },
                 vertexShader: starVertexShader,
                 fragmentShader: starFragShader,
                 transparent: true,
                 blending: THREE.AdditiveBlending,
-                depthWrite: false
-            })
+                depthWrite: false,
+            });
 
             const geometry = new THREE.BoxGeometry(110, 110, 110);
             this.mesh = new THREE.Mesh(geometry, this.skyboxMaterial);

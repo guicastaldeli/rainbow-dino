@@ -18,30 +18,25 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 //Renderer
-const renderer = new THREE.WebGLRenderer({ 
-    antialias: true, 
-    canvas: canvas, 
-});
-renderer.autoClear = false;
-renderer.localClippingEnabled = true;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.setSize(window.innerWidth, window.innerHeight);
+    const renderer = new THREE.WebGLRenderer({ 
+        antialias: true, 
+        canvas: canvas, 
+    });
+
+    renderer.autoClear = false;
+    renderer.localClippingEnabled = true;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+//
 
 export const scene = new THREE.Scene();
-let initialSceneState: THREE.Object3D;
-
-function saveInitialState() {
-    initialSceneState = scene.clone();
-}
-
-saveInitialState();
-
 const tick = new Tick();
+const gameState = tick.getState();
 let lastTime = 0;
 
 //Game State
-    let gameState!: GameState;
+    tick.setState('loading');
 
     let assetsLoaded = {
         skybox: false,
@@ -50,26 +45,13 @@ let lastTime = 0;
     }
 
     function checkLoadingComplete() {
-        if(Object.values(assetsLoaded).every(loaded => loaded)) {
-            gameState = {
-                current: 'running',
-                prev: 'loading',
-                tick: { timeScale: 0.0 }
-            }
+        if(Object.values(assetsLoaded)
+            .every(loaded => loaded)) {
+            tick.run();
         }
     }
 
     checkLoadingComplete()
-
-    function currentState() {
-        gameState = {
-            current: 'loading',
-            prev: null,
-            tick: { timeScale: 0.0 }
-        }
-    }
-
-    currentState();
 //
 
 //Render
@@ -132,14 +114,18 @@ let lastTime = 0;
 
         async function pauseGame() {
             window.addEventListener('keydown', async (e) => {
-                if(e.key === 'Escape' && gameState.current === 'running') {
-                    tick.togglePause();
-                    await screenPause.ready();
+                if(e.key === 'Escape') {
+                    if(gameState.current === 'running' || gameState.current == 'paused') {
+                        tick.togglePause();
+                        await screenPause.ready();
+                    }
+
+                    tick.setScreenPause(screenPause);
                 }
             });
         }
 
-        setTimeout(() => pauseGame(), 500);
+        setTimeout(() => pauseGame(), 1000);
     //
     
     //Game Over
@@ -160,16 +146,18 @@ let lastTime = 0;
         });
 
         export function resetGame() {
-            window.addEventListener('keydown', async (e) => {
-                if(e.key === 'Escape') {
-                    if(gameState.current === 'game-over') {
-                        await screenGameOver.handleReset();
-                    }
-                }
-            });
+            if(gameState.current === 'game-over') {
+                window.location.reload();
+            }
         }
 
-        resetGame();
+        window.addEventListener('keydown', async (e) => {
+            if(e.key === 'Escape') {
+                if(gameState.current === 'game-over') {
+                    resetGame();
+                }
+            }
+        });
     //
 //
 
@@ -192,9 +180,8 @@ resizeRenderer();
         lastTime = now;
 
         const scaledDelta = tick.getScaledDelta(deltaTime);
-        const currentState = tick.getState();
 
-        if(currentState === 'running') {
+        if(gameState.current === 'running') {
             timeCycle.update(scaledDelta);
 
             lightning.update(scaledDelta);

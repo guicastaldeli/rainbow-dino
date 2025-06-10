@@ -80,31 +80,31 @@ export class Score {
                 bevelEnabled: false,
             });
 
-            const [vertexShader, fragmentShader] = await Promise.all([
-                this.loadShader('../main/shaders/scoreVertexShader.glsl'),
-                this.loadShader('../main/shaders/scoreFragShader.glsl')
-            ]);
-
-            this.material = new THREE.ShaderMaterial({
-                uniforms: {
-                    time: { value: 0.0 },
-                    timeFactor: { value: 0.0 },
-                    shouldBlink: { value: false }
-                },
-                vertexShader,
-                fragmentShader,
-                side: THREE.DoubleSide
-            });
-
             if(!this.mesh) {
+                const [vertexShader, fragmentShader] = await Promise.all([
+                    this.loadShader('../main/shaders/scoreVertexShader.glsl'),
+                    this.loadShader('../main/shaders/scoreFragShader.glsl')
+                ]);
+
+                this.material = new THREE.ShaderMaterial({
+                    uniforms: {
+                        time: { value: 0.0 },
+                        timeFactor: { value: this.timeCycle.getTimeFactor() },
+                        shouldBlink: { value: false }
+                    },
+                    vertexShader,
+                    fragmentShader,
+                    side: THREE.DoubleSide
+                });
+
                 this.mesh = new THREE.Mesh(geometry, this.material);
-        
+                
                 this.mesh.position.x = this.pos.x;
                 this.mesh.position.y = this.pos.y;
                 this.mesh.position.z = this.pos.z;
             } else {
-                this.mesh.geometry.dispose();
                 this.mesh.geometry = geometry;
+                this.mesh.material = this.material;
             }
         } catch(err) {
             console.log(err);
@@ -132,9 +132,7 @@ export class Score {
     }
 
     private activateBlink(): void {
-        if(this.isBlinking) {
-            this.material.uniforms.shouldBlink.value = this.isBlinking;
-        }
+        this.material.uniforms.shouldBlink.value = this.isBlinking;
     }
     
     private updateValue(): number {
@@ -152,7 +150,8 @@ export class Score {
 
                 setTimeout(() => {
                     this.isBlinking = false;
-                }, 1000);
+                    this.activateBlink();
+                }, 100);
             }
 
             this.value = updValue;

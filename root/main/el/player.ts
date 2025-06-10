@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
+import { GameState } from '../game-state';
 import { Tick } from '../tick';
 import { Time } from '../time';
 import { Lightning } from '../lightning.js';
@@ -55,9 +56,9 @@ export class Player {
     private jumpVelocity = 0;
     private jumpForce = 13.5;
 
-    private collDetector: CollDetector;
+    private collDetector?: CollDetector;
 
-    private obstacles: Obstacle[];
+    private obstacles?: Obstacle[];
 
     private mov: MovState = {
         FORWARD: false,
@@ -82,7 +83,12 @@ export class Player {
         shift: THREE.Texture
     } | null = null;
 
-    constructor(tick: Tick, timeCycle: Time, collDetector: CollDetector, obstacles: Obstacle[]) {
+    constructor(
+        tick: Tick, 
+        timeCycle: Time, 
+        collDetector?: CollDetector, 
+        obstacles?: Obstacle[]
+    ) {
         this.tick = tick;
         this.timeCycle = timeCycle;
 
@@ -191,6 +197,7 @@ export class Player {
             this.frames = await Promise.all(load);
 
             this.mesh = this.frames[0];
+            this.mesh.name = 'player';
             this.mesh.position.x = this.pos.x;
             this.mesh.position.y = this.pos.y;
             this.mesh.position.z = this.pos.z;
@@ -253,6 +260,7 @@ export class Player {
         const updX = this.pos.x + velocity.x * scaledDelta * moveSpeed;
         this.mesh.position.set(updX, this.pos.y, this.pos.z);
         const playerBox = this.getBoundingBox();
+        if(!this.collDetector || !this.obstacles) return;
     
         if(this.collDetector.outDisplayBounds(playerBox)) {
             this.pos.x = prevPos.x;
@@ -381,6 +389,11 @@ export class Player {
         if(!res.ok) throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
         return await res.text();
     }
+
+    public resetState(state?: Partial<GameState['player']>): void {
+        
+    }
+    
 
     public update(deltaTime: number) {        
         if(!this.material) return;

@@ -50,14 +50,9 @@ export class Time {
         return this.currentTime;
     }
 
-    public resetState(state?: Partial<GameState['time']>): void {
-        this.currentTime = state?.currentTime ?? 12.0;
-        this.scrollSpeed = state?.scrollSpeed ?? 1.0;
-    }
-
     public updateSpeed(): number {
         const updScrollSpeed = Math.min(this.scrollSpeed + this.initSpeed, this.finalSpeed);
-        if(this.tick.getTimeScale() > 0) this.scrollSpeed = updScrollSpeed
+        if(this.tick.getTimeScale() > 0) this.scrollSpeed = updScrollSpeed;
         return this.scrollSpeed;
     }
 

@@ -1,13 +1,5 @@
-export interface GameState {
-    time: { currentTime: number; scrollSpeed: number}
-    score: { currentScore: number }
-    tick: { paused: boolean; gameOver: boolean }
-    player?: {
-        pos: { x: number, y: number },
-        isShifted: boolean;
-        isHit: boolean;
-        isGrounded: boolean;
-        jumpSpeed: number;
-        currentFrameIndex: number;
-    }
+export type GameState = {
+    current: 'loading' | 'running' | 'paused' | 'game-over';
+    prev: GameState['current'] | null;
+    tick: { timeScale: number | string }
 }

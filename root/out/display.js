@@ -18,7 +18,7 @@ import { Cactus } from './el/cactus.js';
 import { Crow } from './el/crow.js';
 import { Player } from './el/player.js';
 export class Display {
-    constructor(tick, timeCycle, renderer, scene) {
+    constructor(state, tick, timeCycle, renderer, scene) {
         this.obstacleManager = new ObstacleManager();
         this.size = {
             w: 0.52,
@@ -30,6 +30,7 @@ export class Display {
             y: -3.75,
             z: -3.05
         };
+        this.state = state;
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.renderer = renderer;
@@ -208,7 +209,9 @@ export class Display {
     }
     ready() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this._mainGroup();
+            const group = yield this._mainGroup();
+            this.state.current = 'running';
+            return group;
         });
     }
     //Resize

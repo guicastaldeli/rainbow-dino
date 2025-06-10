@@ -2,33 +2,66 @@ import { GameState } from "./game-state";
 
 export class Tick {
     private timeScale: number = 1.0;
-    private paused: boolean = false;
     private gameOverCalls: (() => void)[] = [];
-    private gameOver: boolean = false;
-    private resetedState: boolean = false;
+    private pauseCalls: (() => void)[] = [];
+    private resumeCalls: (() => void)[] = [];
 
-    public setTimeScale(scale: number): void {
-        if(this.gameOver) return;
-        this.timeScale = Math.max(0, scale);
+    private state: GameState = {
+        current: 'running',
+        prev: null,
+        tick: { timeScale: this.timeScale }
     }
 
-    public getTimeScale(): number {
-        return this.paused ? 0 : this.timeScale;
+    public setTimeScale(scale: number): void {
+        if(this.state.current === 'game-over') return;
+        this.timeScale = Math.max(0, scale);
+        this.state.tick.timeScale = this.timeScale;
+    }
+
+    public getTimeScale(t?: number): number {
+        return this.state.current === 'paused' ? 0.0 : this.timeScale;
     }
 
     public togglePause(): void {
-        this.paused = !this.paused;
+        if(this.state.current === 'game-over') return;
+
+        if(this.state.current === 'paused') {
+            this.resume();
+        } else {
+            this.pause();
+        }
     }
 
-    public onGameOver(callback: () => void) {
-        this.gameOverCalls.push(callback);
+    public pause(): void {
+        if(this.state.current !== 'running') return;
+
+        this.state.prev = this.state.current;
+        this.state.current = 'paused';
+        this.pauseCalls.forEach(cb => cb());
+    }
+
+    public resume(): void {
+        if(this.state.current !== 'paused') return;
+
+        this.state.current = this.state.prev || 'running';
+        this.state.prev = null;
+        this.resumeCalls.forEach(cb => cb());
+    }
+
+    public onPause(cb: () => void): void {
+        this.pauseCalls.push(cb);
+    }
+
+    public onGameOver(cb: () => void) {
+        this.gameOverCalls.push(cb);
     }
     
     public setGameOver(): boolean {
-        if(this.gameOver || this.resetedState) return false;
+        if(this.state.current === 'game-over') return false;
 
-        this.gameOver = true;
-        this.timeScale = 0;
+        this.state.prev = this.state.current;
+        this.state.current = 'game-over';
+        this.timeScale = 0.0;
         this.gameOverCalls.forEach(cb => cb());
         
         return true;
@@ -38,10 +71,7 @@ export class Tick {
         return deltaTime * this.getTimeScale();
     }
 
-    public resetState(state?: Partial<GameState['tick']>): void {
-        this.resetedState = true;
-        this.paused = state?.paused ?? false;
-        this.gameOver = state?.gameOver ?? false;
-        this.timeScale = 1.0;
+    public getState(): string {
+        return this.state.current;
     }
 }

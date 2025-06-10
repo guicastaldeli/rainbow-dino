@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
+import { GameState } from './game-state.js';
 import { Tick } from './tick.js';
 import { Time } from './time.js';
 import { Lightning } from './lightning.js';
@@ -13,6 +14,7 @@ import { Crow } from './el/crow.js';
 import { Player } from './el/player.js';
 
 export class Display {
+    private state: GameState;
     private tick: Tick;
     private timeCycle: Time;
 
@@ -46,7 +48,14 @@ export class Display {
 
     private renderPlayer!: Player;
 
-    constructor(tick: Tick, timeCycle: Time, renderer: THREE.WebGLRenderer, scene: THREE.Scene) {
+    constructor(
+        state: GameState,
+        tick: Tick, 
+        timeCycle: Time, 
+        renderer: THREE.WebGLRenderer, 
+        scene: THREE.Scene
+    ) {
+        this.state = state;
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.renderer = renderer;
@@ -270,7 +279,9 @@ export class Display {
     }
 
     public async ready(): Promise<THREE.Group> {
-        return await this._mainGroup();
+        const group = await this._mainGroup();
+        this.state.current = 'running';
+        return group;
     }
 
     //Resize

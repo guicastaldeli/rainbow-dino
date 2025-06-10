@@ -14,6 +14,7 @@ export class Terrain {
     constructor(tick, timeCycle, display) {
         this.blocks = [];
         this.blockGroup = new THREE.Group();
+        this.initialPos = [];
         this.length = 15;
         this.size = {
             w: 1,

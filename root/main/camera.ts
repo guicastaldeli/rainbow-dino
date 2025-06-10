@@ -3,7 +3,12 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/Addons.js';
 
+import { Tick } from './tick.js';
+import { resetGame } from './main.js';
+
 export class Camera {
+    private tick: Tick;
+
     public camera!: THREE.PerspectiveCamera;
     public controls!: OrbitControls;
 
@@ -22,7 +27,9 @@ export class Camera {
         private lastFadeTime: number = 0;
     //
 
-    constructor(private renderer: THREE.WebGLRenderer) {
+    constructor(tick: Tick, private renderer: THREE.WebGLRenderer) {
+        this.tick = tick;
+
         this.initCamera();
         this.setControls();
 

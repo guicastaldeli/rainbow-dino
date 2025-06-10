@@ -7,22 +7,25 @@ import { Time } from '../time';
 import { Tick } from '../tick';
 import { Score } from '../score';
 import { Camera } from '../camera';
+import { Player } from '../el/player';
 
 export class ScreenGameOver {
-    private initialGameState: GameState;
+    private state: GameState;
     private time: Time;
     private tick: Tick;
-
+    
     private camera: Camera;
     private score: Score;
-    private lastTime: number = 0;
-
-    private group: THREE.Group;
-
+    private player: Player;
+    
     private loader: FontLoader;
     private data?: any;
+    
+    private lastTime: number = 0;
 
     //Material
+        private group: THREE.Group;
+
         private gameOverTextMat!: THREE.MeshBasicMaterial;
         private gameOverScoreMat!: THREE.MeshBasicMaterial;
 
@@ -55,18 +58,25 @@ export class ScreenGameOver {
     //
 
     constructor(
-        initialGameState: GameState, 
+        state: GameState, 
         time: Time, 
         tick: Tick, 
         score: Score, 
-        camera: Camera
+        camera: Camera,
+        player: Player
     ) {
-        this.initialGameState = initialGameState;
+        this.state = {
+            current: 'game-over',
+            prev: null,
+            tick: { timeScale: tick.getTimeScale() }
+        };
+
         this.time = time;
         this.tick = tick;
 
         this.score = score;
         this.camera = camera;
+        this.player = player;
 
         this.group = new THREE.Group();
 
@@ -270,22 +280,10 @@ export class ScreenGameOver {
             }
         }
 
-        public async resetGame(): Promise<void> {
-            if(this.messageInterval) {
-                clearInterval(this.messageInterval);
-                this.messageInterval = undefined;
+        public async handleReset(): Promise<void> {
+            if(this.state.current === 'game-over') {
+                window.location.reload();
             }
-
-            this.fadeState = 'none';
-            this.fadeProgress = 0;
-            this.hasMessageShown = false;
-            
-            this.camera.camera.remove(this.group);
-            this.group.clear();
-
-            this.tick.resetState(this.initialGameState.tick);
-            this.time.resetState(this.initialGameState.time);
-            this.score.resetState(this.initialGameState.score);
         } 
     //
 

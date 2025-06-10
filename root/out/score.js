@@ -135,10 +135,6 @@ export class Score {
             return res.text();
         });
     }
-    resetState(state) {
-        var _a;
-        this.value = (_a = state === null || state === void 0 ? void 0 : state.currentScore) !== null && _a !== void 0 ? _a : 0;
-    }
     update(deltaTime) {
         if (!this.mesh || !this.data)
             return;

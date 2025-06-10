@@ -135,6 +135,7 @@ export class Player {
                 });
                 this.frames = yield Promise.all(load);
                 this.mesh = this.frames[0];
+                this.mesh.name = 'player';
                 this.mesh.position.x = this.pos.x;
                 this.mesh.position.y = this.pos.y;
                 this.mesh.position.z = this.pos.z;
@@ -191,6 +192,8 @@ export class Player {
         const updX = this.pos.x + velocity.x * scaledDelta * moveSpeed;
         this.mesh.position.set(updX, this.pos.y, this.pos.z);
         const playerBox = this.getBoundingBox();
+        if (!this.collDetector || !this.obstacles)
+            return;
         if (this.collDetector.outDisplayBounds(playerBox)) {
             this.pos.x = prevPos.x;
             velocity.x = 0;
@@ -314,6 +317,8 @@ export class Player {
                 throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
             return yield res.text();
         });
+    }
+    resetState(state) {
     }
     update(deltaTime) {
         if (!this.material)

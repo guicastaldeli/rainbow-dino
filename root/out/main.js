@@ -15,6 +15,7 @@ import { Lightning } from './lightning.js';
 import { Score } from './score.js';
 import { Display } from './display.js';
 import { Skybox } from './skybox.js';
+import { Player } from './el/player.js';
 import { ScreenGameOver } from './screens/game-over-screen.js';
 const canvas = (document.getElementById('game--container'));
 canvas.width = window.innerWidth;
@@ -30,76 +31,100 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setSize(window.innerWidth, window.innerHeight);
 export const scene = new THREE.Scene();
+let initialSceneState;
+function saveInitialState() {
+    initialSceneState = scene.clone();
+}
+saveInitialState();
 const tick = new Tick();
+let lastTime = 0;
+//Game State
+let gameState;
+function checkLoadingComplete() {
+    if (Object.values(assetsLoaded).every(loaded => loaded)) {
+        gameState = {
+            current: 'running',
+            prev: 'loading',
+            tick: { timeScale: tick.getState() }
+        };
+    }
+}
+function currentState() {
+    gameState = {
+        current: 'loading',
+        prev: null,
+        tick: { timeScale: 0.0 }
+    };
+}
+currentState();
+//
 //Render
+let assetsLoaded = {
+    skybox: false,
+    score: false,
+    display: false
+};
 //Time and Skybox
 const timeCycle = new Time(tick);
 const skybox = new Skybox(tick, timeCycle);
 skybox.ready().then(() => {
     scene.add(skybox.mesh);
+    assetsLoaded.skybox = true;
+    checkLoadingComplete();
 }).catch(err => {
     console.error(err);
 });
 //Camera
-const camera = new Camera(renderer);
+const camera = new Camera(tick, renderer);
 scene.add(camera.camera);
 //Score
 const score = new Score(tick, timeCycle);
 score.ready().then(() => {
     camera.camera.add(score.getScore());
+    assetsLoaded.score = true;
+    checkLoadingComplete();
 }).catch(err => {
     console.error(err);
 });
 //Main Display
-const renderDisplay = new Display(tick, timeCycle, renderer, scene);
+const renderDisplay = new Display(gameState, tick, timeCycle, renderer, scene);
 renderDisplay.ready().then(() => {
     scene.add(renderDisplay.display);
+    assetsLoaded.display = true;
+    checkLoadingComplete();
 });
+//Player Ref
+const player = new Player(tick, timeCycle);
 //
 //Lightning
 const lightning = new Lightning(tick, timeCycle);
 const lights = lightning.addLights();
 lights.forEach(l => scene.add(l));
 //
-//Game State
-let gameState;
-function saveState() {
-    gameState = {
-        time: {
-            currentTime: timeCycle.getTotalTime(),
-            scrollSpeed: timeCycle['scrollSpeed']
-        },
-        score: {
-            currentScore: score.getCurrentScore()
-        },
-        tick: {
-            paused: tick['paused'],
-            gameOver: tick['gameOver']
-        }
-    };
-}
-saveState();
-//
 //Screens
 //Pause
-window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        tick.togglePause();
-    }
-});
+function pauseGame() {
+    return __awaiter(this, void 0, void 0, function* () {
+        window.addEventListener('keydown', (e) => __awaiter(this, void 0, void 0, function* () {
+            if (e.key === 'Escape' && gameState.current === 'running') {
+                tick.togglePause();
+            }
+        }));
+    });
+}
+pauseGame();
+//
 //Game Over
-const screenGameOver = new ScreenGameOver(gameState, timeCycle, tick, score, camera);
+const screenGameOver = new ScreenGameOver(gameState, timeCycle, tick, score, camera, player);
 tick.onGameOver(() => __awaiter(void 0, void 0, void 0, function* () {
     score.getFinalScore();
     yield screenGameOver.ready();
 }));
-function resetGame() {
+export function resetGame() {
     window.addEventListener('keydown', (e) => __awaiter(this, void 0, void 0, function* () {
         if (e.key === 'Escape') {
-            if (tick['gameOver']) {
-                e.preventDefault();
-                yield screenGameOver.resetGame();
-                saveState();
+            if (gameState.current === 'game-over') {
+                yield screenGameOver.handleReset();
             }
         }
     }));
@@ -116,22 +141,25 @@ function resizeRenderer() {
 }
 resizeRenderer();
 //Main Render
-let lastTime = 0;
 function render() {
     const now = performance.now();
     const deltaTime = lastTime ? Math.min((now - lastTime) / 1000, 0.1) : 0;
     lastTime = now;
     const scaledDelta = tick.getScaledDelta(deltaTime);
-    timeCycle.update(scaledDelta);
-    lightning.update(scaledDelta);
-    lightning.updateLightHelper();
-    score.update(scaledDelta);
-    skybox.update(scaledDelta);
-    renderDisplay.update(scaledDelta);
+    const currentState = tick.getState();
+    if (currentState === 'running') {
+        timeCycle.update(scaledDelta);
+        lightning.update(scaledDelta);
+        //lightning.updateLightHelper();
+        score.update(scaledDelta);
+        skybox.update(scaledDelta);
+        renderDisplay.update(scaledDelta);
+    }
     screenGameOver.update(scaledDelta);
     camera.update(scaledDelta);
     renderer.render(scene, camera.camera);
     requestAnimationFrame(render);
+    console.log(currentState);
 }
 function init() {
     resizeRenderer();

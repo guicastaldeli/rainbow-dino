@@ -5,9 +5,6 @@ import { FontLoader } from 'three/addons/Addons.js';
 import { Tick } from './tick';
 import { Time } from './time';
 
-import { ScreenGameOver } from './screens/game-over-screen';
-import { GameState } from './game-state';
-
 export class Score {
     private tick: Tick;
     private timeCycle: Time;
@@ -165,10 +162,6 @@ export class Score {
         const res = await fetch(url);
         if(!res.ok) throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
         return res.text();
-    }
-
-    public resetState(state?: Partial<GameState['score']>): void {
-        this.value = state?.currentScore ?? 0;
     }
 
     public update(deltaTime: number): void {

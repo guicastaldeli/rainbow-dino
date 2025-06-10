@@ -13,7 +13,7 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/Addons.js';
 export class Camera {
     //
-    constructor(renderer) {
+    constructor(tick, renderer) {
         this.renderer = renderer;
         this.hasMessageShown = false;
         this.fadeState = 'none';
@@ -46,6 +46,7 @@ export class Camera {
             minZ: -1,
             maxZ: 2
         };
+        this.tick = tick;
         this.initCamera();
         this.setControls();
         this.loader = new FontLoader();

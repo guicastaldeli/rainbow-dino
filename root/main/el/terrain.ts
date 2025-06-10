@@ -27,6 +27,7 @@ export class Terrain {
     
     private blocks: THREE.Mesh[] = [];
     private blockGroup = new THREE.Group();
+    private initialPos: THREE.Vector3[] = [];
     private length = 15;
 
     size = {

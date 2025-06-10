@@ -12,7 +12,7 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/Addons.js';
 export class ScreenGameOver {
     //
-    constructor(initialGameState, time, tick, score, camera) {
+    constructor(state, time, tick, score, camera, player) {
         this.lastTime = 0;
         this.hasMessageShown = false;
         this.fadeState = 'none';
@@ -32,11 +32,16 @@ export class ScreenGameOver {
             s_night: new THREE.Color('rgb(140, 140, 140)'),
             r_night: new THREE.Color('rgb(122, 122, 122)'),
         };
-        this.initialGameState = initialGameState;
+        this.state = {
+            current: 'game-over',
+            prev: null,
+            tick: { timeScale: tick.getTimeScale() }
+        };
         this.time = time;
         this.tick = tick;
         this.score = score;
         this.camera = camera;
+        this.player = player;
         this.group = new THREE.Group();
         this.loader = new FontLoader();
         this.loadFont();
@@ -216,20 +221,11 @@ export class ScreenGameOver {
             }
         });
     }
-    resetGame() {
+    handleReset() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.messageInterval) {
-                clearInterval(this.messageInterval);
-                this.messageInterval = undefined;
+            if (this.state.current === 'game-over') {
+                window.location.reload();
             }
-            this.fadeState = 'none';
-            this.fadeProgress = 0;
-            this.hasMessageShown = false;
-            this.camera.camera.remove(this.group);
-            this.group.clear();
-            this.tick.resetState(this.initialGameState.tick);
-            this.time.resetState(this.initialGameState.time);
-            this.score.resetState(this.initialGameState.score);
         });
     }
     //

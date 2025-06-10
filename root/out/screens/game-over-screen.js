@@ -157,6 +157,8 @@ export class ScreenGameOver {
         this.lastFadeTime = performance.now();
     }
     hideMessage() {
+        this.score.hideScore(true);
+        this.camera.hideMessage(true);
         if (this.messageInterval) {
             clearInterval(this.messageInterval);
             this.messageInterval = undefined;
@@ -331,6 +333,8 @@ export class ScreenGameOver {
     }
     ready() {
         return __awaiter(this, void 0, void 0, function* () {
+            this.score.hideScore(false);
+            this.camera.hideMessage(false);
             return this.createScreenGameOver();
         });
     }

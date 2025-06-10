@@ -133,6 +133,10 @@ export class Camera {
             }
         }
 
+        public hideMessage(visible: boolean): void {
+            if(this.mesh) this.mesh.visible = visible;
+        }
+
         private async createMessage(): Promise<void> {
             if(!this.data) return;
 

@@ -207,6 +207,9 @@ export class ScreenGameOver {
         }
 
         public hideMessage(): void {
+            this.score.hideScore(true);
+            this.camera.hideMessage(true);
+
             if(this.messageInterval) {
                 clearInterval(this.messageInterval);
                 this.messageInterval = undefined;
@@ -415,6 +418,9 @@ export class ScreenGameOver {
     }
 
     public async ready(): Promise<void> {
+        this.score.hideScore(false);
+        this.camera.hideMessage(false);
+        
         return this.createScreenGameOver();
     }
 }

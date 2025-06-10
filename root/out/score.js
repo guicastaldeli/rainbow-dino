@@ -116,6 +116,10 @@ export class Score {
             return res.text();
         });
     }
+    hideScore(visible) {
+        if (this.mesh)
+            this.mesh.visible = visible;
+    }
     resetState() {
         return __awaiter(this, void 0, void 0, function* () {
             this.value = 0.0;

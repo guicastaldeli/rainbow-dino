@@ -141,6 +141,10 @@ export class Score {
         return res.text();
     }
 
+    public hideScore(visible: boolean): void {
+        if(this.mesh) this.mesh.visible = visible;
+    }
+
     public async resetState(): Promise<void> {
         this.value = 0.0;
         this.finalScore = 0.0;

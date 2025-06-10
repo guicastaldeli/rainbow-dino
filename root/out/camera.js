@@ -102,6 +102,10 @@ export class Camera {
             }
         });
     }
+    hideMessage(visible) {
+        if (this.mesh)
+            this.mesh.visible = visible;
+    }
     createMessage() {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.data)

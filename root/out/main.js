@@ -40,15 +40,21 @@ const tick = new Tick();
 let lastTime = 0;
 //Game State
 let gameState;
+let assetsLoaded = {
+    skybox: false,
+    score: false,
+    display: false
+};
 function checkLoadingComplete() {
     if (Object.values(assetsLoaded).every(loaded => loaded)) {
         gameState = {
             current: 'running',
             prev: 'loading',
-            tick: { timeScale: tick.getState() }
+            tick: { timeScale: 0.0 }
         };
     }
 }
+checkLoadingComplete();
 function currentState() {
     gameState = {
         current: 'loading',
@@ -59,11 +65,6 @@ function currentState() {
 currentState();
 //
 //Render
-let assetsLoaded = {
-    skybox: false,
-    score: false,
-    display: false
-};
 //Time and Skybox
 const timeCycle = new Time(tick);
 const skybox = new Skybox(tick, timeCycle);
@@ -112,7 +113,7 @@ function pauseGame() {
         }));
     });
 }
-pauseGame();
+setTimeout(() => pauseGame(), 500);
 //
 //Game Over
 const screenGameOver = new ScreenGameOver(gameState, timeCycle, tick, score, camera, player);
@@ -159,7 +160,6 @@ function render() {
     camera.update(scaledDelta);
     renderer.render(scene, camera.camera);
     requestAnimationFrame(render);
-    console.log(currentState);
 }
 function init() {
     resizeRenderer();

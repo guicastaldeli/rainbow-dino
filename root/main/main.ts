@@ -42,15 +42,23 @@ let lastTime = 0;
 //Game State
     let gameState!: GameState;
 
+    let assetsLoaded = {
+        skybox: false,
+        score: false,
+        display: false
+    }
+
     function checkLoadingComplete() {
         if(Object.values(assetsLoaded).every(loaded => loaded)) {
             gameState = {
                 current: 'running',
                 prev: 'loading',
-                tick: { timeScale: tick.getState() }
+                tick: { timeScale: 0.0 }
             }
         }
     }
+
+    checkLoadingComplete()
 
     function currentState() {
         gameState = {
@@ -64,12 +72,6 @@ let lastTime = 0;
 //
 
 //Render
-    let assetsLoaded = {
-        skybox: false,
-        score: false,
-        display: false
-    }
-
     //Time and Skybox
     const timeCycle = new Time(tick);
     const skybox = new Skybox(tick, timeCycle);
@@ -126,7 +128,7 @@ let lastTime = 0;
             });
         }
 
-        pauseGame();
+        setTimeout(() => pauseGame(), 500);
     //
     
     //Game Over
@@ -198,7 +200,6 @@ resizeRenderer();
         camera.update(scaledDelta);
         renderer.render(scene, camera.camera!);
         requestAnimationFrame(render);
-        console.log(currentState)
     }
 
     function init() {

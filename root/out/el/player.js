@@ -318,8 +318,6 @@ export class Player {
             return yield res.text();
         });
     }
-    resetState(state) {
-    }
     update(deltaTime) {
         if (!this.material)
             return;

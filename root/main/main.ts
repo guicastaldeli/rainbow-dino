@@ -89,7 +89,7 @@ let lastTime = 0;
     scene.add(camera.camera);
 
     //Score
-    const score = new Score(tick, timeCycle);
+    const score = new Score(gameState, tick, timeCycle);
     
     score.ready().then(() => {
         camera.camera.add(score.getScore());

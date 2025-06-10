@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/Addons.js';
 export class Score {
-    constructor(tick, timeCycle) {
+    constructor(state, tick, timeCycle) {
         this.maxScore = 9999999;
         this.scoreMultiplier = 100;
         this.isBlinking = false;
@@ -24,6 +24,7 @@ export class Score {
             y: 3,
             z: -4
         };
+        this.state = state;
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.loader = new FontLoader();
@@ -50,10 +51,6 @@ export class Score {
             try {
                 if (!this.data)
                     return;
-                const [vertexShader, fragmentShader] = yield Promise.all([
-                    this.loadShader('../main/shaders/scoreVertexShader.glsl'),
-                    this.loadShader('../main/shaders/scoreFragShader.glsl')
-                ]);
                 const text = Math.floor(this.value).toString().padStart(7, '0');
                 const geometry = new TextGeometry(text, {
                     font: this.data,
@@ -61,6 +58,10 @@ export class Score {
                     depth: this.size.d,
                     bevelEnabled: false,
                 });
+                const [vertexShader, fragmentShader] = yield Promise.all([
+                    this.loadShader('../main/shaders/scoreVertexShader.glsl'),
+                    this.loadShader('../main/shaders/scoreFragShader.glsl')
+                ]);
                 this.material = new THREE.ShaderMaterial({
                     uniforms: {
                         time: { value: 0.0 },
@@ -73,14 +74,14 @@ export class Score {
                 });
                 if (!this.mesh) {
                     this.mesh = new THREE.Mesh(geometry, this.material);
+                    this.mesh.position.x = this.pos.x;
+                    this.mesh.position.y = this.pos.y;
+                    this.mesh.position.z = this.pos.z;
                 }
                 else {
+                    this.mesh.geometry.dispose();
                     this.mesh.geometry = geometry;
-                    this.mesh.material = this.material;
                 }
-                this.mesh.position.x = this.pos.x;
-                this.mesh.position.y = this.pos.y;
-                this.mesh.position.z = this.pos.z;
             }
             catch (err) {
                 console.log(err);

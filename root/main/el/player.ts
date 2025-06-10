@@ -390,11 +390,6 @@ export class Player {
         return await res.text();
     }
 
-    public resetState(state?: Partial<GameState['player']>): void {
-        
-    }
-    
-
     public update(deltaTime: number) {        
         if(!this.material) return;
         

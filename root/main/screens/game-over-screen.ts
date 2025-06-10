@@ -14,14 +14,14 @@ export class ScreenGameOver {
     private time: Time;
     private tick: Tick;
     
+    private lastTime: number = 0;
+
     private camera: Camera;
     private score: Score;
     private player: Player;
     
     private loader: FontLoader;
     private data?: any;
-    
-    private lastTime: number = 0;
 
     //Material
         private group: THREE.Group;
@@ -353,7 +353,7 @@ export class ScreenGameOver {
 
         const dayColor = { 
             t: this.colors.t_day, 
-            s: this.colors.s_day ,
+            s: this.colors.s_day,
             r: this.colors.r_day
         }
 

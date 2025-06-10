@@ -1,4 +1,5 @@
 import { GameState } from "./game-state";
+import { ScreenPauseMenu } from "./screens/pause-menu.js";
 
 export class Tick {
     private timeScale: number = 1.0;
@@ -10,6 +11,15 @@ export class Tick {
         current: 'running',
         prev: null,
         tick: { timeScale: this.timeScale }
+    }
+
+    private screenPauseMenu?: ScreenPauseMenu;
+
+    constructor(screenPauseMenu?: ScreenPauseMenu) {
+        this.screenPauseMenu = screenPauseMenu;
+
+        this.onPause(() => this.screenPauseMenu?.ready());
+        this.onResume(() => this.screenPauseMenu?.hideMessage());
     }
 
     public setTimeScale(scale: number): void {
@@ -29,6 +39,7 @@ export class Tick {
             this.resume();
         } else {
             this.pause();
+            this.screenPauseMenu?.ready();
         }
     }
 
@@ -46,6 +57,10 @@ export class Tick {
         this.state.current = this.state.prev || 'running';
         this.state.prev = null;
         this.resumeCalls.forEach(cb => cb());
+    }
+
+    private onResume(cb: () => void): void {
+        this.resumeCalls.push(cb);
     }
 
     public onPause(cb: () => void): void {

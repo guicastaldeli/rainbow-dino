@@ -1,5 +1,5 @@
 export class Tick {
-    constructor() {
+    constructor(screenPauseMenu) {
         this.timeScale = 1.0;
         this.gameOverCalls = [];
         this.pauseCalls = [];
@@ -9,6 +9,9 @@ export class Tick {
             prev: null,
             tick: { timeScale: this.timeScale }
         };
+        this.screenPauseMenu = screenPauseMenu;
+        this.onPause(() => { var _a; return (_a = this.screenPauseMenu) === null || _a === void 0 ? void 0 : _a.ready(); });
+        this.onResume(() => { var _a; return (_a = this.screenPauseMenu) === null || _a === void 0 ? void 0 : _a.hideMessage(); });
     }
     setTimeScale(scale) {
         if (this.state.current === 'game-over')
@@ -20,6 +23,7 @@ export class Tick {
         return this.state.current === 'paused' ? 0.0 : this.timeScale;
     }
     togglePause() {
+        var _a;
         if (this.state.current === 'game-over')
             return;
         if (this.state.current === 'paused') {
@@ -27,6 +31,7 @@ export class Tick {
         }
         else {
             this.pause();
+            (_a = this.screenPauseMenu) === null || _a === void 0 ? void 0 : _a.ready();
         }
     }
     pause() {
@@ -42,6 +47,9 @@ export class Tick {
         this.state.current = this.state.prev || 'running';
         this.state.prev = null;
         this.resumeCalls.forEach(cb => cb());
+    }
+    onResume(cb) {
+        this.resumeCalls.push(cb);
     }
     onPause(cb) {
         this.pauseCalls.push(cb);

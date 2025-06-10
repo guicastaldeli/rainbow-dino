@@ -16,6 +16,7 @@ import { Score } from './score.js';
 import { Display } from './display.js';
 import { Skybox } from './skybox.js';
 import { Player } from './el/player.js';
+import { ScreenPauseMenu } from './screens/pause-menu.js';
 import { ScreenGameOver } from './screens/game-over-screen.js';
 const canvas = (document.getElementById('game--container'));
 canvas.width = window.innerWidth;
@@ -104,11 +105,13 @@ lights.forEach(l => scene.add(l));
 //
 //Screens
 //Pause
+const screenPause = new ScreenPauseMenu(gameState, timeCycle, tick, camera);
 function pauseGame() {
     return __awaiter(this, void 0, void 0, function* () {
         window.addEventListener('keydown', (e) => __awaiter(this, void 0, void 0, function* () {
             if (e.key === 'Escape' && gameState.current === 'running') {
                 tick.togglePause();
+                yield screenPause.ready();
             }
         }));
     });
@@ -156,6 +159,7 @@ function render() {
         skybox.update(scaledDelta);
         renderDisplay.update(scaledDelta);
     }
+    screenPause.update(scaledDelta);
     screenGameOver.update(scaledDelta);
     camera.update(scaledDelta);
     renderer.render(scene, camera.camera);

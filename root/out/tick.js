@@ -1,16 +1,24 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 export class Tick {
     constructor() {
         this.timeScale = 1.0;
         this.gameOverCalls = [];
         this.pauseCalls = [];
         this.resumeCalls = [];
+        this.resetCalls = [];
         this.state = {
             current: 'loading',
             prev: null,
             tick: { timeScale: this.timeScale }
         };
-        this.onPause(() => { var _a; return (_a = this.screenPause) === null || _a === void 0 ? void 0 : _a.ready(); });
-        this.onResume(() => { var _a; return (_a = this.screenPause) === null || _a === void 0 ? void 0 : _a.hideMessage(); });
     }
     run() {
         if (this.state.current === 'loading') {
@@ -43,21 +51,26 @@ export class Tick {
         }
     }
     pause() {
-        if (this.state.current !== 'running')
-            return;
-        this.state.prev = this.state.current;
-        this.state.current = 'paused';
-        this.pauseCalls.forEach(cb => cb());
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.state.current !== 'running')
+                return;
+            this.state.prev = this.state.current;
+            this.state.current = 'paused';
+            this.pauseCalls.forEach(cb => cb());
+            if (this.screenPause)
+                yield this.screenPause.ready();
+        });
     }
     resume() {
-        if (this.state.current !== 'paused')
-            return;
-        this.state.prev = this.state.current;
-        this.state.current = 'running';
-        this.resumeCalls.forEach(cb => cb());
-    }
-    onResume(cb) {
-        this.resumeCalls.push(cb);
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.state.current !== 'paused')
+                return;
+            this.state.prev = this.state.current;
+            this.state.current = 'running';
+            this.resumeCalls.forEach(cb => cb());
+            if (this.screenPause)
+                yield this.screenPause.hideMessage();
+        });
     }
     onPause(cb) {
         this.pauseCalls.push(cb);
@@ -73,6 +86,18 @@ export class Tick {
         this.timeScale = 0.0;
         this.gameOverCalls.forEach(cb => cb());
         return true;
+    }
+    onReset(cb) {
+        this.resetCalls.push(cb);
+    }
+    reset() {
+        if (this.state.current === 'game-over') {
+            this.state.prev = this.state.current;
+            this.state.current = 'loading';
+            this.timeScale = 1.0;
+            this.state.tick.timeScale = this.timeScale;
+            this.resetCalls.forEach(cb => cb());
+        }
     }
     getScaledDelta(deltaTime) {
         return deltaTime * this.getTimeScale();

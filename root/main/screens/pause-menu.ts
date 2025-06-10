@@ -11,10 +11,9 @@ export class ScreenPauseMenu {
     private state: GameState;
     private time: Time;
     private tick: Tick;
+    private lastTime: number = 0;
 
     private camera: Camera;
-
-    private lastTime: number = 0;
 
     private loader: FontLoader;
     private data?: any;
@@ -24,15 +23,15 @@ export class ScreenPauseMenu {
         private material!: THREE.MeshBasicMaterial;
     
         private hasMessageShown: boolean = false;
+        private messageInterval?: number | ReturnType<typeof setInterval>;
     
-        private fadeState: 'in' | 'out' | 'none' = 'none';
+        private fadeState: 'in' | 'holding' | 'out' | 'none' = 'none';
         private fadeProgress: number = 0;
-        private fadeDuration: number = 500;
-        private showDuration: number = 800;
+        private fadeDuration: number = 400;
+        private showDuration: number = 600;
+        private intervalDuration: number = 1500;
         private lastFadeTime: number = 0;
         private initInterval: number = 0;
-        private messageInterval?: number | ReturnType<typeof setInterval>;
-        private intervalDuration: number = 1500;
     
         private colors = {
             //Day
@@ -79,6 +78,7 @@ export class ScreenPauseMenu {
     
         try {
             this.camera.camera.add(this.mesh);
+            if(this.material) this.material.visible = true;
             this.hasMessageShown = true;
             this.startFadeIn();
         } catch(err) {
@@ -120,7 +120,11 @@ export class ScreenPauseMenu {
             this.material.opacity = THREE.MathUtils.lerp(0, 0.6, normalizedProgress);
             
             if(normalizedProgress >= 1) {
-                setTimeout(() => this.startFadeOut(), this.showDuration);
+                this.fadeState = 'holding';
+
+                setTimeout(() => {
+                    if(this.fadeState === 'holding') this.startFadeOut();
+                }, this.showDuration)
             }
         } else if(this.fadeState === 'out') {
             this.material.opacity = THREE.MathUtils.lerp(0.6, 0, normalizedProgress);
@@ -173,6 +177,8 @@ export class ScreenPauseMenu {
             }
     
             this.mesh = new THREE.Mesh(geometry, this.material);
+            this.mesh.visible = true;
+            
             this.mesh.position.x = pos.x;
             this.mesh.position.y = pos.y;
             this.mesh.position.z = pos.z;

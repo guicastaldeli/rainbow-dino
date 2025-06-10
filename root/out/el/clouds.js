@@ -160,6 +160,21 @@ export class Clouds {
             return yield res.text();
         });
     }
+    resetState() {
+        this.clouds.forEach((c, i) => {
+            const x = i * this.size.w;
+            const y = i * this.size.h;
+            c.position.x = (x * this.pos.gapX()) + this.pos.x;
+            c.position.y = (y * this.pos.gapY()) + this.pos.y;
+            c.position.z = this.pos.z();
+        });
+        if (this.material) {
+            this.material.uniforms.time.value = 0.0;
+            this.material.uniforms.timeFactor.value = 0.0;
+            this.material.needsUpdate = true;
+        }
+        this.cloudGroup.position.set(0, 0, 0);
+    }
     update(deltaTime, collDetector) {
         if (!this.mesh || !this.material)
             return;

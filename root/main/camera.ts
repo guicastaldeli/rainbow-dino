@@ -4,7 +4,6 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/Addons.js';
 
 import { Tick } from './tick.js';
-import { resetGame } from './main.js';
 
 export class Camera {
     private tick: Tick;
@@ -34,7 +33,7 @@ export class Camera {
         this.setControls();
 
         this.loader = new FontLoader();
-        setTimeout(() => this.showMessage(), 3000);
+        setTimeout(() => this.showMessage(), this.showDuration);
     }
 
     targetSize = {
@@ -233,6 +232,24 @@ export class Camera {
                 this.controls.update();
             }
         });
+    }
+
+    public resetState(): void {
+        this.camera.position.x = this.cameraProps.pos.x;
+        this.camera.position.y = this.cameraProps.pos.y;
+        this.camera.position.z = this.cameraProps.pos.z;
+
+        this.controls.target.set(0, 0, 0);
+        this.controls.update();
+
+        this.hasMessageShown = false;
+        this.fadeState = 'none';
+        this.fadeProgress = 0;
+        this.lastFadeTime = 0;
+
+        this.clearMessage();
+
+        setTimeout(() => this.showMessage(), this.showDuration);
     }
 
     public update(deltaTime: number) {

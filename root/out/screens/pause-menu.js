@@ -17,11 +17,11 @@ export class ScreenPauseMenu {
         this.hasMessageShown = false;
         this.fadeState = 'none';
         this.fadeProgress = 0;
-        this.fadeDuration = 500;
-        this.showDuration = 800;
+        this.fadeDuration = 400;
+        this.showDuration = 600;
+        this.intervalDuration = 1500;
         this.lastFadeTime = 0;
         this.initInterval = 0;
-        this.intervalDuration = 1500;
         this.colors = {
             //Day
             r_day: new THREE.Color('rgb(39, 39, 39)'),
@@ -56,6 +56,8 @@ export class ScreenPauseMenu {
                 return;
             try {
                 this.camera.camera.add(this.mesh);
+                if (this.material)
+                    this.material.visible = true;
                 this.hasMessageShown = true;
                 this.startFadeIn();
             }
@@ -93,7 +95,11 @@ export class ScreenPauseMenu {
         if (this.fadeState === 'in') {
             this.material.opacity = THREE.MathUtils.lerp(0, 0.6, normalizedProgress);
             if (normalizedProgress >= 1) {
-                setTimeout(() => this.startFadeOut(), this.showDuration);
+                this.fadeState = 'holding';
+                setTimeout(() => {
+                    if (this.fadeState === 'holding')
+                        this.startFadeOut();
+                }, this.showDuration);
             }
         }
         else if (this.fadeState === 'out') {
@@ -140,6 +146,7 @@ export class ScreenPauseMenu {
                     });
                 }
                 this.mesh = new THREE.Mesh(geometry, this.material);
+                this.mesh.visible = true;
                 this.mesh.position.x = pos.x;
                 this.mesh.position.y = pos.y;
                 this.mesh.position.z = pos.z;

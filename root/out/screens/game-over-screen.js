@@ -156,6 +156,35 @@ export class ScreenGameOver {
         this.fadeProgress = 0;
         this.lastFadeTime = performance.now();
     }
+    hideMessage() {
+        if (this.messageInterval) {
+            clearInterval(this.messageInterval);
+            this.messageInterval = undefined;
+        }
+        if (this.group.parent)
+            this.group.parent.remove(this.group);
+        this.group.traverse((obj) => {
+            if (obj instanceof THREE.Mesh) {
+                obj.geometry.dispose();
+                if (Array.isArray(obj.material)) {
+                    obj.material.forEach(m => m.dispose());
+                }
+                else {
+                    obj.material.dispose();
+                }
+            }
+        });
+        this.hasMessageShown = false;
+        this.fadeState = 'none';
+        this.fadeProgress = 0;
+        this.group.clear();
+        if (this.gameOverTextMat)
+            this.gameOverTextMat.dispose();
+        if (this.gameOverScoreMat)
+            this.gameOverScoreMat.dispose();
+        if (this.resetMat)
+            this.resetMat.dispose();
+    }
     updateFade(internalTime) {
         if (this.fadeState === 'none' || !this.resetMesh || !this.resetMat)
             return;
@@ -164,7 +193,11 @@ export class ScreenGameOver {
         if (this.fadeState === 'in') {
             this.resetMat.opacity = THREE.MathUtils.lerp(0, 0.6, normalizedProgress);
             if (normalizedProgress >= 1) {
-                setTimeout(() => this.startFadeOut(), this.showDuration);
+                this.fadeState = 'holding';
+                setTimeout(() => {
+                    if (this.fadeState === 'holding')
+                        this.startFadeOut();
+                }, this.showDuration);
             }
         }
         else if (this.fadeState === 'out') {

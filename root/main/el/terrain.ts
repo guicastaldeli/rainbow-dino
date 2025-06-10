@@ -171,6 +171,22 @@ export class Terrain {
         return await res.text();
     }
 
+    public resetState(): void {
+        this.blocks.forEach((b, i) => {
+            b.position.x = this.pos.x + (i * this.size.w * this.pos.gap());
+            b.position.y = this.pos.y;
+            b.position.z = this.pos.z;
+        });
+
+        this.blockGroup.position.set(0, 0, 0);
+
+        if(this.material) {
+            this.material.uniforms.time.value = 0.0;
+            this.material.uniforms.timeFactor.value = 0.0;
+            this.material.needsUpdate = true;
+        }
+    }
+
     public update(deltaTime: number, collDetector: CollDetector): void {
         if(!this.mesh || !this.material || this.blocks.length !== this.length) return;
 

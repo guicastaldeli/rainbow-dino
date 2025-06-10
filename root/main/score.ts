@@ -134,6 +134,29 @@ export class Score {
     private activateBlink(): void {
         this.material.uniforms.shouldBlink.value = this.isBlinking;
     }
+
+    private async loadShader(url: string): Promise<string> {
+        const res = await fetch(url);
+        if(!res.ok) throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
+        return res.text();
+    }
+
+    public async resetState(): Promise<void> {
+        this.value = 0.0;
+        this.finalScore = 0.0;
+
+        this.isBlinking = false;
+        if(this.blinkInterval) clearTimeout(this.blinkInterval);
+
+        if(this.material) {
+            this.material.uniforms.time.value = 0.0;
+            this.material.uniforms.timeFactor.value = this.timeCycle.getTimeFactor();
+            this.material.uniforms.shouldBlink.value = false;
+            this.material.needsUpdate = true;
+        }
+
+        this.createScore();
+    }
     
     private updateValue(): number {
         const scrollSpeed = Math.max(this.timeCycle.updateSpeed(), 0.1);
@@ -158,12 +181,6 @@ export class Score {
         }
 
         return this.value;
-    }
-
-    private async loadShader(url: string): Promise<string> {
-        const res = await fetch(url);
-        if(!res.ok) throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
-        return res.text();
     }
 
     public update(deltaTime: number): void {

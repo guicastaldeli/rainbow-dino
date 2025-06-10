@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { Lightning } from '../lightning.js';
 export class Crow {
-    constructor(tick, timeCycle, display) {
+    constructor(tick, timeCycle, display, obstacleManager) {
         this.obs = [];
         this.obsBox = [];
         this.obsGroup = new THREE.Group();
@@ -37,6 +37,7 @@ export class Crow {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.display = display;
+        this.obstacleManager = obstacleManager;
         //Lightning
         this.lightning = new Lightning(this.tick, this.timeCycle);
         this.ambientLightColor = this.lightning.getColor();
@@ -111,9 +112,10 @@ export class Crow {
                 });
                 const mesh = new THREE.Mesh(geometry.clone(), material);
                 const crowMesh = mesh;
+                crowMesh.type = 'crow';
                 crowMesh.scale.x = this.size.w;
-                crowMesh.scale.x = this.size.h;
-                crowMesh.scale.x = this.size.d;
+                crowMesh.scale.y = this.size.h;
+                crowMesh.scale.z = this.size.d;
                 crowMesh.position.x = (x * this.pos.gap()) + this.pos.x;
                 crowMesh.position.y = this.pos.y();
                 crowMesh.position.z = this.pos.z();
@@ -161,6 +163,7 @@ export class Crow {
             const obs = yield Promise.all(obsArray);
             this.obs.push(...obs);
             this.obsGroup.add(...obs);
+            this.obstacleManager.addObstacle(obs);
         });
     }
     getObs() {
@@ -201,6 +204,12 @@ export class Crow {
                 throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
             return yield res.text();
         });
+    }
+    resetState() {
+        this.obstacleManager.clearObstacles();
+        this.obstacleManager.addObstacle(this.obs);
+        this.obstacleManager.resetState();
+        this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
     }
     update(deltaTime, collDetector) {
         if (this.obs.length === 0)

@@ -7,6 +7,7 @@ export class Tick {
     private gameOverCalls: (() => void)[] = [];
     private pauseCalls: (() => void)[] = [];
     private resumeCalls: (() => void)[] = [];
+    private resetCalls: (() => void)[] = [];
 
     private screenPause: any;
 
@@ -16,9 +17,6 @@ export class Tick {
             prev: null,
             tick: { timeScale: this.timeScale }
         }
-
-        this.onPause(() => this.screenPause?.ready());
-        this.onResume(() => this.screenPause?.hideMessage());
     }
 
     public run() {
@@ -54,24 +52,24 @@ export class Tick {
         }
     }
 
-    public pause(): void {
+    public async pause(): Promise<void> {
         if(this.state.current !== 'running') return;
 
         this.state.prev = this.state.current;
         this.state.current = 'paused';
         this.pauseCalls.forEach(cb => cb());
+
+        if(this.screenPause) await this.screenPause.ready();
     }
 
-    public resume(): void {
+    public async resume(): Promise<void> {
         if(this.state.current !== 'paused') return;
 
         this.state.prev = this.state.current;
         this.state.current = 'running';
         this.resumeCalls.forEach(cb => cb());
-    }
 
-    private onResume(cb: () => void): void {
-        this.resumeCalls.push(cb);
+        if(this.screenPause) await this.screenPause.hideMessage();
     }
 
     public onPause(cb: () => void): void {
@@ -91,6 +89,21 @@ export class Tick {
         this.gameOverCalls.forEach(cb => cb());
         
         return true;
+    }
+    
+    public onReset(cb: () => void): void {
+        this.resetCalls.push(cb)
+    }
+
+    public reset(): void {
+        if(this.state.current === 'game-over') {
+            this.state.prev =  this.state.current;
+            this.state.current = 'loading';
+            this.timeScale = 1.0;
+            this.state.tick.timeScale = this.timeScale;
+
+            this.resetCalls.forEach(cb => cb());
+        }
     }
 
     public getScaledDelta(deltaTime: number): number {

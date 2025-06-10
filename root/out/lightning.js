@@ -58,6 +58,19 @@ export class Lightning {
         const x = Math.max(0, Math.min(1, (value - min) / (max - min)));
         return x * x * (3 - 2 * x);
     }
+    resetState() {
+        this.color = this.colors.day;
+        this.intensity = 1.0;
+        if (this.ambientLight) {
+            this.ambientLight.color.copy(this.color);
+            this.ambientLight.intensity = this.intensity;
+        }
+        if (this.directionalLight) {
+            this.directionalLight.color.copy(this.dlColor);
+            this.directionalLight.intensity = this.dlIntensity;
+            this.directionalLight.position.set(this.pos.x, this.pos.y, this.pos.z);
+        }
+    }
     update(deltaTime) {
         if (!deltaTime)
             return this.color;

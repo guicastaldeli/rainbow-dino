@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { Lightning } from '../lightning.js';
 export class Cactus {
-    constructor(tick, timeCycle, display) {
+    constructor(tick, timeCycle, display, obstacleManager) {
         this.obs = [];
         this.obsBox = [];
         this.obsGroup = new THREE.Group();
@@ -31,6 +31,7 @@ export class Cactus {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.display = display;
+        this.obstacleManager = obstacleManager;
         //Lightning
         this.lightning = new Lightning(this.tick, this.timeCycle);
         this.ambientLightColor = this.lightning.getColor();
@@ -102,6 +103,7 @@ export class Cactus {
                         if (!obs)
                             throw new Error('err');
                         const cactusMesh = obs;
+                        cactusMesh.type = 'cactus';
                         cactusMesh.scale.x = this.size.w;
                         cactusMesh.scale.y = this.size.h;
                         cactusMesh.scale.z = this.size.d;
@@ -110,7 +112,7 @@ export class Cactus {
                         cactusMesh.position.z = this.pos.z;
                         const box = new THREE.Box3().setFromObject(cactusMesh);
                         this.obsBox.push(box);
-                        res(obs);
+                        res(cactusMesh);
                     }));
                 });
             }
@@ -180,6 +182,12 @@ export class Cactus {
                 throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
             return yield res.text();
         });
+    }
+    resetState() {
+        this.obstacleManager.clearObstacles();
+        this.obstacleManager.addObstacle(this.obs);
+        this.obstacleManager.resetState();
+        this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
     }
     update(deltaTime, collDetector) {
         if (!this.mesh || !this.material)

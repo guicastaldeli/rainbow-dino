@@ -108,6 +108,30 @@ export class Score {
     activateBlink() {
         this.material.uniforms.shouldBlink.value = this.isBlinking;
     }
+    loadShader(url) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield fetch(url);
+            if (!res.ok)
+                throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
+            return res.text();
+        });
+    }
+    resetState() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.value = 0.0;
+            this.finalScore = 0.0;
+            this.isBlinking = false;
+            if (this.blinkInterval)
+                clearTimeout(this.blinkInterval);
+            if (this.material) {
+                this.material.uniforms.time.value = 0.0;
+                this.material.uniforms.timeFactor.value = this.timeCycle.getTimeFactor();
+                this.material.uniforms.shouldBlink.value = false;
+                this.material.needsUpdate = true;
+            }
+            this.createScore();
+        });
+    }
     updateValue() {
         const scrollSpeed = Math.max(this.timeCycle.updateSpeed(), 0.1);
         const increment = (0.0005 * this.scoreMultiplier) * scrollSpeed;
@@ -126,14 +150,6 @@ export class Score {
             this.value = updValue;
         }
         return this.value;
-    }
-    loadShader(url) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const res = yield fetch(url);
-            if (!res.ok)
-                throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
-            return res.text();
-        });
     }
     update(deltaTime) {
         if (!this.mesh || !this.data)

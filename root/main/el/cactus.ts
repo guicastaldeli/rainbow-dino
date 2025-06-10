@@ -6,7 +6,7 @@ import { Time } from '../time';
 import { Lightning } from '../lightning.js';
 import { Display } from '../display';
 import { CollDetector } from '../coll-detector.js';
-import { ObstacleManager } from './obstacle-manager';
+import { Obstacle, ObstacleManager } from './obstacle-manager';
 
 export class Cactus {
     private tick: Tick;
@@ -20,15 +20,16 @@ export class Cactus {
     private directionalLightColor: THREE.Color;
     private directionalLightIntensity: number;
     private directionalLightPosition: THREE.Vector3;
-
+    
     private loader!: OBJLoader;
     private texLoader!: THREE.TextureLoader;
     private mesh!: THREE.Object3D
     private material!: THREE.ShaderMaterial;
     
-    private obs: THREE.Mesh[] = [];
+    private obs: Obstacle[] = [];
     private obsBox: THREE.Box3[] = [];
     private obsGroup = new THREE.Group();
+    private obstacleManager: ObstacleManager;
 
     private length = 20;
 
@@ -47,10 +48,12 @@ export class Cactus {
         minDistance: 16
     }
 
-    constructor(tick: Tick, timeCycle: Time, display: Display) {
+    constructor(tick: Tick, timeCycle: Time, display: Display, obstacleManager: ObstacleManager) {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.display = display;
+
+        this.obstacleManager = obstacleManager;
 
         //Lightning
             this.lightning = new Lightning(this.tick, this.timeCycle);
@@ -68,7 +71,7 @@ export class Cactus {
         this.texLoader = new THREE.TextureLoader();
     }
 
-    private async createCactus(x: number): Promise<THREE.Mesh> {
+    private async createCactus(x: number): Promise<Obstacle> {
         try {
             const [vertexShader, fragmentShader] = await Promise.all([
                 this.loadShader('./el/shaders/vertexShader.glsl'),
@@ -115,7 +118,7 @@ export class Cactus {
                 side: THREE.DoubleSide,
             });
 
-            return new Promise<THREE.Mesh>((res) => {
+            return new Promise<Obstacle>((res) => {
                 this.loader.load(selectedModel.model, async (obj) => {
                     this.mesh = obj;
                     let obs: THREE.Mesh | undefined;
@@ -131,7 +134,8 @@ export class Cactus {
 
                     if(!obs) throw new Error('err');
 
-                    const cactusMesh = obs as THREE.Mesh & { type: 'cactus' }
+                    const cactusMesh = obs as Obstacle;
+                    cactusMesh.type = 'cactus';
 
                     cactusMesh.scale.x = this.size.w;
                     cactusMesh.scale.y = this.size.h;
@@ -144,7 +148,7 @@ export class Cactus {
                     const box = new THREE.Box3().setFromObject(cactusMesh);
                     this.obsBox.push(box);
 
-                    res(obs);
+                    res(cactusMesh);
                 });
             });
         } catch(err) {
@@ -167,7 +171,7 @@ export class Cactus {
     }
 
     private async setObs(): Promise<void> {
-        const obsArray: Promise<THREE.Mesh>[] = [];
+        const obsArray: Promise<Obstacle>[] = [];
         for(let i = 0; i < this.length; i++) obsArray.push(this.createCactus(i));
 
         const obs = await Promise.all(obsArray);
@@ -175,11 +179,11 @@ export class Cactus {
         this.obsGroup.add(...obs);
     }
 
-    public getObs(): THREE.Mesh[] {
+    public getObs(): Obstacle[] {
         return this.obs;
     }
 
-    private resetObs(obs: THREE.Mesh): void {
+    private resetObs(obs: Obstacle): void {
         let fObs = this.obs[0];
 
         for(const o of this.obs) {
@@ -218,6 +222,13 @@ export class Cactus {
         const res = await fetch(url);
         if(!res.ok) throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
         return await res.text();
+    }
+
+    public resetState(): void {
+        this.obstacleManager.clearObstacles();
+        this.obstacleManager.addObstacle(this.obs);
+        this.obstacleManager.resetState();
+        this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
     }
 
     public update(deltaTime: number, collDetector: CollDetector): void {

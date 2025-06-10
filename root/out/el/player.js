@@ -318,6 +318,33 @@ export class Player {
             return yield res.text();
         });
     }
+    resetState() {
+        this.pos = {
+            x: -5,
+            y: -3,
+            z: -3.13
+        };
+        this.mov = {
+            FORWARD: false,
+            BACKWARD: false
+        };
+        this.controls.velocity.set(0, 0, 0);
+        this.controls.direction.set(0, 0, 0);
+        this.isHit = false;
+        this.isGameOver = false;
+        this.isShifted = false;
+        this.isJumping = false;
+        this.isGrounded = false;
+        this.jumpVelocity = 0;
+        this.currentFrameIndex = 0;
+        this.saveFrame(0);
+        if (this.tex) {
+            this.material.uniforms.map.value = this.tex.default;
+            this.material.needsUpdate = true;
+        }
+        if (this.mesh)
+            this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
+    }
     update(deltaTime) {
         if (!this.material)
             return;

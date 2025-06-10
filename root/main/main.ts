@@ -47,6 +47,7 @@ let lastTime = 0;
     function checkLoadingComplete() {
         if(Object.values(assetsLoaded)
             .every(loaded => loaded)) {
+            tick.setState('running');
             tick.run();
         }
     }
@@ -112,20 +113,20 @@ let lastTime = 0;
             )
         ;
 
-        async function pauseGame() {
-            window.addEventListener('keydown', async (e) => {
-                if(e.key === 'Escape') {
-                    if(gameState.current === 'running' || gameState.current == 'paused') {
-                        tick.togglePause();
-                        await screenPause.ready();
-                    }
-
-                    tick.setScreenPause(screenPause);
+        function pauseHandler(e: KeyboardEvent) {
+            if(e.key === 'Escape') {
+                if(gameState.current === 'running' || gameState.current === 'paused') {
+                    tick.togglePause();
                 }
-            });
+            }
         }
 
-        setTimeout(() => pauseGame(), 1000);
+        async function pause() {
+            window.addEventListener('keydown', pauseHandler);
+            tick.setScreenPause(screenPause);
+        }
+        
+        setTimeout(() => pause(), 1000);
     //
     
     //Game Over
@@ -144,19 +145,41 @@ let lastTime = 0;
             score.getFinalScore();
             await screenGameOver.ready();
         });
+    //
 
-        export function resetGame() {
-            if(gameState.current === 'game-over') {
-                window.location.reload();
+    //Reset
+        function reset() {
+            lastTime = 0;
+
+            window.removeEventListener('keydown', pauseHandler);
+            window.addEventListener('keydown', pauseHandler);
+
+            tick.setState('running');
+            timeCycle.resetState();
+            lightning.resetState();
+            score.resetState();
+            camera.resetState();
+            renderDisplay.resetState();
+
+            screenPause.hideMessage();
+            screenGameOver.hideMessage();
+
+            assetsLoaded = {
+                skybox: false,
+                score: false,
+                display: false
             }
+
+            setTimeout(() => {
+                pause();
+                checkLoadingComplete();
+            }, 1000);
         }
 
+        tick.onReset(() => reset());
+
         window.addEventListener('keydown', async (e) => {
-            if(e.key === 'Escape') {
-                if(gameState.current === 'game-over') {
-                    resetGame();
-                }
-            }
+            if(e.key === 'Escape') tick.reset();
         });
     //
 //
@@ -185,13 +208,14 @@ resizeRenderer();
             timeCycle.update(scaledDelta);
 
             lightning.update(scaledDelta);
-            //lightning.updateLightHelper();
     
             score.update(scaledDelta);
             skybox.update(scaledDelta);
 
             renderDisplay.update(scaledDelta);
         }
+
+        //console.log(gameState)
 
         screenPause.update(scaledDelta);
         screenGameOver.update(scaledDelta);

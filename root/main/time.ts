@@ -50,6 +50,11 @@ export class Time {
         return this.currentTime;
     }
 
+    public resetState(): void {
+        this.currentTime = 12.0;
+        this.scrollSpeed = 1.0;
+    }
+
     public updateSpeed(): number {
         const updScrollSpeed = Math.min(this.scrollSpeed + this.initSpeed, this.finalSpeed);
         if(this.tick.getTimeScale() > 0) this.scrollSpeed = updScrollSpeed;

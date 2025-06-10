@@ -6,13 +6,13 @@ import { Time } from '../time';
 import { Lightning } from '../lightning.js';
 import { Display } from '../display';
 import { CollDetector } from '../coll-detector.js';
-import { ObstacleManager } from './obstacle-manager';
+import { Obstacle, ObstacleManager } from './obstacle-manager';
 
 export class Crow {
     private tick: Tick;
     private timeCycle: Time;
     private display: Display;
-
+    
     private lightning: Lightning;
     private ambientLightColor: THREE.Color;
     private ambientLightIntensity: number;
@@ -20,15 +20,16 @@ export class Crow {
     private directionalLightColor: THREE.Color;
     private directionalLightIntensity: number;
     private directionalLightPosition: THREE.Vector3;
-
+    
     private loader!: OBJLoader;
     private texLoader!: THREE.TextureLoader;
     private mesh!: THREE.Object3D;
     private material!: THREE.ShaderMaterial;
     
-    private obs: THREE.Mesh[] = [];
+    private obs: Obstacle[] = [];
     private obsBox: THREE.Box3[] = []; 
     private obsGroup = new THREE.Group();
+    private obstacleManager: ObstacleManager;
     private length = 10;
 
     private deltaTime!: number;
@@ -57,10 +58,11 @@ export class Crow {
         minDistance: 16
     }
 
-    constructor(tick: Tick, timeCycle: Time, display: Display) {
+    constructor(tick: Tick, timeCycle: Time, display: Display, obstacleManager: ObstacleManager) {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.display = display;
+        this.obstacleManager = obstacleManager;
 
         //Lightning
             this.lightning = new Lightning(this.tick, this.timeCycle);
@@ -109,7 +111,7 @@ export class Crow {
         })
     }
 
-    private async createCrow(x: number): Promise<THREE.Mesh> {
+    private async createCrow(x: number): Promise<Obstacle> {
         try {
             const [vertexShader, fragmentShader, tex, geometry] = await Promise.all([
                 this.loadShader('./el/shaders/vertexShader.glsl'),
@@ -144,11 +146,12 @@ export class Crow {
             });
 
             const mesh = new THREE.Mesh(geometry.clone(), material);
-            const crowMesh = mesh as THREE.Mesh & { type: 'crow' }
+            const crowMesh = mesh as Obstacle;
+            crowMesh.type = 'crow';
 
             crowMesh.scale.x = this.size.w;
-            crowMesh.scale.x = this.size.h;
-            crowMesh.scale.x = this.size.d;
+            crowMesh.scale.y = this.size.h;
+            crowMesh.scale.z = this.size.d;
 
             crowMesh.position.x = (x * this.pos.gap()) + this.pos.x;
             crowMesh.position.y = this.pos.y();
@@ -198,19 +201,20 @@ export class Crow {
     }
 
     private async setObs(): Promise<void> {
-        const obsArray: Promise<THREE.Mesh>[] = [];
+        const obsArray: Promise<Obstacle>[] = [];
         for(let i = 0; i < this.length; i++) obsArray.push(this.createCrow(i));
         
         const obs = await Promise.all(obsArray);
         this.obs.push(...obs);
         this.obsGroup.add(...obs);
+        this.obstacleManager.addObstacle(obs);
     }
 
-    public getObs(): THREE.Mesh[] {
+    public getObs(): Obstacle[] {
         return this.obs;
     }
 
-    private resetObs(obs: THREE.Mesh): void {
+    private resetObs(obs: Obstacle): void {
         let fObs = this.obs[0];
 
         for(const o of this.obs) {
@@ -249,6 +253,13 @@ export class Crow {
         const res = await fetch(url);
         if(!res.ok) throw new Error(`Failed to load shader ${url}: ${res.statusText}`);
         return await res.text();
+    }
+
+    public resetState(): void {
+        this.obstacleManager.clearObstacles();
+        this.obstacleManager.addObstacle(this.obs);
+        this.obstacleManager.resetState();
+        this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
     }
 
     public update(deltaTime: number, collDetector: CollDetector): void {

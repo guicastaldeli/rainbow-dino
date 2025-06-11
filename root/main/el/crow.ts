@@ -170,7 +170,7 @@ export class Crow {
     }
 
     private animateObs() {
-        if(this.tick['paused'] || this.tick['gameOver']) return;
+        if(this.tick.isPaused() || this.tick.getState().current === 'game-over') return;
         
         const currentTime = performance.now() * this.timeCycle['initSpeed'];
 

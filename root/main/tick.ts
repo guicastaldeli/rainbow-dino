@@ -8,6 +8,7 @@ export class Tick {
     private pauseCalls: (() => void)[] = [];
     private resumeCalls: (() => void)[] = [];
     private resetCalls: (() => void)[] = [];
+    private stateChangeCalls: ((state: GameState['current']) => void)[] = [];
 
     private screenPause: any;
 
@@ -20,7 +21,7 @@ export class Tick {
     }
 
     public run() {
-        if(this.state.current === 'loading') {
+        if(this.state.current === 'menu') {
             this.state.prev = this.state.current;
             this.state.current = 'running';
             this.timeScale = this.timeScale;
@@ -50,6 +51,10 @@ export class Tick {
         } else if(this.state.current === 'running') {
             this.pause();
         }
+    }
+
+    public isPaused(): boolean {
+        return this.state.current === 'paused';
     }
 
     public async pause(): Promise<void> {
@@ -110,9 +115,14 @@ export class Tick {
         return deltaTime * this.getTimeScale();
     }
 
+    public onStateChange(cb: (state: GameState['current']) => void): void {
+        this.stateChangeCalls.push(cb);
+    }
+
     public setState(state: GameState['current']): void {
         this.state.prev = this.state.current;
         this.state.current = state;
+        this.stateChangeCalls.forEach(cb => cb(state));
     }
 
     public getState(): GameState {

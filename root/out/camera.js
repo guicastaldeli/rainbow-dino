@@ -50,7 +50,11 @@ export class Camera {
         this.initCamera();
         this.setControls();
         this.loader = new FontLoader();
-        setTimeout(() => this.showMessage(), this.showDuration);
+        tick.onStateChange((s) => {
+            if (s === 'running') {
+                setTimeout(() => this.showMessage(), this.showDuration);
+            }
+        });
     }
     initCamera() {
         this.camera = new THREE.PerspectiveCamera(this.cameraProps.fov, this.cameraProps.w / this.cameraProps.h, this.cameraProps.near, this.cameraProps.far);
@@ -197,12 +201,11 @@ export class Camera {
         this.camera.position.z = this.cameraProps.pos.z;
         this.controls.target.set(0, 0, 0);
         this.controls.update();
-        this.hasMessageShown = false;
+        this.hasMessageShown = true;
         this.fadeState = 'none';
         this.fadeProgress = 0;
         this.lastFadeTime = 0;
         this.clearMessage();
-        setTimeout(() => this.showMessage(), this.showDuration);
     }
     update(deltaTime) {
         this.controls.update();

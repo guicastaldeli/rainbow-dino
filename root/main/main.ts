@@ -36,7 +36,8 @@ const gameState = tick.getState();
 let lastTime = 0;
 
 //Game State
-    tick.setState('loading');
+    let isInitLoad = true;
+    tick.setState('menu');
 
     let assetsLoaded = {
         skybox: false,
@@ -44,15 +45,36 @@ let lastTime = 0;
         display: false
     }
 
-    function checkLoadingComplete() {
+    function checkRunning() {
         if(Object.values(assetsLoaded)
             .every(loaded => loaded)) {
-            tick.setState('running');
-            tick.run();
+            if(isInitLoad) {
+                tick.setState('menu');
+            } else {
+                tick.setState('running');
+                tick.run();
+
+                tick.setScreenPause(screenPause);
+                window.addEventListener('keydown', pauseHandler);
+            }
         }
     }
 
-    checkLoadingComplete()
+    //Start
+    function startHandler(e: KeyboardEvent) {
+        if(e.key === 'Escape' && gameState.current === 'menu') {
+            isInitLoad = false;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            tick.setState('running');
+            tick.run();
+            window.removeEventListener('keydown', startHandler);
+        }
+    }
+
+    window.addEventListener('keydown', startHandler);
 //
 
 //Render
@@ -63,7 +85,7 @@ let lastTime = 0;
     skybox.ready().then(() => {
         scene.add(skybox.mesh);
         assetsLoaded.skybox = true;
-        checkLoadingComplete();
+        checkRunning();
     }).catch(err => {
         console.error(err);
     });
@@ -75,22 +97,34 @@ let lastTime = 0;
     //Score
     const score = new Score(gameState, tick, timeCycle);
     
-    score.ready().then(() => {
-        camera.camera.add(score.getScore());
-        assetsLoaded.score = true;
-        checkLoadingComplete();
-    }).catch(err => {
-        console.error(err);
+    tick.onStateChange((s) => {
+        if(s === 'running') {
+            if(!assetsLoaded.score) {
+                score.ready().then(() => {
+                    camera.camera.add(score.getScore());
+                    assetsLoaded.score = true;
+                    checkRunning();
+                }).catch(err => {
+                    console.error(err);
+                });
+            }
+        }
     });
-
+    
     //Main Display
     const renderDisplay = new Display(gameState, tick, timeCycle, renderer, scene);
 
-    renderDisplay.ready().then(() => {
-        scene.add(renderDisplay.display);
-        assetsLoaded.display = true;
-        checkLoadingComplete();
-    });
+    tick.onStateChange((s) => {
+        if(s === 'running') {
+            if(!assetsLoaded.score) {
+                renderDisplay.ready().then(() => {
+                    scene.add(renderDisplay.display);
+                    assetsLoaded.display = true;
+                    checkRunning();
+                });
+            }
+        }
+    })
 
     //Player Ref
     const player = new Player(tick, timeCycle);
@@ -115,18 +149,22 @@ let lastTime = 0;
 
         function pauseHandler(e: KeyboardEvent) {
             if(e.key === 'Escape') {
-                if(gameState.current === 'running' || gameState.current === 'paused') {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if(gameState.current === 'running' ||
+                    gameState.current === 'paused') {
                     tick.togglePause();
                 }
             }
         }
 
         async function pause() {
-            window.addEventListener('keydown', pauseHandler);
-            tick.setScreenPause(screenPause);
+            if(gameState.current !== 'menu') {
+                window.addEventListener('keydown', pauseHandler);
+                tick.setScreenPause(screenPause);
+            }
         }
-        
-        setTimeout(() => pause(), 1000);
     //
     
     //Game Over
@@ -150,15 +188,16 @@ let lastTime = 0;
     //Reset
         function reset() {
             lastTime = 0;
-
             window.removeEventListener('keydown', pauseHandler);
-            window.addEventListener('keydown', pauseHandler);
+
+            scene.remove(renderDisplay.display);
 
             tick.setState('running');
             timeCycle.resetState();
             lightning.resetState();
             score.resetState();
             camera.resetState();
+            camera.hideMessage(true);
             renderDisplay.resetState();
 
             screenPause.hideMessage();
@@ -170,12 +209,16 @@ let lastTime = 0;
                 display: false
             }
 
-            setTimeout(() => {
-                pause();
-                checkLoadingComplete();
-            }, 1000);
-        }
+            scene.add(renderDisplay.display);
 
+            setTimeout(() => {
+                checkRunning();
+                pause();
+                window.addEventListener('keydown', pauseHandler);
+            }, 1000);
+
+        }
+        
         tick.onReset(() => reset());
 
         window.addEventListener('keydown', async (e) => {
@@ -204,18 +247,13 @@ resizeRenderer();
 
         const scaledDelta = tick.getScaledDelta(deltaTime);
 
-        if(gameState.current === 'running') {
-            timeCycle.update(scaledDelta);
+        timeCycle.update(scaledDelta);
+        lightning.update(scaledDelta);
+        skybox.update(scaledDelta);
+        if(gameState.current === 'running') score.update(scaledDelta);
+        renderDisplay.update(scaledDelta);
 
-            lightning.update(scaledDelta);
-    
-            score.update(scaledDelta);
-            skybox.update(scaledDelta);
-
-            renderDisplay.update(scaledDelta);
-        }
-
-        //console.log(gameState)
+        console.log(gameState)
 
         screenPause.update(scaledDelta);
         screenGameOver.update(scaledDelta);

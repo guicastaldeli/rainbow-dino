@@ -33,11 +33,11 @@ export class Clouds {
         //Lightning
         this.lightning = new Lightning(this.tick, this.timeCycle);
         this.ambientLightColor = this.lightning.getColor();
-        this.ambientLightIntensity = this.lightning['intensity'];
-        this.directionalLight = this.lightning['directionalLight'];
-        this.directionalLightColor = this.lightning['dlColor'];
-        this.directionalLightIntensity = this.lightning['dlIntensity'];
-        this.directionalLightPosition = this.lightning['dlPosition'];
+        this.ambientLightIntensity = this.lightning.getAmbientLightIntensity();
+        this.directionalLight = this.lightning.getDirectionalLight();
+        this.directionalLightColor = this.lightning.getDirectionalLightColor();
+        this.directionalLightIntensity = this.lightning.getDirectionalLightIntensity();
+        this.directionalLightPosition = this.lightning.getDirectionalLightPos();
         //
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();
@@ -66,7 +66,7 @@ export class Clouds {
                 this.material = new THREE.ShaderMaterial({
                     uniforms: {
                         time: { value: 0.0 },
-                        timeFactor: { value: 0.0 },
+                        timeFactor: { value: this.timeCycle.getTimeFactor() },
                         map: { value: tex },
                         bounds: { value: bounds.clone() },
                         isObs: { value: false },
@@ -170,7 +170,7 @@ export class Clouds {
         });
         if (this.material) {
             this.material.uniforms.time.value = 0.0;
-            this.material.uniforms.timeFactor.value = 0.0;
+            this.material.uniforms.timeFactor.value = this.timeCycle.getTimeFactor();
             this.material.needsUpdate = true;
         }
         this.cloudGroup.position.set(0, 0, 0);

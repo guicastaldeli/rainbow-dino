@@ -96,12 +96,12 @@ export class Player {
             this.lightning = new Lightning(this.tick, this.timeCycle);
 
             this.ambientLightColor = this.lightning.getColor();
-            this.ambientLightIntensity = this.lightning['intensity'];
+            this.ambientLightIntensity = this.lightning.getAmbientLightIntensity();
 
-            this.directionalLight = this.lightning['directionalLight'];
-            this.directionalLightColor = this.lightning['dlColor'];
-            this.directionalLightIntensity = this.lightning['dlIntensity'];
-            this.directionalLightPosition = this.lightning['dlPosition'];
+            this.directionalLight = this.lightning.getDirectionalLight();
+            this.directionalLightColor = this.lightning.getDirectionalLightColor();
+            this.directionalLightIntensity = this.lightning.getDirectionalLightIntensity();
+            this.directionalLightPosition = this.lightning.getDirectionalLightPos();
         //
 
         this.collDetector = collDetector;
@@ -316,8 +316,8 @@ export class Player {
     }
 
     //Shift
-    private shiftPressed(): void {
-        if(this.isGameOver) return;
+    private async shiftPressed(): Promise<void> {
+        if(this.isGameOver || this.tick.isPaused()) return;
         this.isShifted = !this.isShifted;
 
         if(this.isShifted) {
@@ -340,8 +340,8 @@ export class Player {
         }
     }
 
-    private onKeyUpdate(e: KeyboardEvent) {
-        if(this.isGameOver) return;
+    private async onKeyUpdate(e: KeyboardEvent) {
+        if(this.isGameOver || this.tick.isPaused()) return;
         const isKeyDown = e.type === 'keydown';
 
         switch(e.code) {

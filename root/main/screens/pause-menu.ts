@@ -80,7 +80,11 @@ export class ScreenPauseMenu {
             this.camera.camera.add(this.mesh);
             if(this.material) this.material.visible = true;
             this.hasMessageShown = true;
-            this.startFadeIn();
+            this.fadeState = 'holding';
+
+            setTimeout(() => {
+                if(this.fadeState === 'holding') this.startFadeOut();
+            }, this.showDuration);
         } catch(err) {
             console.log(err);
         }
@@ -116,7 +120,9 @@ export class ScreenPauseMenu {
         this.fadeProgress += internalTime * 1000;
         const normalizedProgress = Math.min(this.fadeProgress / this.fadeDuration, 1);
             
-        if(this.fadeState === 'in') {
+        if(this.fadeState === 'holding') {
+            this.material.opacity = 0.6;
+        } else if(this.fadeState === 'in') {
             this.material.opacity = THREE.MathUtils.lerp(0, 0.6, normalizedProgress);
             
             if(normalizedProgress >= 1) {
@@ -130,8 +136,13 @@ export class ScreenPauseMenu {
             this.material.opacity = THREE.MathUtils.lerp(0.6, 0, normalizedProgress);
             
             if(normalizedProgress >= 1) {
-                this.fadeState = 'none';
-                this.clearMessage();
+                if(this.hasMessageShown) {
+                    this.fadeState = 'in';
+                    this.fadeProgress = 0;
+                } else {
+                    this.fadeState = 'none';
+                    this.clearMessage();
+                }
             }
         }
     }

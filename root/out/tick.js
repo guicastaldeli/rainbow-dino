@@ -14,6 +14,7 @@ export class Tick {
         this.pauseCalls = [];
         this.resumeCalls = [];
         this.resetCalls = [];
+        this.stateChangeCalls = [];
         this.state = {
             current: 'loading',
             prev: null,
@@ -21,7 +22,7 @@ export class Tick {
         };
     }
     run() {
-        if (this.state.current === 'loading') {
+        if (this.state.current === 'menu') {
             this.state.prev = this.state.current;
             this.state.current = 'running';
             this.timeScale = this.timeScale;
@@ -49,6 +50,9 @@ export class Tick {
         else if (this.state.current === 'running') {
             this.pause();
         }
+    }
+    isPaused() {
+        return this.state.current === 'paused';
     }
     pause() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -102,9 +106,13 @@ export class Tick {
     getScaledDelta(deltaTime) {
         return deltaTime * this.getTimeScale();
     }
+    onStateChange(cb) {
+        this.stateChangeCalls.push(cb);
+    }
     setState(state) {
         this.state.prev = this.state.current;
         this.state.current = state;
+        this.stateChangeCalls.forEach(cb => cb(state));
     }
     getState() {
         return this.state;

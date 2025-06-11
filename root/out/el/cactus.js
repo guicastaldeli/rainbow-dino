@@ -35,11 +35,11 @@ export class Cactus {
         //Lightning
         this.lightning = new Lightning(this.tick, this.timeCycle);
         this.ambientLightColor = this.lightning.getColor();
-        this.ambientLightIntensity = this.lightning['intensity'];
-        this.directionalLight = this.lightning['directionalLight'];
-        this.directionalLightColor = this.lightning['dlColor'];
-        this.directionalLightIntensity = this.lightning['dlIntensity'];
-        this.directionalLightPosition = this.lightning['dlPosition'];
+        this.ambientLightIntensity = this.lightning.getAmbientLightIntensity();
+        this.directionalLight = this.lightning.getDirectionalLight();
+        this.directionalLightColor = this.lightning.getDirectionalLightColor();
+        this.directionalLightIntensity = this.lightning.getDirectionalLightIntensity();
+        this.directionalLightPosition = this.lightning.getDirectionalLightPos();
         //
         this.loader = new OBJLoader();
         this.texLoader = new THREE.TextureLoader();

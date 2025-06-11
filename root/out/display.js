@@ -37,11 +37,11 @@ export class Display {
         //Lightning
         this.lightning = new Lightning(this.tick, this.timeCycle);
         this.ambientLightColor = this.lightning.getColor();
-        this.ambientLightIntensity = this.lightning['intensity'];
-        this.directionalLight = this.lightning['directionalLight'];
-        this.directionalLightColor = this.lightning['dlColor'];
-        this.directionalLightIntensity = this.lightning['dlIntensity'];
-        this.directionalLightPosition = this.lightning['dlPosition'];
+        this.ambientLightIntensity = this.lightning.getAmbientLightIntensity();
+        this.directionalLight = this.lightning.getDirectionalLight();
+        this.directionalLightColor = this.lightning.getDirectionalLightColor();
+        this.directionalLightIntensity = this.lightning.getDirectionalLightIntensity();
+        this.directionalLightPosition = this.lightning.getDirectionalLightPos();
         //
         this.display = new THREE.Group;
         this.loader = new OBJLoader();
@@ -63,7 +63,7 @@ export class Display {
                 this.material = new THREE.ShaderMaterial({
                     uniforms: {
                         time: { value: 0.0 },
-                        timeFactor: { value: 0.0 },
+                        timeFactor: { value: this.timeCycle.getTimeFactor() },
                         map: { value: tex },
                         bounds: { value: new THREE.Vector4() },
                         shadowMap: { value: null },
@@ -219,10 +219,14 @@ export class Display {
             this.renderPlayer.update(deltaTime);
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * 0.001;
-        const ambientColor = this.lightning.update(factor);
+        this.ambientLightColor = this.lightning.update(factor);
+        this.ambientLightIntensity = this.lightning.getAmbientLightIntensity();
+        this.directionalLightColor = this.lightning.getDirectionalLightColor();
+        this.directionalLightIntensity = this.lightning.getDirectionalLightIntensity();
+        this.directionalLightPosition = this.lightning.getDirectionalLightPos();
         this.material.uniforms.time.value = totalTime;
         this.material.uniforms.timeFactor.value = factor;
-        this.material.uniforms.ambientLightColor.value = ambientColor;
+        this.material.uniforms.ambientLightColor.value = this.ambientLightColor;
         this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
         this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
         this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;

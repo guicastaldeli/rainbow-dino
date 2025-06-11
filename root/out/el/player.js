@@ -48,11 +48,11 @@ export class Player {
         //Lightning
         this.lightning = new Lightning(this.tick, this.timeCycle);
         this.ambientLightColor = this.lightning.getColor();
-        this.ambientLightIntensity = this.lightning['intensity'];
-        this.directionalLight = this.lightning['directionalLight'];
-        this.directionalLightColor = this.lightning['dlColor'];
-        this.directionalLightIntensity = this.lightning['dlIntensity'];
-        this.directionalLightPosition = this.lightning['dlPosition'];
+        this.ambientLightIntensity = this.lightning.getAmbientLightIntensity();
+        this.directionalLight = this.lightning.getDirectionalLight();
+        this.directionalLightColor = this.lightning.getDirectionalLightColor();
+        this.directionalLightIntensity = this.lightning.getDirectionalLightIntensity();
+        this.directionalLightPosition = this.lightning.getDirectionalLightPos();
         //
         this.collDetector = collDetector;
         this.obstacles = obstacles;
@@ -244,59 +244,63 @@ export class Player {
     }
     //Shift
     shiftPressed() {
-        if (this.isGameOver)
-            return;
-        this.isShifted = !this.isShifted;
-        if (this.isShifted) {
-            this.shiftFrameIndex = 0;
-            this.currentFrameIndex = this.shiftFrameIndices[this.shiftFrameIndex];
-            this.saveFrame(this.currentFrameIndex);
-            if (this.tex) {
-                this.material.uniforms.map.value = this.tex.shift;
-                this.material.needsUpdate = true;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.isGameOver || this.tick.isPaused())
+                return;
+            this.isShifted = !this.isShifted;
+            if (this.isShifted) {
+                this.shiftFrameIndex = 0;
+                this.currentFrameIndex = this.shiftFrameIndices[this.shiftFrameIndex];
+                this.saveFrame(this.currentFrameIndex);
+                if (this.tex) {
+                    this.material.uniforms.map.value = this.tex.shift;
+                    this.material.needsUpdate = true;
+                }
             }
-        }
-        else {
-            this.currentFrameIndex = 0;
-            this.saveFrame(0);
-            if (this.tex) {
-                this.material.uniforms.map.value = this.isHit ? this.tex.hit : this.tex.default;
-                this.material.needsUpdate = true;
+            else {
+                this.currentFrameIndex = 0;
+                this.saveFrame(0);
+                if (this.tex) {
+                    this.material.uniforms.map.value = this.isHit ? this.tex.hit : this.tex.default;
+                    this.material.needsUpdate = true;
+                }
             }
-        }
+        });
     }
     onKeyUpdate(e) {
-        if (this.isGameOver)
-            return;
-        const isKeyDown = e.type === 'keydown';
-        switch (e.code) {
-            case 'KeyD':
-            case 'ArrowRight':
-                this.mov.FORWARD = isKeyDown;
-                break;
-            case 'KeyA':
-            case 'ArrowLeft':
-                this.mov.BACKWARD = isKeyDown;
-                break;
-            case 'Space':
-            case 'ArrowUp':
-                this.isJumping = isKeyDown;
-                if (isKeyDown && this.isGrounded)
-                    this.jumpVelocity = this.jumpForce;
-                if (!this.isGrounded)
-                    this.frameInterval = 0.08;
-                if (!isKeyDown)
-                    this.isJumping = false;
-                break;
-            case 'ShiftLeft':
-            case 'ArrowDown':
-                if (isKeyDown !== this.isShifted)
-                    this.shiftPressed();
-                break;
-        }
-        if (this.isGrounded)
-            this.frameInterval = 0.1;
-        this.isAnimating = this.mov.FORWARD || this.mov.BACKWARD || this.isJumping;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.isGameOver || this.tick.isPaused())
+                return;
+            const isKeyDown = e.type === 'keydown';
+            switch (e.code) {
+                case 'KeyD':
+                case 'ArrowRight':
+                    this.mov.FORWARD = isKeyDown;
+                    break;
+                case 'KeyA':
+                case 'ArrowLeft':
+                    this.mov.BACKWARD = isKeyDown;
+                    break;
+                case 'Space':
+                case 'ArrowUp':
+                    this.isJumping = isKeyDown;
+                    if (isKeyDown && this.isGrounded)
+                        this.jumpVelocity = this.jumpForce;
+                    if (!this.isGrounded)
+                        this.frameInterval = 0.08;
+                    if (!isKeyDown)
+                        this.isJumping = false;
+                    break;
+                case 'ShiftLeft':
+                case 'ArrowDown':
+                    if (isKeyDown !== this.isShifted)
+                        this.shiftPressed();
+                    break;
+            }
+            if (this.isGrounded)
+                this.frameInterval = 0.1;
+            this.isAnimating = this.mov.FORWARD || this.mov.BACKWARD || this.isJumping;
+        });
     }
     setupControls() {
         window.addEventListener('keydown', (e) => this.onKeyUpdate(e));

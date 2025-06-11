@@ -33,7 +33,14 @@ export class Camera {
         this.setControls();
 
         this.loader = new FontLoader();
-        setTimeout(() => this.showMessage(), this.showDuration);
+        tick.onStateChange((s) => {
+            if(s === 'running') {
+                setTimeout(() => 
+                    this.showMessage(), 
+                    this.showDuration
+                );
+            }
+        });
     }
 
     targetSize = {
@@ -246,14 +253,12 @@ export class Camera {
         this.controls.target.set(0, 0, 0);
         this.controls.update();
 
-        this.hasMessageShown = false;
+        this.hasMessageShown = true;
         this.fadeState = 'none';
         this.fadeProgress = 0;
         this.lastFadeTime = 0;
 
         this.clearMessage();
-
-        setTimeout(() => this.showMessage(), this.showDuration);
     }
 
     public update(deltaTime: number) {

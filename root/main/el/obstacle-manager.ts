@@ -23,6 +23,8 @@ export class ObstacleManager {
 
     public resetState(): void {
         this.obstacles.forEach(obstacle => {
+            obstacle.geometry.dispose();
+            
             if (obstacle.type === 'cactus') {
                 obstacle.position.x = (Math.random() * 32) + 8;
                 obstacle.position.y = -3;

@@ -37,7 +37,14 @@ export class Lightning {
     constructor(tick: Tick, timeCycle: Time) {
         this.tick = tick;
         this.timeCycle = timeCycle;
+        this.color = this.initColorTimeFactor();
         this.addLights();
+    }
+
+    private initColorTimeFactor(): THREE.Color {
+        const timeFactor = this.timeCycle.getTimeFactor();
+        const blendColor = this.smoothstep(0.3, 0.7, timeFactor);
+        return this.mixColors(this.colors.night, this.colors.day, blendColor);
     }
 
     public addAmbientLight(): THREE.AmbientLight {
@@ -63,6 +70,28 @@ export class Lightning {
         }
     }
 
+    //Lights
+        public getAmbientLightIntensity(): number {
+            return this.intensity;
+        }
+
+        public getDirectionalLight(): THREE.DirectionalLight {
+            return this.directionalLight;
+        }
+
+        public getDirectionalLightColor(): THREE.Color {
+            return this.dlColor;
+        }
+
+        public getDirectionalLightIntensity(): number {
+            return this.dlIntensity;
+        }
+
+        public getDirectionalLightPos(): THREE.Vector3 {
+            return this.dlPosition;
+        }
+    //
+
     public addLights(): THREE.Light[] {
         this.addAmbientLight();
         this.addDirectionalLight();
@@ -71,7 +100,7 @@ export class Lightning {
     }
 
     public getColor(): THREE.Color {
-        return this.colors.night;
+        return this.initColorTimeFactor();
     }
 
     private mixColors(fColor: THREE.Color, sColor: THREE.Color, factor: number): THREE.Color {
@@ -88,8 +117,7 @@ export class Lightning {
     }
 
     public resetState(): void {
-        this.color = this.colors.day;
-        this.intensity = 1.0;
+        this.color = this.initColorTimeFactor();
 
         if(this.ambientLight) {
             this.ambientLight.color.copy(this.color);

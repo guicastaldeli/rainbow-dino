@@ -62,7 +62,7 @@ let lastTime = 0;
 
     //Start
     function startHandler(e: KeyboardEvent) {
-        if(e.key === 'Escape' && gameState.current === 'menu') {
+        if(e.key && gameState.current === 'menu') {
             isInitLoad = false;
 
             e.preventDefault();

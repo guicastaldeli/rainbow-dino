@@ -60,7 +60,7 @@ function checkRunning() {
 }
 //Start
 function startHandler(e) {
-    if (e.key === 'Escape' && gameState.current === 'menu') {
+    if (e.key && gameState.current === 'menu') {
         isInitLoad = false;
         e.preventDefault();
         e.stopPropagation();

@@ -98,7 +98,7 @@ export class Cactus {
             this.material = new THREE.ShaderMaterial({
                 uniforms: {
                     time: { value: 0.0 },
-                    timeFactor: { value: 0.0 },
+                    timeFactor: { value: this.timeCycle.getTimeFactor() },
                     map: { value: tex },
                     bounds: { value: bounds.clone() },
                     isObs: { value: true },

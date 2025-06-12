@@ -39,6 +39,7 @@ export class ScreenMainMenu {
 
         private logoMesh!: THREE.Object3D;
         private logoMat!: THREE.ShaderMaterial;
+        private logoTexArray: [] = [];
 
         private scoreMesh!: THREE.Mesh;
         private scoreMat!: THREE.MeshStandardMaterial[];
@@ -152,30 +153,32 @@ export class ScreenMainMenu {
         const pos = {
             x: 0,
             y: 0,
-            z: -3
+            z: -8
         }
 
         try {
             const [vertexShader, fragmentShader] = await Promise.all([
-                this.loadShader('./el/shaders/vertexShader.glsl'),
-                this.loadShader('./el/shaders/fragShader.glsl')
+                this.loadShader('./screens/shaders/vertexShader.glsl'),
+                this.loadShader('./screens/shaders/fragShader.glsl')
             ]);
 
-            const path = '../../../assets/logo.obj';
+            const path = '../../../assets/obj/logo.obj';
             const texPath = '../../../assets/textures/logo.png';
             const tex = await this.texLoader.loadAsync(texPath);
+            tex.generateMipmaps = true;
+            tex.mipmaps = this.logoTexArray;
 
             this.logoMat = new THREE.ShaderMaterial({
                 uniforms: {
                     time: { value: 0.0 },
-                    timeFactor: { value: this.time.getTimeFactor() },
+                    timeFactor: { value: 0.0 },
                     map: { value: tex },
-                    ambientLightColor: { value: this.ambientLightColor },
-                    ambientLightIntensity: { value: this.ambientLightIntensity },
-                    directionalLightColor: { value: this.directionalLightColor },
-                    directionalLightIntensity: { value: this.directionalLightIntensity },
-                    directionalLightPosition: { value: this.directionalLightPosition },
+                    defaultColor: { value: new THREE.Color('rgb(0, 60, 255)') },
+                    rColor: { value: new THREE.Color('rgb(0, 255, 17)') },
+                    rUvMin: { value: new THREE.Vector2(0.0, 0.0) },
+                    rUvMax: { value: new THREE.Vector2(0.3, 1.0) }
                 },
+                
                 vertexShader,
                 fragmentShader,
                 side: THREE.DoubleSide
@@ -187,7 +190,7 @@ export class ScreenMainMenu {
                     let logo: THREE.Mesh | undefined;
 
                     this.logoMesh.traverse((m) => {
-                        if(m instanceof THREE.Mesh && !logo) {
+                         if(m instanceof THREE.Mesh) {
                             m.material = this.logoMat;
                             m.castShadow = true;
                             m.receiveShadow = true;
@@ -283,7 +286,8 @@ export class ScreenMainMenu {
             if(this.startMat) {
                 this.startMat.forEach(mat => {
                     mat.opacity = 1.0;
-                    mat.visible = true;
+                    mat.visible = false;
+                    setInterval(() => mat.visible = !mat.visible, 100);
                 });
 
                 this.startMat[0].color = this.colors.selec_f.clone();
@@ -452,11 +456,12 @@ export class ScreenMainMenu {
 
     private async _menuGroup(): Promise<THREE.Group> {
         await Promise.all([
+            this.createLogo(),
             this.showMessage(),
             this.createHighScoreText()
         ]);
 
-        //this.group.add(this.logoMesh);
+        this.group.add(this.logoMesh);
         this.group.add(this.scoreMesh);
         this.group.add(this.startMesh);
 
@@ -469,7 +474,7 @@ export class ScreenMainMenu {
     }
 
     public update(deltaTime: number): void {
-        if(!this.scoreMat || !this.startMat) return;
+        if(!this.logoMesh || !this.scoreMat || !this.startMat) return;
 
         const now = performance.now();
         const timeFactor = this.time.getTimeFactor();

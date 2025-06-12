@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-import { Font, FontLoader, OBJLoader } from 'three/addons/Addons.js';
+import { Font, FontLoader, OBJLoader, MTLLoader } from 'three/addons/Addons.js';
 
 import { GameState } from '../game-state.js';
 import { Time } from '../time.js';
@@ -29,6 +29,7 @@ export class ScreenMainMenu {
     
     private fontLoader: FontLoader;
     private objLoader: OBJLoader;
+    private mtlLoader: MTLLoader;
     private texLoader: THREE.TextureLoader;
     private data?: any;
 
@@ -104,6 +105,7 @@ export class ScreenMainMenu {
 
         this.fontLoader = new FontLoader();
         this.objLoader = new OBJLoader();
+        this.mtlLoader = new MTLLoader();
 
         this.texLoader = new THREE.TextureLoader();
 
@@ -162,35 +164,48 @@ export class ScreenMainMenu {
                 this.loadShader('./screens/shaders/fragShader.glsl')
             ]);
 
+            const mtlPath = '../../../assets/textures/logo.mtl'
+            const materials = await this.mtlLoader.loadAsync(mtlPath);
+            materials.preload();
+
             const path = '../../../assets/obj/logo.obj';
             const texPath = '../../../assets/textures/logo.png';
             const tex = await this.texLoader.loadAsync(texPath);
             tex.generateMipmaps = true;
-            tex.mipmaps = this.logoTexArray;
 
             this.logoMat = new THREE.ShaderMaterial({
                 uniforms: {
                     time: { value: 0.0 },
-                    timeFactor: { value: 0.0 },
+                    timeFactor: { value: this.time.getTimeFactor() },
                     map: { value: tex },
-                    defaultColor: { value: new THREE.Color('rgb(0, 60, 255)') },
-                    rColor: { value: new THREE.Color('rgb(0, 255, 17)') },
-                    rUvMin: { value: new THREE.Vector2(0.0, 0.0) },
-                    rUvMax: { value: new THREE.Vector2(0.3, 1.0) }
+                    scrollSpeed: { value: 0.8 },
+                    letterCount: { value: 11.0 },
+                    shadowMap: { value: null },
+                    shadowBias: { value: 0.01 },
+                    shadowRadius: { value: 1.0 },
+                    ambientLightColor: { value: this.ambientLightColor },
+                    ambientLightIntensity: { value: this.ambientLightIntensity },
+                    directionalLightColor: { value: this.directionalLightColor },
+                    directionalLightIntensity: { value: this.directionalLightIntensity },
+                    directionalLightPosition: { value: this.directionalLightPosition },
+                    directionalLightMatrix: { value: new THREE.Matrix4() },
                 },
-                
                 vertexShader,
                 fragmentShader,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
             });
 
             return new Promise<THREE.Mesh>((res, rej) => {
-                this.objLoader.load(path, async (obj) => {
+                this.objLoader
+                    .setMaterials(materials)
+                    .load(path, async (obj) => {
                     this.logoMesh = obj;
                     let logo: THREE.Mesh | undefined;
 
                     this.logoMesh.traverse((m) => {
-                         if(m instanceof THREE.Mesh) {
+                        if(m instanceof THREE.Mesh) {
+                            const geometry = m.geometry;
+                            const posAttribute = geometry.getAttribute('position');
                             m.material = this.logoMat;
                             m.castShadow = true;
                             m.receiveShadow = true;
@@ -199,6 +214,7 @@ export class ScreenMainMenu {
                     });
 
                     if(!logo) throw new Error("err");
+
 
                     logo.scale.x = size.w;
                     logo.scale.y = size.h;
@@ -477,8 +493,11 @@ export class ScreenMainMenu {
         if(!this.logoMesh || !this.scoreMat || !this.startMat) return;
 
         const now = performance.now();
+        const factor = this.time.getTimeFactor();
+        const totalTime = performance.now() * this.time['initSpeed'] * this.tick.getTimeScale();
         const timeFactor = this.time.getTimeFactor();
         const internalTime = this.lastTime ? Math.min((now - this.lastTime) / 1000, 0.1) : 0;
+        const ambientColor = this.lightning.update(factor);
         this.lastTime = now;
 
         const fStartColor = this.colors.i_day_f.clone().lerp(this.colors.i_night_f, 1 - timeFactor);
@@ -503,7 +522,22 @@ export class ScreenMainMenu {
 
             this.scoreMat[0].needsUpdate = true;
             this.scoreMat[1].needsUpdate = true;
-        } 
+        }
+
+       
+
+        this.logoMat.uniforms.time.value = totalTime;
+        this.logoMat.uniforms.timeFactor.value = factor;
+
+        this.logoMat.uniforms.ambientLightColor.value = ambientColor;
+        this.logoMat.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+
+        this.logoMat.uniforms.directionalLightColor.value = this.directionalLightColor;
+        this.logoMat.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+        this.logoMat.uniforms.directionalLightPosition.value = this.directionalLightPosition;
+        this.logoMat.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
+
+        this.logoMat.needsUpdate = true;
     }
 
     public async ready(): Promise<THREE.Group> {

@@ -45,16 +45,15 @@ let assetsLoaded = {
     score: false,
     display: false
 };
-function checkRunning() {
+function checkRunning(e) {
     if (Object.values(assetsLoaded)
         .every(loaded => loaded)) {
         if (isInitLoad) {
             tick.setState('menu');
         }
         else {
-            tick.setState('running');
-            tick.run();
-            screenMenu.hideMenu();
+            if (e)
+                startHandler(e);
             activePause();
         }
     }
@@ -129,12 +128,16 @@ tick.setScreenMenu(screenMenu);
 //Start
 function startHandler(e) {
     if (e.key && gameState.current === 'menu') {
-        isInitLoad = false;
-        e.preventDefault();
-        e.stopPropagation();
-        tick.setState('running');
-        tick.run();
-        window.removeEventListener('keydown', startHandler);
+        screenMenu.onStarted();
+        setTimeout(() => {
+            isInitLoad = false;
+            e.preventDefault();
+            e.stopPropagation();
+            screenMenu.hideMenu();
+            tick.setState('running');
+            tick.run();
+            window.removeEventListener('keydown', startHandler);
+        }, 500);
     }
 }
 window.addEventListener('keydown', startHandler);
@@ -167,8 +170,10 @@ function activePause() {
 //Game Over
 const screenGameOver = new ScreenGameOver(gameState, tick, timeCycle, score, camera, player);
 tick.onGameOver(() => __awaiter(void 0, void 0, void 0, function* () {
+    score.onGameEnd();
     score.getFinalScore();
     yield screenGameOver.ready();
+    screenMenu.updateHighScore();
 }));
 //
 //Reset
@@ -224,7 +229,6 @@ function render() {
     if (gameState.current === 'running')
         score.update(scaledDelta);
     renderDisplay.update(scaledDelta);
-    //console.log(gameState)
     screenMenu.update(scaledDelta);
     screenPause.update(scaledDelta);
     screenGameOver.update(scaledDelta);

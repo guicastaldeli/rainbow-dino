@@ -105,6 +105,20 @@ export class Score {
     getFinalScore() {
         return this.saveScore();
     }
+    saveHighScore() {
+        const currentScore = this.getCurrentScore();
+        const highScore = this.getHighScore();
+        if (currentScore > highScore)
+            localStorage.setItem('high-score', currentScore.toString());
+    }
+    getHighScore() {
+        const stored = localStorage.getItem('high-score');
+        return stored ? parseInt(stored) : 0;
+    }
+    onGameEnd() {
+        this.saveHighScore();
+        this.saveScore();
+    }
     activateBlink() {
         this.material.uniforms.shouldBlink.value = this.isBlinking;
     }

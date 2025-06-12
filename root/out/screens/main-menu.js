@@ -15,6 +15,7 @@ export class ScreenMainMenu {
     //
     constructor(state, tick, time, camera, score) {
         this.lastTime = 0;
+        this.isStarted = false;
         this.hasMessageShown = false;
         this.fadeState = 'none';
         this.fadeProgress = 0;
@@ -34,6 +35,9 @@ export class ScreenMainMenu {
             i_night_b: new THREE.Color('rgb(137, 137, 137)'),
             s_night_f: new THREE.Color('rgb(232, 232, 232)'),
             s_night_b: new THREE.Color('rgb(160, 160, 160)'),
+            //Selected
+            selec_f: new THREE.Color('rgb(168, 202, 243)'),
+            selec_b: new THREE.Color('rgb(49, 139, 250)')
         };
         this.state = {
             current: 'menu',
@@ -44,6 +48,7 @@ export class ScreenMainMenu {
         this.time = time;
         this.camera = camera;
         this.score = score;
+        this.score.getHighScore();
         this.group = new THREE.Group();
         this.fontLoader = new FontLoader();
         this.objLoader = new OBJLoader();
@@ -174,6 +179,7 @@ export class ScreenMainMenu {
             this.startMat.forEach(mat => {
                 mat.opacity = opacity;
                 mat.transparent = opacity < 1.0;
+                mat.visible = opacity > 0;
             });
             if (normalizedProgress >= 1) {
                 this.fadeState = 'holding';
@@ -188,11 +194,27 @@ export class ScreenMainMenu {
             this.startMat.forEach(mat => {
                 mat.opacity = opacity;
                 mat.transparent = opacity < 1.0;
+                mat.visible = opacity > 0;
             });
             if (normalizedProgress >= 1) {
                 this.fadeState = 'none';
                 this.clearMessage();
             }
+            ;
+        }
+    }
+    onStarted() {
+        this.isStarted = true;
+        this.fadeState = 'none';
+        if (this.startMat) {
+            this.startMat.forEach(mat => {
+                mat.opacity = 1.0;
+                mat.visible = true;
+            });
+            this.startMat[0].color = this.colors.selec_f.clone();
+            this.startMat[1].color = this.colors.selec_b.clone();
+            this.startMat[0].needsUpdate = true;
+            this.startMat[1].needsUpdate = true;
         }
     }
     clearMessage() {
@@ -228,12 +250,12 @@ export class ScreenMainMenu {
                         new THREE.MeshStandardMaterial({
                             color: this.colors.i_day_f,
                             side: THREE.DoubleSide,
-                            opacity: 0.0
+                            opacity: 0.0,
                         }),
                         new THREE.MeshStandardMaterial({
                             color: this.colors.i_day_b,
                             side: THREE.DoubleSide,
-                            opacity: 0.0
+                            opacity: 0.0,
                         }),
                     ];
                 }
@@ -253,23 +275,33 @@ export class ScreenMainMenu {
     }
     //
     //Score
+    scoreInfo() {
+        const size = {
+            s: 0.5,
+            d: 0.02
+        };
+        const pos = {
+            x: 0,
+            y: -4,
+            z: -5
+        };
+        const highScore = this.score.getHighScore();
+        const text = `SCORE - ${highScore.toString().padStart(7, '0')}`;
+        return {
+            size,
+            pos,
+            highScore,
+            text
+        };
+    }
     createHighScoreText() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const size = {
-                    s: 0.5,
-                    d: 0.02
-                };
-                const pos = {
-                    x: 0,
-                    y: -4,
-                    z: -5
-                };
-                const text = 'SCORE -';
-                const geometry = new TextGeometry(text, {
+                const info = this.scoreInfo();
+                const geometry = new TextGeometry(info.text, {
                     font: this.data,
-                    size: size.s,
-                    depth: size.d,
+                    size: info.size.s,
+                    depth: info.size.d,
                     bevelEnabled: false
                 });
                 geometry.center();
@@ -288,9 +320,9 @@ export class ScreenMainMenu {
                 this.scoreMesh = new THREE.Mesh(geometry, this.scoreMat);
                 this.scoreMesh.receiveShadow = true;
                 this.scoreMesh.castShadow = true;
-                this.scoreMesh.position.x = pos.x;
-                this.scoreMesh.position.y = pos.y;
-                this.scoreMesh.position.z = pos.z;
+                this.scoreMesh.position.x = info.pos.x;
+                this.scoreMesh.position.y = info.pos.y;
+                this.scoreMesh.position.z = info.pos.z;
                 return this.scoreMesh;
             }
             catch (err) {
@@ -298,6 +330,21 @@ export class ScreenMainMenu {
                 throw err;
             }
         });
+    }
+    updateHighScore() {
+        if (!this.scoreMesh || !this.data)
+            return;
+        const info = this.scoreInfo();
+        const updGeometry = new TextGeometry(info.text, {
+            font: this.data,
+            size: info.size.s,
+            depth: info.size.d,
+            bevelEnabled: false
+        });
+        updGeometry.center();
+        if (this.scoreMesh.geometry)
+            this.scoreMesh.geometry.dispose();
+        this.scoreMesh.geometry = updGeometry;
     }
     loadShader(url) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -336,11 +383,12 @@ export class ScreenMainMenu {
         const bStartColor = this.colors.i_day_b.clone().lerp(this.colors.i_night_b, 1 - timeFactor);
         const fScoreColor = this.colors.s_day_f.clone().lerp(this.colors.s_night_f, 1 - timeFactor);
         const bScoreColor = this.colors.s_day_b.clone().lerp(this.colors.s_night_b, 1 - timeFactor);
-        if (this.startMat && this.startMat.length >= 2) {
+        if (!this.isStarted && this.startMat && this.startMat.length >= 2) {
             this.startMat[0].color.copy(fStartColor);
             this.startMat[1].color.copy(bStartColor);
             this.startMat[0].needsUpdate = true;
             this.startMat[1].needsUpdate = true;
+            this.updateFade(internalTime);
         }
         if (this.scoreMat && this.scoreMat.length >= 2) {
             this.scoreMat[0].color.copy(fScoreColor);
@@ -348,11 +396,11 @@ export class ScreenMainMenu {
             this.scoreMat[0].needsUpdate = true;
             this.scoreMat[1].needsUpdate = true;
         }
-        this.updateFade(internalTime);
     }
     ready() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.loadFont();
+            yield this.updateHighScore();
             return this._menuGroup();
         });
     }

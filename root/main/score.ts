@@ -131,6 +131,23 @@ export class Score {
         return this.saveScore();
     }
 
+    private saveHighScore(): void {
+        const currentScore = this.getCurrentScore();
+        const highScore = this.getHighScore();
+
+        if(currentScore > highScore) localStorage.setItem('high-score', currentScore.toString());
+    }
+
+    public getHighScore(): number {
+        const stored = localStorage.getItem('high-score');
+        return stored ? parseInt(stored) : 0;
+    }
+
+    public onGameEnd(): void {
+        this.saveHighScore();
+        this.saveScore();
+    }
+
     private activateBlink(): void {
         this.material.uniforms.shouldBlink.value = this.isBlinking;
     }

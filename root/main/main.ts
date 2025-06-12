@@ -46,16 +46,13 @@ let lastTime = 0;
         display: false
     }
 
-    function checkRunning() {
+    function checkRunning(e?: KeyboardEvent) {
         if(Object.values(assetsLoaded)
             .every(loaded => loaded)) {
             if(isInitLoad) {
                 tick.setState('menu');
             } else {
-                tick.setState('running');
-                tick.run();
-
-                screenMenu.hideMenu();
+                if(e) startHandler(e);
                 activePause();
             }
         }
@@ -147,16 +144,23 @@ let lastTime = 0;
 
         //Start
         function startHandler(e: KeyboardEvent) {
+            
             if(e.key && gameState.current === 'menu') {
-                isInitLoad = false;
+                screenMenu.onStarted();
 
-                e.preventDefault();
-                e.stopPropagation();
-
-                tick.setState('running');
-                tick.run();
-
-                window.removeEventListener('keydown', startHandler);
+                setTimeout(() => {
+                    isInitLoad = false;
+    
+                    e.preventDefault();
+                    e.stopPropagation();
+    
+                    screenMenu.hideMenu();
+                    
+                    tick.setState('running');
+                    tick.run();
+    
+                    window.removeEventListener('keydown', startHandler);
+                }, 500)
             }
         }
 
@@ -211,8 +215,11 @@ let lastTime = 0;
         ;
 
         tick.onGameOver(async () => {
+            score.onGameEnd();
             score.getFinalScore();
             await screenGameOver.ready();
+
+            screenMenu.updateHighScore();
         });
     //
 
@@ -283,8 +290,6 @@ resizeRenderer();
         skybox.update(scaledDelta);
         if(gameState.current === 'running') score.update(scaledDelta);
         renderDisplay.update(scaledDelta);
-
-        //console.log(gameState)
 
         screenMenu.update(scaledDelta);
         screenPause.update(scaledDelta);

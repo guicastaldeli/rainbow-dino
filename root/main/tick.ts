@@ -1,4 +1,5 @@
 import { GameState } from "./game-state";
+import { ScreenMainMenu } from "./screens/main-menu";
 import { ScreenPauseMenu } from "./screens/pause-menu.js";
 
 export class Tick {
@@ -10,6 +11,7 @@ export class Tick {
     private resetCalls: (() => void)[] = [];
     private stateChangeCalls: ((state: GameState['current']) => void)[] = [];
 
+    private screenMenu: any;
     private screenPause: any;
 
     constructor() {
@@ -27,6 +29,10 @@ export class Tick {
             this.timeScale = this.timeScale;
             this.resumeCalls.forEach(cb => cb());
         }
+    }
+
+    public setScreenMenu(screen: any) {
+        this.screenMenu = screen;
     }
 
     public setScreenPause(screen: any) {

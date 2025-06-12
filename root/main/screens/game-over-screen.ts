@@ -11,8 +11,8 @@ import { Player } from '../el/player';
 
 export class ScreenGameOver {
     private state: GameState;
-    private time: Time;
     private tick: Tick;
+    private time: Time;
     private lastTime: number = 0;
 
     private camera: Camera;
@@ -58,8 +58,8 @@ export class ScreenGameOver {
 
     constructor(
         state: GameState, 
-        time: Time, 
         tick: Tick, 
+        time: Time, 
         score: Score, 
         camera: Camera,
         player: Player
@@ -68,7 +68,7 @@ export class ScreenGameOver {
             current: 'game-over',
             prev: null,
             tick: { timeScale: tick.getTimeScale() }
-        };
+        }
 
         this.time = time;
         this.tick = tick;
@@ -376,10 +376,9 @@ export class ScreenGameOver {
         if(!this.gameOverTextMat || !this.gameOverScoreMat || !this.resetMat) return;
 
         const now = performance.now();
+        const timeFactor = this.time.getTimeFactor();
         const internalTime = this.lastTime ? Math.min((now - this.lastTime) / 1000, 0.1) : 0;
         this.lastTime = now;
-
-        const timeFactor = this.time.getTimeFactor();
 
         const dayColor = { 
             t: this.colors.t_day, 

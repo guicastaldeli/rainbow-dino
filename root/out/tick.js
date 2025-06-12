@@ -29,6 +29,9 @@ export class Tick {
             this.resumeCalls.forEach(cb => cb());
         }
     }
+    setScreenMenu(screen) {
+        this.screenMenu = screen;
+    }
     setScreenPause(screen) {
         this.screenPause = screen;
     }

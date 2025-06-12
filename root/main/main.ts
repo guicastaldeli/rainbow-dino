@@ -10,6 +10,7 @@ import { Display } from './display.js';
 import { Skybox } from './skybox.js';
 import { Player } from './el/player.js';
 
+import { ScreenMainMenu } from './screens/main-menu.js';
 import { ScreenPauseMenu } from './screens/pause-menu.js';
 import { ScreenGameOver } from './screens/game-over-screen.js';
 
@@ -54,27 +55,11 @@ let lastTime = 0;
                 tick.setState('running');
                 tick.run();
 
-                tick.setScreenPause(screenPause);
-                window.addEventListener('keydown', pauseHandler);
+                screenMenu.hideMenu();
+                activePause();
             }
         }
     }
-
-    //Start
-    function startHandler(e: KeyboardEvent) {
-        if(e.key && gameState.current === 'menu') {
-            isInitLoad = false;
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            tick.setState('running');
-            tick.run();
-            window.removeEventListener('keydown', startHandler);
-        }
-    }
-
-    window.addEventListener('keydown', startHandler);
 //
 
 //Render
@@ -137,6 +122,47 @@ let lastTime = 0;
 //
 
 //Screens
+    //Menu
+        const screenMenu =
+            new ScreenMainMenu(
+                gameState,
+                tick,
+                timeCycle,
+                camera,
+                score
+            )
+        ;
+
+        //Menu
+        async function showMenu() {
+            try {
+                await screenMenu.ready();
+            } catch(err) {
+                console.log(err);
+            }
+        }
+
+        showMenu();
+        tick.setScreenMenu(screenMenu);
+
+        //Start
+        function startHandler(e: KeyboardEvent) {
+            if(e.key && gameState.current === 'menu') {
+                isInitLoad = false;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                tick.setState('running');
+                tick.run();
+
+                window.removeEventListener('keydown', startHandler);
+            }
+        }
+
+        window.addEventListener('keydown', startHandler);
+    //
+
     //Pause
         const screenPause = 
             new ScreenPauseMenu(
@@ -165,14 +191,19 @@ let lastTime = 0;
                 tick.setScreenPause(screenPause);
             }
         }
+
+        function activePause() {
+            tick.setScreenPause(screenPause);
+            window.addEventListener('keydown', pauseHandler);
+        }
     //
     
     //Game Over
         const screenGameOver = 
             new ScreenGameOver(
                 gameState, 
-                timeCycle, 
                 tick, 
+                timeCycle, 
                 score, 
                 camera,
                 player
@@ -253,8 +284,9 @@ resizeRenderer();
         if(gameState.current === 'running') score.update(scaledDelta);
         renderDisplay.update(scaledDelta);
 
-        console.log(gameState)
+        //console.log(gameState)
 
+        screenMenu.update(scaledDelta);
         screenPause.update(scaledDelta);
         screenGameOver.update(scaledDelta);
         

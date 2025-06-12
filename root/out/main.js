@@ -16,6 +16,7 @@ import { Score } from './score.js';
 import { Display } from './display.js';
 import { Skybox } from './skybox.js';
 import { Player } from './el/player.js';
+import { ScreenMainMenu } from './screens/main-menu.js';
 import { ScreenPauseMenu } from './screens/pause-menu.js';
 import { ScreenGameOver } from './screens/game-over-screen.js';
 const canvas = (document.getElementById('game--container'));
@@ -53,23 +54,11 @@ function checkRunning() {
         else {
             tick.setState('running');
             tick.run();
-            tick.setScreenPause(screenPause);
-            window.addEventListener('keydown', pauseHandler);
+            screenMenu.hideMenu();
+            activePause();
         }
     }
 }
-//Start
-function startHandler(e) {
-    if (e.key && gameState.current === 'menu') {
-        isInitLoad = false;
-        e.preventDefault();
-        e.stopPropagation();
-        tick.setState('running');
-        tick.run();
-        window.removeEventListener('keydown', startHandler);
-    }
-}
-window.addEventListener('keydown', startHandler);
 //
 //Render
 //Time and Skybox
@@ -122,6 +111,34 @@ const lights = lightning.addLights();
 lights.forEach(l => scene.add(l));
 //
 //Screens
+//Menu
+const screenMenu = new ScreenMainMenu(gameState, tick, timeCycle, camera, score);
+//Menu
+function showMenu() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield screenMenu.ready();
+        }
+        catch (err) {
+            console.log(err);
+        }
+    });
+}
+showMenu();
+tick.setScreenMenu(screenMenu);
+//Start
+function startHandler(e) {
+    if (e.key && gameState.current === 'menu') {
+        isInitLoad = false;
+        e.preventDefault();
+        e.stopPropagation();
+        tick.setState('running');
+        tick.run();
+        window.removeEventListener('keydown', startHandler);
+    }
+}
+window.addEventListener('keydown', startHandler);
+//
 //Pause
 const screenPause = new ScreenPauseMenu(gameState, timeCycle, tick, camera);
 function pauseHandler(e) {
@@ -142,9 +159,13 @@ function pause() {
         }
     });
 }
+function activePause() {
+    tick.setScreenPause(screenPause);
+    window.addEventListener('keydown', pauseHandler);
+}
 //
 //Game Over
-const screenGameOver = new ScreenGameOver(gameState, timeCycle, tick, score, camera, player);
+const screenGameOver = new ScreenGameOver(gameState, tick, timeCycle, score, camera, player);
 tick.onGameOver(() => __awaiter(void 0, void 0, void 0, function* () {
     score.getFinalScore();
     yield screenGameOver.ready();
@@ -203,7 +224,8 @@ function render() {
     if (gameState.current === 'running')
         score.update(scaledDelta);
     renderDisplay.update(scaledDelta);
-    console.log(gameState);
+    //console.log(gameState)
+    screenMenu.update(scaledDelta);
     screenPause.update(scaledDelta);
     screenGameOver.update(scaledDelta);
     camera.update(scaledDelta);

@@ -251,14 +251,28 @@ export class Display {
         return this.display;
     }
 
-    public resetState(): void {
-        this.obstacleManager.resetState();
+    public async resetState(): Promise<void> {
+        this.collDetector.resetState();
+        this.obstacleManager.clearObstacles();
 
         if(this.renderClouds) this.renderClouds.resetState();
         if(this.renderTerrain) this.renderTerrain.resetState();
-        if(this.renderCactus) this.renderCactus.resetState();
-        if(this.renderCrow) this.renderCrow.resetState();
         if(this.renderPlayer) this.renderPlayer.resetState();
+
+        if(this.renderCactus) {
+            this.display.remove(...this.renderCactus.getObs());
+            const updCactusGroup = await this.renderCactus.resetState();
+            this.display.add(updCactusGroup);
+        }
+
+        if(this.renderCrow) {
+            this.display.remove(...this.renderCrow.getObs());
+            this.renderCrow.resetAnimationState();
+            const updCrowGroup = await this.renderCrow.resetState();
+            this.display.add(updCrowGroup);
+        }
+
+        if(this.renderPlayer) this.renderPlayer.updateObs(this.obstacleManager.getObstacles());
 
         if(this.material) {
             this.material.uniforms.time.value = 0.0;

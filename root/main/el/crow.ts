@@ -50,7 +50,7 @@ export class Crow {
     }
 
     pos = {
-        x: 0,
+        x: 15,
         y: () => Math.random() * (0.5 - (-1)) + (-1),
         z: () => Math.random() * ((-3.4) - (-3.2)) + (-3.2),
 
@@ -255,11 +255,28 @@ export class Crow {
         return await res.text();
     }
 
-    public resetState(): void {
+    public resetAnimationState(): void {
+        this.currentModelIndex = 0;
+        this.lastSwitchTime = 0;
+    }
+
+    public async resetState(): Promise<THREE.Group> {
+        this.resetAnimationState();
+        
+        this.obs.forEach(obs => {
+            if(obs.geometry) obs.geometry.dispose();
+            if(obs.material && !Array.isArray(obs.material)) obs.material.dispose();
+        });
+
         this.obstacleManager.clearObstacles();
-        this.obstacleManager.addObstacle(this.obs);
-        this.obstacleManager.resetState();
+        this.obs = [];
+        this.obsBox = [];
+        this.obsGroup.clear();
+
+        await this.setObs();
         this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
+
+        return this.obsGroup;
     }
 
     public update(deltaTime: number, collDetector: CollDetector): void {
@@ -276,7 +293,7 @@ export class Crow {
 
         this.obs.forEach((o, i) => {
             o.position.x -= speed * scaledDelta;
-            const objBox = new THREE.Box3().setFromObject(o);
+            const objBoxCopy = this.obsBox[i].copy(new THREE.Box3().setFromObject(o));
 
             if(o.material instanceof THREE.ShaderMaterial) {
                 o.material.uniforms.time.value = totalTime;
@@ -293,7 +310,7 @@ export class Crow {
                 o.material.needsUpdate = true;
             }
 
-            if(collDetector.isColliding(objBox)) {
+            if(collDetector.isColliding(objBoxCopy)) {
                 this.resetObs(o);
                 this.obsBox[i] = new THREE.Box3().setFromObject(o);
             }

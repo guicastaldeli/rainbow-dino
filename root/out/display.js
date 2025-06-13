@@ -182,27 +182,39 @@ export class Display {
         });
     }
     resetState() {
-        this.obstacleManager.resetState();
-        if (this.renderClouds)
-            this.renderClouds.resetState();
-        if (this.renderTerrain)
-            this.renderTerrain.resetState();
-        if (this.renderCactus)
-            this.renderCactus.resetState();
-        if (this.renderCrow)
-            this.renderCrow.resetState();
-        if (this.renderPlayer)
-            this.renderPlayer.resetState();
-        if (this.material) {
-            this.material.uniforms.time.value = 0.0;
-            this.material.uniforms.timeFactor.value = this.timeCycle.getTimeFactor();
-            this.material.needsUpdate = true;
-        }
-        if (this.mesh) {
-            this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
-            this.mesh.scale.set(this.size.w, this.size.h, this.size.d);
-        }
-        this.getBounds();
+        return __awaiter(this, void 0, void 0, function* () {
+            this.collDetector.resetState();
+            this.obstacleManager.clearObstacles();
+            if (this.renderClouds)
+                this.renderClouds.resetState();
+            if (this.renderTerrain)
+                this.renderTerrain.resetState();
+            if (this.renderPlayer)
+                this.renderPlayer.resetState();
+            if (this.renderCactus) {
+                this.display.remove(...this.renderCactus.getObs());
+                const updCactusGroup = yield this.renderCactus.resetState();
+                this.display.add(updCactusGroup);
+            }
+            if (this.renderCrow) {
+                this.display.remove(...this.renderCrow.getObs());
+                this.renderCrow.resetAnimationState();
+                const updCrowGroup = yield this.renderCrow.resetState();
+                this.display.add(updCrowGroup);
+            }
+            if (this.renderPlayer)
+                this.renderPlayer.updateObs(this.obstacleManager.getObstacles());
+            if (this.material) {
+                this.material.uniforms.time.value = 0.0;
+                this.material.uniforms.timeFactor.value = this.timeCycle.getTimeFactor();
+                this.material.needsUpdate = true;
+            }
+            if (this.mesh) {
+                this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
+                this.mesh.scale.set(this.size.w, this.size.h, this.size.d);
+            }
+            this.getBounds();
+        });
     }
     forceUpdate(value) {
         this.display.traverse((obj) => {

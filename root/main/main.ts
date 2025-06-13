@@ -224,7 +224,7 @@ let lastTime = 0;
     //
 
     //Reset
-        function reset() {
+        async function reset() {
             lastTime = 0;
             window.removeEventListener('keydown', pauseHandler);
             window.removeEventListener('keydown', startHandler);
@@ -237,7 +237,7 @@ let lastTime = 0;
             score.resetState();
             camera.resetState();
             camera.hideMessage(true);
-            renderDisplay.resetState();
+            await renderDisplay.resetState();
 
             screenPause.hideMessage();
             screenGameOver.hideMessage();

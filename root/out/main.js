@@ -178,30 +178,32 @@ tick.onGameOver(() => __awaiter(void 0, void 0, void 0, function* () {
 //
 //Reset
 function reset() {
-    lastTime = 0;
-    window.removeEventListener('keydown', pauseHandler);
-    window.removeEventListener('keydown', startHandler);
-    scene.remove(renderDisplay.display);
-    tick.setState('running');
-    timeCycle.resetState();
-    lightning.resetState();
-    score.resetState();
-    camera.resetState();
-    camera.hideMessage(true);
-    renderDisplay.resetState();
-    screenPause.hideMessage();
-    screenGameOver.hideMessage();
-    assetsLoaded = {
-        skybox: false,
-        score: false,
-        display: false
-    };
-    scene.add(renderDisplay.display);
-    setTimeout(() => {
-        checkRunning();
-        pause();
-        window.addEventListener('keydown', pauseHandler);
-    }, 1000);
+    return __awaiter(this, void 0, void 0, function* () {
+        lastTime = 0;
+        window.removeEventListener('keydown', pauseHandler);
+        window.removeEventListener('keydown', startHandler);
+        scene.remove(renderDisplay.display);
+        tick.setState('running');
+        timeCycle.resetState();
+        lightning.resetState();
+        score.resetState();
+        camera.resetState();
+        camera.hideMessage(true);
+        yield renderDisplay.resetState();
+        screenPause.hideMessage();
+        screenGameOver.hideMessage();
+        assetsLoaded = {
+            skybox: false,
+            score: false,
+            display: false
+        };
+        scene.add(renderDisplay.display);
+        setTimeout(() => {
+            checkRunning();
+            pause();
+            window.addEventListener('keydown', pauseHandler);
+        }, 1000);
+    });
 }
 tick.onReset(() => reset());
 window.addEventListener('keydown', (e) => __awaiter(void 0, void 0, void 0, function* () {

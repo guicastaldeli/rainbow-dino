@@ -333,9 +333,11 @@ export class ScreenGameOver {
     }
     ready() {
         return __awaiter(this, void 0, void 0, function* () {
+            this.hideMessage();
+            this.group = new THREE.Group();
+            yield this.createScreenGameOver();
             this.score.hideScore(false);
             this.camera.hideMessage(false);
-            return this.createScreenGameOver();
         });
     }
 }

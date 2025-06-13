@@ -1,6 +1,8 @@
 export class ObstacleManager {
-    constructor() {
+    constructor(cactus, crow) {
         this.obstacles = [];
+        this.cactus = cactus;
+        this.crow = crow;
     }
     addObstacle(obs) {
         if (Array.isArray(obs)) {
@@ -19,15 +21,15 @@ export class ObstacleManager {
     resetState() {
         this.obstacles.forEach(obstacle => {
             obstacle.geometry.dispose();
-            if (obstacle.type === 'cactus') {
-                obstacle.position.x = (Math.random() * 32) + 8;
-                obstacle.position.y = -3;
-                obstacle.position.z = -3.23;
+            if (this.cactus && obstacle.type === 'cactus') {
+                obstacle.position.x = this.cactus.pos.x;
+                obstacle.position.y = this.cactus.pos.y;
+                obstacle.position.z = this.cactus.pos.z;
             }
-            else if (obstacle.type === 'crow') {
-                obstacle.position.x = (Math.random() * 32);
-                obstacle.position.y = Math.random() * (0.5 - (-1)) + (-1);
-                obstacle.position.z = Math.random() * ((-3.4) - (-3.2)) + (-3.2);
+            else if (this.crow && obstacle.type === 'crow') {
+                obstacle.position.x = this.crow.pos.x;
+                obstacle.position.y = this.crow.pos.y();
+                obstacle.position.z = this.crow.pos.z();
             }
         });
         this.obstacles.sort((a, b) => a.position.x - b.position.x);
@@ -39,8 +41,26 @@ export class ObstacleManager {
                 curr.position.x = prev.position.x + minGap;
             }
         }
+        this.obstacles.forEach(o => {
+            o.updateMatrix();
+            o.updateMatrixWorld(true);
+        });
     }
     clearObstacles() {
+        this.obstacles.forEach(obs => {
+            if (obs.parent)
+                obs.parent.remove(obs);
+            if (obs.geometry)
+                obs.geometry.dispose();
+            if (obs.material) {
+                if (Array.isArray(obs.material)) {
+                    obs.material.forEach(m => m.dispose());
+                }
+                else {
+                    obs.material.dispose();
+                }
+            }
+        });
         this.obstacles = [];
     }
 }

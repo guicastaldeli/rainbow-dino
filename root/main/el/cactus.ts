@@ -226,12 +226,7 @@ export class Cactus {
         return await res.text();
     }
 
-    public resetState(): void {
-        this.obstacleManager.clearObstacles();
-        this.obstacleManager.addObstacle(this.obs);
-        this.obstacleManager.resetState();
-        this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
-
+    public async resetState(): Promise<THREE.Group> {
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
         const ambientColor = this.lightning.update(factor);
@@ -250,6 +245,21 @@ export class Cactus {
     
             material.needsUpdate = true;
         });
+
+        this.obs.forEach(obs => {
+            if(obs.geometry) obs.geometry.dispose();
+            if(obs.material && !Array.isArray(obs.material)) obs.material.dispose();
+        });
+        
+        this.obstacleManager.clearObstacles();
+        this.obs = [];
+        this.obsBox = [];
+        this.obsGroup.clear();
+        
+        await this.setObs();
+        this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
+        
+        return this.obsGroup;
     }
 
     public update(deltaTime: number, collDetector: CollDetector): void {

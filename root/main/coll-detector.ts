@@ -14,6 +14,11 @@ export class CollDetector {
         this.zone = box;
     }
 
+    public resetState(): void {
+        this.box = new THREE.Box3();
+        this.zone = undefined;
+    }
+
     public isColliding(objBox: THREE.Box3): boolean {
         if(!this.zone) return false;
 
@@ -48,9 +53,11 @@ export class CollDetector {
     }
 
     public playerCollision(pBox: THREE.Box3, obs: THREE.Mesh[]): boolean {
-        if(!pBox) return false;
+        if(!pBox || !obs || obs.length === 0) return false;
         
         for(const o of obs) {
+            if(!o) continue;
+            
             const obsBox = new THREE.Box3().setFromObject(o);
             if(pBox.intersectsBox(obsBox)) return true;
         }

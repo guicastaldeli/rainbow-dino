@@ -6,6 +6,10 @@ export class CollDetector {
     setZone(box) {
         this.zone = box;
     }
+    resetState() {
+        this.box = new THREE.Box3();
+        this.zone = undefined;
+    }
     isColliding(objBox) {
         if (!this.zone)
             return false;
@@ -23,9 +27,11 @@ export class CollDetector {
             objBox.max.y > this.zone.max.y);
     }
     playerCollision(pBox, obs) {
-        if (!pBox)
+        if (!pBox || !obs || obs.length === 0)
             return false;
         for (const o of obs) {
+            if (!o)
+                continue;
             const obsBox = new THREE.Box3().setFromObject(o);
             if (pBox.intersectsBox(obsBox))
                 return true;

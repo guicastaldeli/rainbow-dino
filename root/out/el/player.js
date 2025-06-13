@@ -349,6 +349,9 @@ export class Player {
         if (this.mesh)
             this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
     }
+    updateObs(obstacles) {
+        this.obstacles = obstacles;
+    }
     update(deltaTime) {
         if (!this.material)
             return;

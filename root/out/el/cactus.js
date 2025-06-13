@@ -186,23 +186,34 @@ export class Cactus {
         });
     }
     resetState() {
-        this.obstacleManager.clearObstacles();
-        this.obstacleManager.addObstacle(this.obs);
-        this.obstacleManager.resetState();
-        this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
-        const factor = this.timeCycle.getTimeFactor();
-        const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
-        const ambientColor = this.lightning.update(factor);
-        this.materials.forEach(material => {
-            material.uniforms.time.value = totalTime;
-            material.uniforms.timeFactor.value = factor;
-            material.uniforms.ambientLightColor.value = ambientColor;
-            material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
-            material.uniforms.directionalLightColor.value = this.directionalLightColor;
-            material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
-            material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
-            material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
-            material.needsUpdate = true;
+        return __awaiter(this, void 0, void 0, function* () {
+            const factor = this.timeCycle.getTimeFactor();
+            const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
+            const ambientColor = this.lightning.update(factor);
+            this.materials.forEach(material => {
+                material.uniforms.time.value = totalTime;
+                material.uniforms.timeFactor.value = factor;
+                material.uniforms.ambientLightColor.value = ambientColor;
+                material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+                material.uniforms.directionalLightColor.value = this.directionalLightColor;
+                material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+                material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
+                material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
+                material.needsUpdate = true;
+            });
+            this.obs.forEach(obs => {
+                if (obs.geometry)
+                    obs.geometry.dispose();
+                if (obs.material && !Array.isArray(obs.material))
+                    obs.material.dispose();
+            });
+            this.obstacleManager.clearObstacles();
+            this.obs = [];
+            this.obsBox = [];
+            this.obsGroup.clear();
+            yield this.setObs();
+            this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
+            return this.obsGroup;
         });
     }
     update(deltaTime, collDetector) {

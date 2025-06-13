@@ -28,7 +28,7 @@ export class Crow {
             d: 1
         };
         this.pos = {
-            x: 0,
+            x: 15,
             y: () => Math.random() * (0.5 - (-1)) + (-1),
             z: () => Math.random() * ((-3.4) - (-3.2)) + (-3.2),
             gap: () => Math.random() * (32 - 16) + 16,
@@ -205,11 +205,27 @@ export class Crow {
             return yield res.text();
         });
     }
+    resetAnimationState() {
+        this.currentModelIndex = 0;
+        this.lastSwitchTime = 0;
+    }
     resetState() {
-        this.obstacleManager.clearObstacles();
-        this.obstacleManager.addObstacle(this.obs);
-        this.obstacleManager.resetState();
-        this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
+        return __awaiter(this, void 0, void 0, function* () {
+            this.resetAnimationState();
+            this.obs.forEach(obs => {
+                if (obs.geometry)
+                    obs.geometry.dispose();
+                if (obs.material && !Array.isArray(obs.material))
+                    obs.material.dispose();
+            });
+            this.obstacleManager.clearObstacles();
+            this.obs = [];
+            this.obsBox = [];
+            this.obsGroup.clear();
+            yield this.setObs();
+            this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
+            return this.obsGroup;
+        });
     }
     update(deltaTime, collDetector) {
         if (this.obs.length === 0)
@@ -223,7 +239,7 @@ export class Crow {
         this.animateObs();
         this.obs.forEach((o, i) => {
             o.position.x -= speed * scaledDelta;
-            const objBox = new THREE.Box3().setFromObject(o);
+            const objBoxCopy = this.obsBox[i].copy(new THREE.Box3().setFromObject(o));
             if (o.material instanceof THREE.ShaderMaterial) {
                 o.material.uniforms.time.value = totalTime;
                 o.material.uniforms.timeFactor.value = factor;
@@ -235,7 +251,7 @@ export class Crow {
                 o.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
                 o.material.needsUpdate = true;
             }
-            if (collDetector.isColliding(objBox)) {
+            if (collDetector.isColliding(objBoxCopy)) {
                 this.resetObs(o);
                 this.obsBox[i] = new THREE.Box3().setFromObject(o);
             }

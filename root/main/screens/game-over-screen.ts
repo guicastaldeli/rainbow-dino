@@ -417,9 +417,12 @@ export class ScreenGameOver {
     }
 
     public async ready(): Promise<void> {
+        this.hideMessage();
+        
+        this.group = new THREE.Group();
+        await this.createScreenGameOver();
+
         this.score.hideScore(false);
         this.camera.hideMessage(false);
-        
-        return this.createScreenGameOver();
     }
 }

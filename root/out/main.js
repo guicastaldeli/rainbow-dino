@@ -180,6 +180,7 @@ tick.onGameOver(() => __awaiter(void 0, void 0, void 0, function* () {
 function reset() {
     lastTime = 0;
     window.removeEventListener('keydown', pauseHandler);
+    window.removeEventListener('keydown', startHandler);
     scene.remove(renderDisplay.display);
     tick.setState('running');
     timeCycle.resetState();

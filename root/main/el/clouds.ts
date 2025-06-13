@@ -24,6 +24,7 @@ export class Clouds {
     private texLoader: THREE.TextureLoader;
     private mesh!: THREE.Object3D;
     private material!: THREE.ShaderMaterial;
+    private materials: THREE.ShaderMaterial[] = [];
     private cloudGroup = new THREE.Group();
 
     private clouds: THREE.Mesh[] = [];
@@ -88,7 +89,7 @@ export class Clouds {
             const tex = await this.texLoader.loadAsync(texPath);
             const bounds = this.display.getBounds();
 
-            this.material = new THREE.ShaderMaterial({
+            const material = new THREE.ShaderMaterial({
                 uniforms: {
                     time: { value: 0.0 },
                     timeFactor: { value: this.timeCycle.getTimeFactor() },
@@ -112,6 +113,8 @@ export class Clouds {
                 transparent: true,
             });
 
+            this.materials.push(material);
+
             return new Promise<THREE.Mesh>((res) => {
                 this.loader.load(selectedModel.model, async (obj) => {
                     this.mesh = obj;
@@ -119,7 +122,7 @@ export class Clouds {
 
                     this.mesh.traverse((m) => {
                         if(m instanceof THREE.Mesh && !clouds) {
-                            m.material = this.material;
+                            m.material = material;
                             m.receiveShadow = true;
                             m.castShadow = true;
                             clouds = m;
@@ -195,6 +198,23 @@ export class Clouds {
     }
 
     public resetState(): void {
+        const factor = this.timeCycle.getTimeFactor();
+        const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
+        const ambientColor = this.lightning.update(factor);
+
+        this.materials.forEach(material => {
+            material.uniforms.time.value = totalTime;
+            material.uniforms.timeFactor.value = factor;
+            material.uniforms.ambientLightColor.value = ambientColor;
+            material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+            
+            material.uniforms.directionalLightColor.value = this.directionalLightColor;
+            material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+            material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
+            material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
+            material.needsUpdate = true;
+        });
+
         this.clouds.forEach((c, i) => {
             const x = i * this.size.w;
             const y = i * this.size.h;
@@ -204,20 +224,14 @@ export class Clouds {
             c.position.z = this.pos.z();
         });
 
-        if(this.material) {
-            this.material.uniforms.time.value = 0.0;
-            this.material.uniforms.timeFactor.value = this.timeCycle.getTimeFactor();
-            this.material.needsUpdate = true;
-        }
-
         this.cloudGroup.position.set(0, 0, 0);
     }
 
     public update(deltaTime: number, collDetector: CollDetector): void {
-        if(!this.mesh || !this.material) return;
+        if(!this.mesh || !this.materials) return;
 
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
-        const speed = this.timeCycle['scrollSpeed'] / 2;
+        const speed = this.timeCycle['scrollSpeed'] / 4;
 
         for(const c of this.clouds) {
             c.position.x -= speed * scaledDelta;
@@ -230,18 +244,20 @@ export class Clouds {
         const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
         const ambientColor = this.lightning.update(factor);
 
-        this.material.uniforms.time.value = totalTime;
-        this.material.uniforms.timeFactor.value = factor;
-
-        this.material.uniforms.ambientLightColor.value = ambientColor;
-        this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
-
-        this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
-        this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
-        this.material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
-        this.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
-
-        this.material.needsUpdate = true;
+        this.materials.forEach(material => {
+            material.uniforms.time.value = totalTime;
+            material.uniforms.timeFactor.value = factor;
+    
+            material.uniforms.ambientLightColor.value = ambientColor;
+            material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+    
+            material.uniforms.directionalLightColor.value = this.directionalLightColor;
+            material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+            material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
+            material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
+    
+            material.needsUpdate = true;
+        })
     }
 
     public async ready(): Promise<THREE.Object3D> {

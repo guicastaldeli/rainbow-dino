@@ -227,6 +227,7 @@ let lastTime = 0;
         function reset() {
             lastTime = 0;
             window.removeEventListener('keydown', pauseHandler);
+            window.removeEventListener('keydown', startHandler);
 
             scene.remove(renderDisplay.display);
 

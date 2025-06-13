@@ -24,7 +24,7 @@ export class Cactus {
     private loader!: OBJLoader;
     private texLoader!: THREE.TextureLoader;
     private mesh!: THREE.Object3D
-    private material!: THREE.ShaderMaterial;
+    private materials: THREE.ShaderMaterial[] = [];
     
     private obs: Obstacle[] = [];
     private obsBox: THREE.Box3[] = [];
@@ -95,7 +95,7 @@ export class Cactus {
             const tex = await this.texLoader.loadAsync(selectedModel.tex);
             const bounds = this.display.getBounds();
 
-            this.material = new THREE.ShaderMaterial({
+            const material = new THREE.ShaderMaterial({
                 uniforms: {
                     time: { value: 0.0 },
                     timeFactor: { value: this.timeCycle.getTimeFactor() },
@@ -118,6 +118,8 @@ export class Cactus {
                 side: THREE.DoubleSide,
             });
 
+            this.materials.push(material);
+
             return new Promise<Obstacle>((res) => {
                 this.loader.load(selectedModel.model, async (obj) => {
                     this.mesh = obj;
@@ -125,7 +127,7 @@ export class Cactus {
 
                     this.mesh.traverse((m) => {
                         if(m instanceof THREE.Mesh && !obs) {
-                            m.material = this.material;
+                            m.material = material;
                             m.receiveShadow = true;
                             m.castShadow = true;
                             obs = m;
@@ -229,10 +231,29 @@ export class Cactus {
         this.obstacleManager.addObstacle(this.obs);
         this.obstacleManager.resetState();
         this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
+
+        const factor = this.timeCycle.getTimeFactor();
+        const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
+        const ambientColor = this.lightning.update(factor);
+
+        this.materials.forEach(material => {
+            material.uniforms.time.value = totalTime;
+            material.uniforms.timeFactor.value = factor;
+    
+            material.uniforms.ambientLightColor.value = ambientColor;
+            material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+    
+            material.uniforms.directionalLightColor.value = this.directionalLightColor;
+            material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+            material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
+            material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
+    
+            material.needsUpdate = true;
+        });
     }
 
     public update(deltaTime: number, collDetector: CollDetector): void {
-        if(!this.mesh || !this.material) return;
+        if(!this.mesh || !this.materials) return;
         
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
         const speed = this.timeCycle['scrollSpeed'];
@@ -254,18 +275,20 @@ export class Cactus {
         const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
         const ambientColor = this.lightning.update(factor);
 
-        this.material.uniforms.time.value = totalTime;
-        this.material.uniforms.timeFactor.value = factor;
-
-        this.material.uniforms.ambientLightColor.value = ambientColor;
-        this.material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
-
-        this.material.uniforms.directionalLightColor.value = this.directionalLightColor;
-        this.material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
-        this.material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
-        this.material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
-
-        this.material.needsUpdate = true;
+        this.materials.forEach(material => {
+            material.uniforms.time.value = totalTime;
+            material.uniforms.timeFactor.value = factor;
+    
+            material.uniforms.ambientLightColor.value = ambientColor;
+            material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
+    
+            material.uniforms.directionalLightColor.value = this.directionalLightColor;
+            material.uniforms.directionalLightIntensity.value = this.directionalLightIntensity;
+            material.uniforms.directionalLightPosition.value = this.directionalLightPosition;
+            material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
+    
+            material.needsUpdate = true;
+        });
     }
 
     public async ready(): Promise<THREE.Object3D> {

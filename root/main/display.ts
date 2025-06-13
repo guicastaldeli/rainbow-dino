@@ -253,7 +253,6 @@ export class Display {
 
     public resetState(): void {
         this.obstacleManager.resetState();
-        
 
         if(this.renderClouds) this.renderClouds.resetState();
         if(this.renderTerrain) this.renderTerrain.resetState();
@@ -273,6 +272,29 @@ export class Display {
         }
 
         this.getBounds();
+    }
+
+    public forceUpdate(value: {
+        factor: number,
+        ambientColor: THREE.Color,
+        ambientLightIntensity: number,
+        directionalLightColor: THREE.Color,
+        directionalLightIntensity: number,
+        directionalLightPosition: THREE.Vector3,
+        directionalLightMatrix: THREE.Matrix4
+    }) {
+        this.display.traverse((obj) => {
+            if(obj instanceof THREE.Mesh && obj.material instanceof THREE.ShaderMaterial) {
+                obj.material.uniforms.timeFactor.value = value.factor;
+                obj.material.uniforms.ambientLightColor.value = value.ambientColor;
+                obj.material.uniforms.ambientLightIntensity.value = value.ambientLightIntensity;
+                obj.material.uniforms.directionalLightColor.value = value.directionalLightColor;
+                obj.material.uniforms.directionalLightIntensity.value = value.directionalLightIntensity;
+                obj.material.uniforms.directionalLightPosition.value = value.directionalLightPosition;
+                obj.material.uniforms.directionalLightMatrix.value = value.directionalLightMatrix;
+                obj.material.needsUpdate = true;
+            }
+        })
     }
 
     public update(deltaTime: number) {

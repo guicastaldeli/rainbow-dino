@@ -204,6 +204,20 @@ export class Display {
         }
         this.getBounds();
     }
+    forceUpdate(value) {
+        this.display.traverse((obj) => {
+            if (obj instanceof THREE.Mesh && obj.material instanceof THREE.ShaderMaterial) {
+                obj.material.uniforms.timeFactor.value = value.factor;
+                obj.material.uniforms.ambientLightColor.value = value.ambientColor;
+                obj.material.uniforms.ambientLightIntensity.value = value.ambientLightIntensity;
+                obj.material.uniforms.directionalLightColor.value = value.directionalLightColor;
+                obj.material.uniforms.directionalLightIntensity.value = value.directionalLightIntensity;
+                obj.material.uniforms.directionalLightPosition.value = value.directionalLightPosition;
+                obj.material.uniforms.directionalLightMatrix.value = value.directionalLightMatrix;
+                obj.material.needsUpdate = true;
+            }
+        });
+    }
     update(deltaTime) {
         if (!this.material || !this.mesh)
             return;

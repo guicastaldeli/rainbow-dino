@@ -22,6 +22,8 @@ export class ScreenGameOver {
     private loader: FontLoader;
     private data?: any;
 
+    private isReseted: boolean = false;
+
     //Material
         private group: THREE.Group;
 
@@ -40,6 +42,7 @@ export class ScreenGameOver {
             private showDuration: number = 800;
             private lastFadeTime: number = 0;
             private messageInterval?: number;
+            private blinkInterval?: NodeJS.Timeout;
             private intervalDuration: number = 1500;
         //
 
@@ -53,6 +56,9 @@ export class ScreenGameOver {
             t_night: new THREE.Color('rgb(173, 173, 173)'),
             s_night: new THREE.Color('rgb(140, 140, 140)'),
             r_night: new THREE.Color('rgb(122, 122, 122)'),
+
+            //Selected
+            selec: new THREE.Color('rgb(0, 64, 143)')
         }
     //
 
@@ -182,7 +188,7 @@ export class ScreenGameOver {
         }
     }
 
-    //Reset
+    //Reset        
         private async showMessage(): Promise<void> {
             if(this.fadeState !== 'none') return;
 
@@ -204,39 +210,6 @@ export class ScreenGameOver {
             this.fadeState = 'out';
             this.fadeProgress = 0;
             this.lastFadeTime = performance.now();
-        }
-
-        public hideMessage(): void {
-            this.score.hideScore(true);
-            this.camera.hideMessage(true);
-
-            if(this.messageInterval) {
-                clearInterval(this.messageInterval);
-                this.messageInterval = undefined;
-            }
-
-            if(this.group.parent) this.group.parent.remove(this.group);
-
-            this.group.traverse((obj) => {
-                if(obj instanceof THREE.Mesh) {
-                    obj.geometry.dispose();
-
-                    if(Array.isArray(obj.material)) {
-                        obj.material.forEach(m => m.dispose());
-                    } else {
-                        obj.material.dispose();
-                    }
-                }
-            });
-
-            this.hasMessageShown = false;
-            this.fadeState = 'none';
-            this.fadeProgress = 0;
-            
-            this.group.clear();
-            if(this.gameOverTextMat) this.gameOverTextMat.dispose();
-            if(this.gameOverScoreMat) this.gameOverScoreMat.dispose();
-            if(this.resetMat) this.resetMat.dispose();
         }
 
         private updateFade(internalTime: number): void {
@@ -372,6 +345,50 @@ export class ScreenGameOver {
         }
     }
 
+    public hideMessage(): void {
+        this.isReseted = false;
+        this.score.hideScore(true);
+        this.camera.hideMessage(true);
+
+        if(this.messageInterval) {
+            clearInterval(this.messageInterval);
+            this.messageInterval = undefined;
+        }
+
+        if(this.blinkInterval) {
+            clearInterval(this.blinkInterval);
+            this.blinkInterval = undefined;
+        }
+
+        if(this.group.parent) this.group.parent.remove(this.group);
+
+        this.group.traverse((obj) => {
+            if(obj instanceof THREE.Mesh) {
+                obj.geometry.dispose();
+
+                if(Array.isArray(obj.material)) {
+                    obj.material.forEach(m => m.dispose());
+                } else {
+                    obj.material.dispose();
+                }
+            }
+        });
+
+        this.hasMessageShown = false;
+        this.fadeState = 'none';
+        this.fadeProgress = 0;
+            
+        this.group.clear();
+        if(this.gameOverTextMat) this.gameOverTextMat.dispose();
+        if(this.gameOverScoreMat) this.gameOverScoreMat.dispose();
+        if(this.resetMat) this.resetMat.dispose();
+    }
+
+    public onReseted(): void {
+        this.isReseted = true;
+        this.fadeState = 'none';
+    }
+
     public update(deltaTime: number): void {
         if(!this.gameOverTextMat || !this.gameOverScoreMat || !this.resetMat) return;
 
@@ -404,11 +421,16 @@ export class ScreenGameOver {
             timeFactor
         );
 
-        this.resetMat.color.lerpColors(
-            nightColor.r,
-            dayColor.r,
-            timeFactor
-        );
+        if(!this.isReseted) {
+            this.resetMat.color.lerpColors(
+                this.colors.r_night,
+                this.colors.r_day,
+                timeFactor
+            );
+        } else {
+            this.resetMat.color.copy(this.colors.selec);
+        }
+
 
         this.gameOverTextMat.needsUpdate = true;
         this.gameOverScoreMat.needsUpdate = true;
@@ -417,12 +439,9 @@ export class ScreenGameOver {
     }
 
     public async ready(): Promise<void> {
-        this.hideMessage();
-        
-        this.group = new THREE.Group();
-        await this.createScreenGameOver();
-
         this.score.hideScore(false);
         this.camera.hideMessage(false);
+        
+        return this.createScreenGameOver();
     }
 }

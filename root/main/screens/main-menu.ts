@@ -524,8 +524,6 @@ export class ScreenMainMenu {
             this.scoreMat[1].needsUpdate = true;
         }
 
-       
-
         this.logoMat.uniforms.time.value = totalTime;
         this.logoMat.uniforms.timeFactor.value = factor;
 

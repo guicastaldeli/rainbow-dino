@@ -179,6 +179,10 @@ export class Cactus {
         const obs = await Promise.all(obsArray);
         this.obs.push(...obs);
         this.obsGroup.add(...obs);
+        
+        requestAnimationFrame(() => {
+            this.obstacleManager.addObstacle(obs);
+        });
     }
 
     public getObs(): Obstacle[] {
@@ -227,6 +231,22 @@ export class Cactus {
     }
 
     public async resetState(): Promise<THREE.Group> {
+        this.materials.forEach(m => m.dispose());
+        this.materials = [];
+        
+        this.obs.forEach(obs => {
+            if(obs.geometry) obs.geometry.dispose();
+            if(obs.material && !Array.isArray(obs.material)) obs.material.dispose();
+        });
+        
+        this.obstacleManager.clearObstacles();
+        this.obs = [];
+        this.obsBox = [];
+        this.obsGroup.clear();
+        
+        await this.setObs();
+        this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
+
         const factor = this.timeCycle.getTimeFactor();
         const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
         const ambientColor = this.lightning.update(factor);
@@ -245,19 +265,6 @@ export class Cactus {
     
             material.needsUpdate = true;
         });
-
-        this.obs.forEach(obs => {
-            if(obs.geometry) obs.geometry.dispose();
-            if(obs.material && !Array.isArray(obs.material)) obs.material.dispose();
-        });
-        
-        this.obstacleManager.clearObstacles();
-        this.obs = [];
-        this.obsBox = [];
-        this.obsGroup.clear();
-        
-        await this.setObs();
-        this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
         
         return this.obsGroup;
     }

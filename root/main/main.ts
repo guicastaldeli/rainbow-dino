@@ -144,7 +144,6 @@ let lastTime = 0;
 
         //Start
         function startHandler(e: KeyboardEvent) {
-            
             if(e.key && gameState.current === 'menu') {
                 screenMenu.onStarted();
 
@@ -217,6 +216,7 @@ let lastTime = 0;
         tick.onGameOver(async () => {
             score.onGameEnd();
             score.getFinalScore();
+
             await screenGameOver.ready();
 
             screenMenu.updateHighScore();
@@ -261,7 +261,10 @@ let lastTime = 0;
         tick.onReset(() => reset());
 
         window.addEventListener('keydown', async (e) => {
-            if(e.key === 'Escape') tick.reset();
+            if(e.key === 'Escape') {
+                screenGameOver.onReseted();
+                tick.reset();
+            }
         });
     //
 //

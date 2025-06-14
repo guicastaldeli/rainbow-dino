@@ -143,6 +143,9 @@ export class Cactus {
             const obs = yield Promise.all(obsArray);
             this.obs.push(...obs);
             this.obsGroup.add(...obs);
+            requestAnimationFrame(() => {
+                this.obstacleManager.addObstacle(obs);
+            });
         });
     }
     getObs() {
@@ -187,6 +190,20 @@ export class Cactus {
     }
     resetState() {
         return __awaiter(this, void 0, void 0, function* () {
+            this.materials.forEach(m => m.dispose());
+            this.materials = [];
+            this.obs.forEach(obs => {
+                if (obs.geometry)
+                    obs.geometry.dispose();
+                if (obs.material && !Array.isArray(obs.material))
+                    obs.material.dispose();
+            });
+            this.obstacleManager.clearObstacles();
+            this.obs = [];
+            this.obsBox = [];
+            this.obsGroup.clear();
+            yield this.setObs();
+            this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
             const factor = this.timeCycle.getTimeFactor();
             const totalTime = performance.now() * this.timeCycle['initSpeed'] * this.tick.getTimeScale();
             const ambientColor = this.lightning.update(factor);
@@ -201,18 +218,6 @@ export class Cactus {
                 material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
                 material.needsUpdate = true;
             });
-            this.obs.forEach(obs => {
-                if (obs.geometry)
-                    obs.geometry.dispose();
-                if (obs.material && !Array.isArray(obs.material))
-                    obs.material.dispose();
-            });
-            this.obstacleManager.clearObstacles();
-            this.obs = [];
-            this.obsBox = [];
-            this.obsGroup.clear();
-            yield this.setObs();
-            this.obsBox = this.obs.map(o => new THREE.Box3().setFromObject(o));
             return this.obsGroup;
         });
     }

@@ -14,6 +14,7 @@ export class ScreenGameOver {
     //
     constructor(state, tick, time, score, camera, player) {
         this.lastTime = 0;
+        this.isReseted = false;
         this.hasMessageShown = false;
         this.fadeState = 'none';
         this.fadeProgress = 0;
@@ -31,6 +32,8 @@ export class ScreenGameOver {
             t_night: new THREE.Color('rgb(173, 173, 173)'),
             s_night: new THREE.Color('rgb(140, 140, 140)'),
             r_night: new THREE.Color('rgb(122, 122, 122)'),
+            //Selected
+            selec: new THREE.Color('rgb(0, 64, 143)')
         };
         this.state = {
             current: 'game-over',
@@ -132,7 +135,7 @@ export class ScreenGameOver {
             }
         });
     }
-    //Reset
+    //Reset        
     showMessage() {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.fadeState !== 'none')
@@ -155,37 +158,6 @@ export class ScreenGameOver {
         this.fadeState = 'out';
         this.fadeProgress = 0;
         this.lastFadeTime = performance.now();
-    }
-    hideMessage() {
-        this.score.hideScore(true);
-        this.camera.hideMessage(true);
-        if (this.messageInterval) {
-            clearInterval(this.messageInterval);
-            this.messageInterval = undefined;
-        }
-        if (this.group.parent)
-            this.group.parent.remove(this.group);
-        this.group.traverse((obj) => {
-            if (obj instanceof THREE.Mesh) {
-                obj.geometry.dispose();
-                if (Array.isArray(obj.material)) {
-                    obj.material.forEach(m => m.dispose());
-                }
-                else {
-                    obj.material.dispose();
-                }
-            }
-        });
-        this.hasMessageShown = false;
-        this.fadeState = 'none';
-        this.fadeProgress = 0;
-        this.group.clear();
-        if (this.gameOverTextMat)
-            this.gameOverTextMat.dispose();
-        if (this.gameOverScoreMat)
-            this.gameOverScoreMat.dispose();
-        if (this.resetMat)
-            this.resetMat.dispose();
     }
     updateFade(internalTime) {
         if (this.fadeState === 'none' || !this.resetMesh || !this.resetMat)
@@ -306,6 +278,46 @@ export class ScreenGameOver {
             }
         });
     }
+    hideMessage() {
+        this.isReseted = false;
+        this.score.hideScore(true);
+        this.camera.hideMessage(true);
+        if (this.messageInterval) {
+            clearInterval(this.messageInterval);
+            this.messageInterval = undefined;
+        }
+        if (this.blinkInterval) {
+            clearInterval(this.blinkInterval);
+            this.blinkInterval = undefined;
+        }
+        if (this.group.parent)
+            this.group.parent.remove(this.group);
+        this.group.traverse((obj) => {
+            if (obj instanceof THREE.Mesh) {
+                obj.geometry.dispose();
+                if (Array.isArray(obj.material)) {
+                    obj.material.forEach(m => m.dispose());
+                }
+                else {
+                    obj.material.dispose();
+                }
+            }
+        });
+        this.hasMessageShown = false;
+        this.fadeState = 'none';
+        this.fadeProgress = 0;
+        this.group.clear();
+        if (this.gameOverTextMat)
+            this.gameOverTextMat.dispose();
+        if (this.gameOverScoreMat)
+            this.gameOverScoreMat.dispose();
+        if (this.resetMat)
+            this.resetMat.dispose();
+    }
+    onReseted() {
+        this.isReseted = true;
+        this.fadeState = 'none';
+    }
     update(deltaTime) {
         if (!this.gameOverTextMat || !this.gameOverScoreMat || !this.resetMat)
             return;
@@ -325,7 +337,12 @@ export class ScreenGameOver {
         };
         this.gameOverTextMat.color.lerpColors(nightColor.t, dayColor.t, timeFactor);
         this.gameOverScoreMat.color.lerpColors(nightColor.s, dayColor.s, timeFactor);
-        this.resetMat.color.lerpColors(nightColor.r, dayColor.r, timeFactor);
+        if (!this.isReseted) {
+            this.resetMat.color.lerpColors(this.colors.r_night, this.colors.r_day, timeFactor);
+        }
+        else {
+            this.resetMat.color.copy(this.colors.selec);
+        }
         this.gameOverTextMat.needsUpdate = true;
         this.gameOverScoreMat.needsUpdate = true;
         this.resetMat.needsUpdate = true;
@@ -333,11 +350,9 @@ export class ScreenGameOver {
     }
     ready() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.hideMessage();
-            this.group = new THREE.Group();
-            yield this.createScreenGameOver();
             this.score.hideScore(false);
             this.camera.hideMessage(false);
+            return this.createScreenGameOver();
         });
     }
 }

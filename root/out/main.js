@@ -207,8 +207,10 @@ function reset() {
 }
 tick.onReset(() => reset());
 window.addEventListener('keydown', (e) => __awaiter(void 0, void 0, void 0, function* () {
-    if (e.key === 'Escape')
+    if (e.key === 'Escape') {
+        screenGameOver.onReseted();
         tick.reset();
+    }
 }));
 //
 //

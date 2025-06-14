@@ -391,7 +391,7 @@ export class ScreenGameOver {
     public onReseted(): void {
         this.isReseted = true;
         this.fadeState = 'none';
-        this.audioManager.playAudio('select')
+        this.audioManager.playAudio('select');
     }
 
     public update(deltaTime: number): void {

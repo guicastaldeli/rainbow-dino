@@ -27,7 +27,7 @@ export class AudioManager {
         //Path
         const songPath = '../../assets/audio/rainbow-song.ogg';
         const selectSoundPath = '../../assets/audio/select-sound.ogg';
-        const jumpSoundPath = '../../assets/audio/jump-sound.ogg'
+        const jumpSoundPath = '../../assets/audio/jump-sound.ogg';
         const hitSoundPath = '../../assets/audio/hit-sound.ogg';
 
         //Source

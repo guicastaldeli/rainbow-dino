@@ -191,7 +191,7 @@ export class Terrain {
         if(!this.mesh || !this.material || this.blocks.length !== this.length) return;
 
         const scaledDelta = this.tick.getScaledDelta(deltaTime);
-        const speed = this.timeCycle['scrollSpeed']
+        const speed = this.timeCycle['scrollSpeed'];
         
         for(let i = 0; i < this.blocks.length; i++) {
             const b = this.blocks[i];

@@ -226,7 +226,7 @@ const audioManager = new AudioManager();
 
         tick.onGameOver(async () => {
             score.onGameEnd();
-            score.getFinalScore()
+            score.getFinalScore();
 
             await screenGameOver.ready();
 

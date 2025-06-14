@@ -8,7 +8,7 @@ gamejolt
 # About Rainbow Dino
 
 #### An amazing adventure of a Rainbow Dino!
-###### This game is heavly inspired by Chrome Dino, and work the same way as well!
+##### This game is heavly inspired by Chrome Dino, and work the same way as well!
 Here you will have to dodge from crows and cactus, while speed increases, and will going much more harder.
 Also, the score will increase as you survive.
 ### How this looks:

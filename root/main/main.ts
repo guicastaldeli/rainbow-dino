@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GameState } from './game-state.js';
 import { Tick } from './tick.js';
 import { Time } from './time.js';
+import { AudioManager } from './audio-manager.js';
 import { Camera } from './camera.js';
 import { Lightning } from './lightning.js';
 import { Score } from './score.js';
@@ -35,6 +36,9 @@ export const scene = new THREE.Scene();
 const tick = new Tick();
 const gameState = tick.getState();
 let lastTime = 0;
+
+//Audio
+const audioManager = new AudioManager();
 
 //Game State
     let isInitLoad = true;
@@ -94,7 +98,7 @@ let lastTime = 0;
     });
     
     //Main Display
-    const renderDisplay = new Display(gameState, tick, timeCycle, renderer, scene);
+    const renderDisplay = new Display(gameState, tick, timeCycle, renderer, scene, audioManager);
 
     tick.onStateChange((s) => {
         if(s === 'running') {
@@ -126,7 +130,8 @@ let lastTime = 0;
                 tick,
                 timeCycle,
                 camera,
-                score
+                score,
+                audioManager
             )
         ;
 
@@ -157,6 +162,10 @@ let lastTime = 0;
                     
                     tick.setState('running');
                     tick.run();
+
+                    setTimeout(() => {
+                        audioManager.playAudio('song');
+                    }, 500);
     
                     window.removeEventListener('keydown', startHandler);
                 }, 500)
@@ -172,7 +181,8 @@ let lastTime = 0;
                 gameState,
                 timeCycle,
                 tick,
-                camera
+                camera,
+                audioManager
             )
         ;
 
@@ -209,7 +219,8 @@ let lastTime = 0;
                 timeCycle, 
                 score, 
                 camera,
-                player
+                player,
+                audioManager
             )
         ;
 
@@ -255,7 +266,6 @@ let lastTime = 0;
                 pause();
                 window.addEventListener('keydown', pauseHandler);
             }, 1000);
-
         }
         
         tick.onReset(() => reset());

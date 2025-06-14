@@ -13,7 +13,7 @@ import { FontLoader, OBJLoader, MTLLoader } from 'three/addons/Addons.js';
 import { Lightning } from '../lightning.js';
 export class ScreenMainMenu {
     //
-    constructor(state, tick, time, camera, score) {
+    constructor(state, tick, time, camera, score, audioManager) {
         this.lastTime = 0;
         this.isStarted = false;
         this.logoTexArray = [];
@@ -50,6 +50,7 @@ export class ScreenMainMenu {
         this.camera = camera;
         this.score = score;
         this.score.getHighScore();
+        this.audioManager = audioManager;
         this.group = new THREE.Group();
         this.fontLoader = new FontLoader();
         this.objLoader = new OBJLoader();
@@ -220,6 +221,7 @@ export class ScreenMainMenu {
         }
     }
     onStarted() {
+        this.audioManager.playAudio('select');
         this.isStarted = true;
         this.fadeState = 'none';
         if (this.startMat) {

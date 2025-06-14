@@ -5,6 +5,7 @@ import { Font, FontLoader } from 'three/addons/Addons.js';
 import { GameState } from '../game-state';
 import { Time } from '../time';
 import { Tick } from '../tick';
+import { AudioManager } from '../audio-manager';
 import { Camera } from '../camera';
 
 export class ScreenPauseMenu {
@@ -12,6 +13,7 @@ export class ScreenPauseMenu {
     private time: Time;
     private tick: Tick;
     private lastTime: number = 0;
+    private audioManager: AudioManager;
 
     private camera: Camera;
 
@@ -42,10 +44,17 @@ export class ScreenPauseMenu {
         }
     //
 
-    constructor(state: GameState, time: Time, tick: Tick, camera: Camera) {
+    constructor(
+        state: GameState, 
+        time: Time, 
+        tick: Tick, 
+        camera: Camera,
+        audioManager: AudioManager
+    ) {
         this.state = state;
         this.time = time;
         this.tick = tick;
+        this.audioManager = audioManager;
 
         this.camera = camera;
 
@@ -74,6 +83,7 @@ export class ScreenPauseMenu {
     }
 
     private async showMessage(): Promise<void> {
+        if(this.fadeState === 'none') this.audioManager.playAudio('select');
         if(this.fadeState !== 'none') return;
     
         try {

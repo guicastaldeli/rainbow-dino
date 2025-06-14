@@ -12,7 +12,7 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/Addons.js';
 export class ScreenGameOver {
     //
-    constructor(state, tick, time, score, camera, player) {
+    constructor(state, tick, time, score, camera, player, audioManager) {
         this.lastTime = 0;
         this.isReseted = false;
         this.hasMessageShown = false;
@@ -42,6 +42,7 @@ export class ScreenGameOver {
         };
         this.time = time;
         this.tick = tick;
+        this.audioManager = audioManager;
         this.score = score;
         this.camera = camera;
         this.player = player;
@@ -317,6 +318,7 @@ export class ScreenGameOver {
     onReseted() {
         this.isReseted = true;
         this.fadeState = 'none';
+        this.audioManager.playAudio('select');
     }
     update(deltaTime) {
         if (!this.gameOverTextMat || !this.gameOverScoreMat || !this.resetMat)

@@ -4,6 +4,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { GameState } from '../game-state';
 import { Tick } from '../tick';
 import { Time } from '../time';
+import { AudioManager } from '../audio-manager';
 import { Lightning } from '../lightning.js';
 import { CollDetector } from '../coll-detector.js';
 
@@ -23,6 +24,7 @@ interface Controls {
 export class Player {
     private tick: Tick;
     private timeCycle: Time;
+    private audioManager?: AudioManager;
 
     private lightning: Lightning;
     private ambientLightColor: THREE.Color;
@@ -59,6 +61,7 @@ export class Player {
     private collDetector?: CollDetector;
 
     private obstacles?: Obstacle[];
+    private isColliding: boolean = false;
 
     private mov: MovState = {
         FORWARD: false,
@@ -87,10 +90,12 @@ export class Player {
         tick: Tick, 
         timeCycle: Time, 
         collDetector?: CollDetector, 
-        obstacles?: Obstacle[]
+        obstacles?: Obstacle[],
+        audioManager?: AudioManager,
     ) {
         this.tick = tick;
         this.timeCycle = timeCycle;
+        this.audioManager = audioManager;
 
         //Lightning
             this.lightning = new Lightning(this.tick, this.timeCycle);
@@ -270,10 +275,14 @@ export class Player {
         }
 
         if(this.obstacles.length > 0) {
-            if(this.collDetector.playerCollision(playerBox, this.obstacles)) {
+            const isCollidingNow = this.collDetector.playerCollision(playerBox, this.obstacles);
+
+            if(isCollidingNow && !this.isColliding) {
                 this.hitTaken();
                 this.tick.setGameOver();
             }
+
+            this.isColliding = isCollidingNow;
         }
 
         if(this.mesh) this.mesh.position.set(this.pos.x, this.pos.y, this.pos.z);
@@ -305,6 +314,12 @@ export class Player {
 
     //Hit
     private hitTaken(): void {
+        if(this.audioManager) {
+            this.audioManager.playAudio('hit');
+            this.audioManager.stopAudio('song');
+            return;
+        }
+
         this.isHit = true;
         this.currentFrameIndex = 3;
         this.saveFrame(3);
@@ -356,9 +371,15 @@ export class Player {
             case 'Space':
             case 'ArrowUp':
                 this.isJumping = isKeyDown;
-                if(isKeyDown && this.isGrounded) this.jumpVelocity = this.jumpForce;
+                
+                if(isKeyDown && this.isGrounded) {
+                    this.jumpVelocity = this.jumpForce;
+                    if(this.audioManager) this.audioManager.playAudio('jump')
+                }
+
                 if(!this.isGrounded) this.frameInterval = 0.08;
                 if(!isKeyDown) this.isJumping = false;
+                
                 break;
             case 'ShiftLeft':
             case 'ArrowDown':

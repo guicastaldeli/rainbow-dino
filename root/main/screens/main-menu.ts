@@ -6,6 +6,7 @@ import { GameState } from '../game-state.js';
 import { Time } from '../time.js';
 import { Tick } from '../tick.js';
 import { Camera } from '../camera.js';
+import { AudioManager } from '../audio-manager.js';
 import { Score } from '../score.js';
 import { Lightning } from '../lightning.js';
 
@@ -16,6 +17,8 @@ export class ScreenMainMenu {
     private lastTime: number = 0;
 
     private camera: Camera;
+
+    private audioManager: AudioManager;
 
     private lightning: Lightning;
     private ambientLightColor: THREE.Color;
@@ -87,6 +90,7 @@ export class ScreenMainMenu {
         time: Time, 
         camera: Camera,
         score: Score,
+        audioManager: AudioManager
     ) {
         this.state = {
             current: 'menu',
@@ -100,6 +104,8 @@ export class ScreenMainMenu {
         this.camera = camera;
         this.score = score;
         this.score.getHighScore();
+
+        this.audioManager = audioManager;
 
         this.group = new THREE.Group();
 
@@ -296,6 +302,8 @@ export class ScreenMainMenu {
         }
 
         public onStarted(): void {
+            this.audioManager.playAudio('select');
+            
             this.isStarted = true;
             this.fadeState = 'none';
 

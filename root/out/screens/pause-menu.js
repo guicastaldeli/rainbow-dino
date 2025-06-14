@@ -12,7 +12,7 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/Addons.js';
 export class ScreenPauseMenu {
     //
-    constructor(state, time, tick, camera) {
+    constructor(state, time, tick, camera, audioManager) {
         this.lastTime = 0;
         this.hasMessageShown = false;
         this.fadeState = 'none';
@@ -31,6 +31,7 @@ export class ScreenPauseMenu {
         this.state = state;
         this.time = time;
         this.tick = tick;
+        this.audioManager = audioManager;
         this.camera = camera;
         this.loader = new FontLoader();
         this.loadFont();
@@ -52,6 +53,8 @@ export class ScreenPauseMenu {
     }
     showMessage() {
         return __awaiter(this, void 0, void 0, function* () {
+            if (this.fadeState === 'none')
+                this.audioManager.playAudio('select');
             if (this.fadeState !== 'none')
                 return;
             try {

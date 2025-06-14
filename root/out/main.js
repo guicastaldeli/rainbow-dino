@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import * as THREE from 'three';
 import { Tick } from './tick.js';
 import { Time } from './time.js';
+import { AudioManager } from './audio-manager.js';
 import { Camera } from './camera.js';
 import { Lightning } from './lightning.js';
 import { Score } from './score.js';
@@ -37,6 +38,8 @@ export const scene = new THREE.Scene();
 const tick = new Tick();
 const gameState = tick.getState();
 let lastTime = 0;
+//Audio
+const audioManager = new AudioManager();
 //Game State
 let isInitLoad = true;
 tick.setState('menu');
@@ -89,7 +92,7 @@ tick.onStateChange((s) => {
     }
 });
 //Main Display
-const renderDisplay = new Display(gameState, tick, timeCycle, renderer, scene);
+const renderDisplay = new Display(gameState, tick, timeCycle, renderer, scene, audioManager);
 tick.onStateChange((s) => {
     if (s === 'running') {
         if (!assetsLoaded.score) {
@@ -111,7 +114,7 @@ lights.forEach(l => scene.add(l));
 //
 //Screens
 //Menu
-const screenMenu = new ScreenMainMenu(gameState, tick, timeCycle, camera, score);
+const screenMenu = new ScreenMainMenu(gameState, tick, timeCycle, camera, score, audioManager);
 //Menu
 function showMenu() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -136,6 +139,9 @@ function startHandler(e) {
             screenMenu.hideMenu();
             tick.setState('running');
             tick.run();
+            setTimeout(() => {
+                audioManager.playAudio('song');
+            }, 500);
             window.removeEventListener('keydown', startHandler);
         }, 500);
     }
@@ -143,7 +149,7 @@ function startHandler(e) {
 window.addEventListener('keydown', startHandler);
 //
 //Pause
-const screenPause = new ScreenPauseMenu(gameState, timeCycle, tick, camera);
+const screenPause = new ScreenPauseMenu(gameState, timeCycle, tick, camera, audioManager);
 function pauseHandler(e) {
     if (e.key === 'Escape') {
         e.preventDefault();
@@ -168,7 +174,7 @@ function activePause() {
 }
 //
 //Game Over
-const screenGameOver = new ScreenGameOver(gameState, tick, timeCycle, score, camera, player);
+const screenGameOver = new ScreenGameOver(gameState, tick, timeCycle, score, camera, player, audioManager);
 tick.onGameOver(() => __awaiter(void 0, void 0, void 0, function* () {
     score.onGameEnd();
     score.getFinalScore();

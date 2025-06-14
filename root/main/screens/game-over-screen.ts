@@ -5,6 +5,7 @@ import { Font, FontLoader } from 'three/addons/Addons.js';
 import { GameState } from '../game-state';
 import { Time } from '../time';
 import { Tick } from '../tick';
+import { AudioManager } from '../audio-manager';
 import { Score } from '../score';
 import { Camera } from '../camera';
 import { Player } from '../el/player';
@@ -14,6 +15,7 @@ export class ScreenGameOver {
     private tick: Tick;
     private time: Time;
     private lastTime: number = 0;
+    private audioManager: AudioManager;
 
     private camera: Camera;
     private score: Score;
@@ -68,7 +70,8 @@ export class ScreenGameOver {
         time: Time, 
         score: Score, 
         camera: Camera,
-        player: Player
+        player: Player,
+        audioManager: AudioManager
     ) {
         this.state = {
             current: 'game-over',
@@ -78,6 +81,7 @@ export class ScreenGameOver {
 
         this.time = time;
         this.tick = tick;
+        this.audioManager = audioManager;
 
         this.score = score;
         this.camera = camera;
@@ -387,6 +391,7 @@ export class ScreenGameOver {
     public onReseted(): void {
         this.isReseted = true;
         this.fadeState = 'none';
+        this.audioManager.playAudio('select');
     }
 
     public update(deltaTime: number): void {

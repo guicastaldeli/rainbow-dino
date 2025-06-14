@@ -4,6 +4,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { GameState } from './game-state.js';
 import { Tick } from './tick.js';
 import { Time } from './time.js';
+import { AudioManager } from './audio-manager.js';
 import { Lightning } from './lightning.js';
 import { CollDetector } from './coll-detector.js';
 import { Terrain } from './el/terrain.js';
@@ -17,6 +18,7 @@ export class Display {
     private state: GameState;
     private tick: Tick;
     private timeCycle: Time;
+    private audioManager: AudioManager;
 
     public display: THREE.Group;
     private renderer: THREE.WebGLRenderer;
@@ -51,14 +53,16 @@ export class Display {
     constructor(
         state: GameState,
         tick: Tick, 
-        timeCycle: Time, 
+        timeCycle: Time,
         renderer: THREE.WebGLRenderer, 
-        scene: THREE.Scene
+        scene: THREE.Scene,
+        audioManager: AudioManager,
     ) {
         this.state = state;
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.renderer = renderer;
+        this.audioManager = audioManager
 
         //Lightning
             this.lightning = new Lightning(this.tick, this.timeCycle);
@@ -243,7 +247,7 @@ export class Display {
             //
 
             //Player
-            this.renderPlayer = new Player(this.tick, this.timeCycle, this.collDetector, this.obstacleManager.getObstacles());
+            this.renderPlayer = new Player(this.tick, this.timeCycle, this.collDetector, this.obstacleManager.getObstacles(), this.audioManager);
             const playerObj = await this.renderPlayer.ready();
             this.display.add(playerObj);
         //

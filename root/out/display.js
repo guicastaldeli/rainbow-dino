@@ -18,7 +18,7 @@ import { Cactus } from './el/cactus.js';
 import { Crow } from './el/crow.js';
 import { Player } from './el/player.js';
 export class Display {
-    constructor(state, tick, timeCycle, renderer, scene) {
+    constructor(state, tick, timeCycle, renderer, scene, audioManager) {
         this.obstacleManager = new ObstacleManager();
         this.size = {
             w: 0.52,
@@ -34,6 +34,7 @@ export class Display {
         this.tick = tick;
         this.timeCycle = timeCycle;
         this.renderer = renderer;
+        this.audioManager = audioManager;
         //Lightning
         this.lightning = new Lightning(this.tick, this.timeCycle);
         this.ambientLightColor = this.lightning.getColor();
@@ -174,7 +175,7 @@ export class Display {
             //
             //
             //Player
-            this.renderPlayer = new Player(this.tick, this.timeCycle, this.collDetector, this.obstacleManager.getObstacles());
+            this.renderPlayer = new Player(this.tick, this.timeCycle, this.collDetector, this.obstacleManager.getObstacles(), this.audioManager);
             const playerObj = yield this.renderPlayer.ready();
             this.display.add(playerObj);
             //

@@ -257,7 +257,7 @@ export class Clouds {
             material.uniforms.directionalLightMatrix.value = this.directionalLight.shadow.matrix;
     
             material.needsUpdate = true;
-        })
+        });
     }
 
     public async ready(): Promise<THREE.Object3D> {

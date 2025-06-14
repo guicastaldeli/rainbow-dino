@@ -436,7 +436,6 @@ export class ScreenGameOver {
             this.resetMat.color.copy(this.colors.selec);
         }
 
-
         this.gameOverTextMat.needsUpdate = true;
         this.gameOverScoreMat.needsUpdate = true;
         this.resetMat.needsUpdate = true;

@@ -115,15 +115,15 @@ export class Camera {
             if (!this.data)
                 return;
             const size = {
-                s: 0.08,
+                s: 0.06,
                 d: 0
             };
             const pos = {
                 x: 0,
-                y: -0.8,
+                y: -1,
                 z: -1
             };
-            const text = 'To reset camera, press the key "R"';
+            const text = 'To move the camera use Mouse, and Mouse Buttons. to reset, press the key "R"';
             const geometry = new TextGeometry(text, {
                 font: this.data,
                 size: size.s,

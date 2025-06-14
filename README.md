@@ -2,8 +2,8 @@
 ![Logo](./assets/img/logo.png)
 
 ‎ ‎
-# Link to Play
-gamejolt
+# Play the Game
+[![GameJolt](https://img.shields.io/badge/Play_on-GameJolt-7149a6.svg)](https://gamejolt.com/games/rainbowdino/999584)
 
 # About Rainbow Dino
 

@@ -302,7 +302,7 @@ export class ScreenMainMenu {
         }
 
         public onStarted(): void {
-            this.audioManager.playAudio('select');
+            this.audioManager.playAudio('select')
             
             this.isStarted = true;
             this.fadeState = 'none';

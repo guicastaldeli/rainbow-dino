@@ -315,7 +315,7 @@ export class Player {
     //Hit
     private hitTaken(): void {
         if(this.audioManager) {
-            this.audioManager.playAudio('hit');
+            this.audioManager.playAudio('hit')
             this.audioManager.stopAudio('song');
             return;
         }

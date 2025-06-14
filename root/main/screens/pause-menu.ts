@@ -84,7 +84,7 @@ export class ScreenPauseMenu {
 
     private async showMessage(): Promise<void> {
         if(this.fadeState === 'none') this.audioManager.playAudio('select');
-        if(this.fadeState !== 'none') return;
+        if(this.fadeState !== 'none') return
     
         try {
             this.camera.camera.add(this.mesh);
